@@ -1,2 +1,0 @@
-diff-ignore
-extend-diff-ignore = ^(\.vscode|bin|web/bindata.go|dist|ui/node_modules|var)(/|$)

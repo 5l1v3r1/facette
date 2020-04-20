@@ -1,121 +1,33 @@
+// Copyright (c) 2020, The Facette Authors
+//
+// Licensed under the terms of the BSD 3-Clause License; a copy of the license
+// is available at: https://opensource.org/licenses/BSD-3-Clause
+
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/signal"
-	"runtime/debug"
-	"strings"
-	"syscall"
 
-	"facette.io/facette/catalog"
-	"facette.io/facette/config"
-	"facette.io/facette/connector"
-	"facette.io/facette/poller"
-	"facette.io/facette/storage"
-	"facette.io/facette/version"
-	"facette.io/facette/web"
-	"facette.io/sqlstorage"
-	"github.com/cosiner/flag"
-	"github.com/oklog/run"
-	"github.com/pkg/errors"
+	"github.com/urfave/cli/v2"
+
+	"facette.io/facette/cmd/facette/internal/command/run"
 )
 
-type command struct {
-	Config  string `names:"-c, --config" usage:"configuration file path" default:"/etc/facette/facette.yaml"`
-	Help    bool   `names:"-h, --help" usage:"display this help and exit"`
-	Version bool   `names:"-V, --version" usage:"display version information and exit"`
-}
+func main() {
+	app := &cli.App{
+		Name:  "facette",
+		Usage: "Time series data visualization software",
+		Commands: []*cli.Command{
+			run.Command,
+		},
+		HideHelpCommand: true,
+		Action:          cli.ShowAppHelp,
+	}
 
-func (*command) Metadata() map[string]flag.Flag {
-	return map[string]flag.Flag{"": {Usage: "Time series data visualization software"}}
-}
-
-var cmd command
-
-func init() {
-	flagSet := flag.NewFlagSet(flag.Flag{}).ErrHandling(0)
-	flagSet.StructFlags(&cmd)
-
-	err := flagSet.Parse(os.Args...)
+	err := app.Run(os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		flagSet.Help(false)
-		os.Exit(2)
-	} else if cmd.Version {
-		version.Print()
-		fmt.Printf(
-			"   Drivers:     %s\n   Connectors:  %s\n",
-			strings.Join(sqlstorage.Drivers(), ", "),
-			strings.Join(connector.Connectors(), ", "),
-		)
-		os.Exit(0)
+		os.Exit(1)
 	}
-}
-
-func main() {
-	var g run.Group
-
-	config, err := config.New(cmd.Config)
-	if err != nil {
-		die(errors.Wrap(err, "cannot initialize configuration"))
-	}
-
-	logger, err := newLogger(config)
-	if err != nil {
-		die(errors.Wrap(err, "cannot initialize logger"))
-	}
-
-	// Catch panic and write its output to the logger
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("panic: %s\n%s", r, debug.Stack())
-			os.Exit(1)
-		}
-	}()
-
-	// Initialize subcomponents pre-requisites
-	storage, err := storage.New(config.Storage, logger.Context("storage"))
-	if err != nil {
-		die(errors.Wrap(err, "cannot initialize storage"))
-	}
-	defer storage.Close()
-
-	searcher := catalog.NewSearcher()
-
-	// Run subcomponents and wait for them to finish their job
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	poller := poller.New(ctx, storage, searcher, config, logger.Context("poller"))
-	g.Add(func() error { return poller.Run() }, func(error) { poller.Shutdown(); cancel() })
-
-	web := web.NewHandler(ctx, storage, searcher, poller, config, logger.Context("http"))
-	g.Add(func() error { return web.Run() }, func(error) { web.Shutdown(); cancel() })
-
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGUSR1)
-
-	go func() {
-		for s := range sc {
-			switch s {
-			case syscall.SIGUSR1:
-				poller.RefreshAll()
-
-			default:
-				if ctx.Err() != context.Canceled {
-					logger.Notice("received shutdown signal, stopping")
-					cancel()
-				}
-			}
-		}
-	}()
-
-	g.Run()
-}
-
-func die(err error) {
-	fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-	os.Exit(1)
 }

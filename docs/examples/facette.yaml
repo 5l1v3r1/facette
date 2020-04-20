@@ -1,80 +1,58 @@
 ---
-logger:
-  ### File
-  file:
-    # Logging level (error, warning, notice, info or debug)
-    level: info
+log:
+  # Logging level
+  # default: info
+  level: info
 
-    # Log file path (uses stdout if left empty or set to "-")
-    path:
+  # Logging file path
+  # default: stdout
+  path: stdout
 
-  ### Syslog
-  #syslog:
-  #  # Logging level (error, warning, notice, info or debug)
-  #  level: info
-
-  #  # Syslog facility name
-  #  facility: daemon
-
-  #  # Syslog tag
-  #  tag: facette
-
-  #  # Syslog address (defaults to local Syslog if left empty)
-  #  address:
-
-  #  # Network transport for Syslog instance (used if address is specified)
-  #  transport: udp
+  # Logging output encoding (either "console" or "json")
+  # default: console
+  encoding: console
 
 http:
-  listen: localhost:12003
-  # or
-  #listen: unix:/var/run/facette.sock?mode=0644&user=facette&group=facette
+  # Address for HTTP server to listen on
+  # default: :12003
+  address: :12003
 
-  # Timeout before forcefully shutdown remaining connections (in seconds)
-  #graceful_timeout: 30
+  # Timeout for HTTP server graceful shutdown
+  # default: 10s
+  shutdown_timeout: 10s
 
-  # Root path behind which the service is located
-  #base_path: /
+store:
+  driver:
+    # Back-end storage driver
+    # default: sqlite
+    type: sqlite
 
-  # Allow/Prevent modifications through API calls
-  read_only: false
+    ## SQLite
 
-  # Enable and serve UI assets
-  enable_ui: true
+    # Back-end storage database file path
+    # default: var/store.db
+    path: var/store.db
 
-  # Expose/Hide version and build information via/from the API
-  expose_version: true
+    ## PostgreSQL or MySQL
 
-storage:
-  # Enable SQL storage debugging
-  debug: false
+    # Back-end storage database host
+    # default: localhost
+    #host: localhost
 
-  ### SQLite
-  driver: sqlite
-  path: var/data.db
+    # Back-end storage database port
+    # default: 5432 (PostgreSQL) or 3306 (MySQL)
+    #port:
 
-  ### PostgreSQL
-  #driver: pgsql
-  #host: localhost
-  #port: 5432
-  #dbname: facette
-  #user: facette
-  #password: ********
+    # Back-end storage user name
+    # default: facette
+    #user: facette
 
-  ### MySQL
-  #driver: mysql
-  #host: localhost
-  #port: 3306
-  #dbname: facette
-  #user: facette
-  #password: ********
+    # Back-end storage user password
+    # default: <empty>
+    #password:
 
-cache:
-  # Cache directory path
-  path: var/cache
-
-defaults:
-  # Default time range
-  time_range: -1h
+    # Back-end storage database name
+    # default: facette
+    #database: facette
 
 # vim: ts=2 sw=2 et
