@@ -58,4 +58,4 @@ generate:
 
 license:
 	@echo "==> Adding license headers"
-	@addlicense $(ADDLICENSE_ARGS) cmd/ pkg/
+	@addlicense $(ADDLICENSE_ARGS) cmd/ pkg/ ui/src ui/types

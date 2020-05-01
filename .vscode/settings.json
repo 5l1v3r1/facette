@@ -1,0 +1,13 @@
+{
+    "eslint.workingDirectories": [
+        "ui"
+    ],
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/.git": true,
+        "bin": true,
+        "go.sum": true,
+        "ui/node_modules": true,
+        "var": true
+    }
+}

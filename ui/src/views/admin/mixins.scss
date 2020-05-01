@@ -1,0 +1,114 @@
+@mixin admin {
+    h1 .count {
+        color: var(--gray);
+        font-size: 1.35rem;
+        margin-left: 1rem;
+    }
+
+    .columns {
+        justify-content: space-between;
+        width: 100%;
+
+        &.two > * {
+            width: calc(50% - 0.75rem);
+        }
+    }
+
+    .half {
+        max-width: 35rem;
+        width: 50% !important;
+    }
+
+    .v-flex.column {
+        align-items: flex-start;
+    }
+
+    .v-flex.column,
+    .v-form {
+        > .v-input,
+        > .v-select {
+            width: 100%;
+        }
+
+        > .v-label {
+            margin-top: 0.75rem;
+        }
+
+        > .v-message {
+            margin: 1.5rem 0;
+        }
+    }
+
+    .v-message + .v-toolbar,
+    .v-table + .v-toolbar {
+        background: none;
+        justify-content: flex-end;
+    }
+
+    .v-message {
+        &.selection {
+            padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+
+            .v-button {
+                margin-left: 0.5rem;
+
+                ::v-deep {
+                    .v-button-content {
+                        color: inherit;
+                        opacity: 0.65;
+                    }
+
+                    .active > .v-button-content,
+                    > .v-button-content:active,
+                    > .v-button-content:focus,
+                    > .v-button-content:hover {
+                        background-color: transparent;
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+
+        + .v-toolbar {
+            margin-top: 0.5rem;
+        }
+    }
+
+    .v-table {
+        .v-table-row {
+            .link {
+                cursor: pointer;
+                text-decoration: none;
+
+                &:focus {
+                    outline: none;
+                    text-decoration: underline;
+                }
+            }
+
+            .reveal {
+                visibility: hidden;
+            }
+
+            &:hover {
+                .link {
+                    text-decoration: underline;
+                }
+
+                .reveal {
+                    visibility: visible;
+                }
+            }
+        }
+    }
+
+    .v-toolbar {
+        .modified {
+            color: var(--light-gray);
+            padding: 0 0.6rem;
+        }
+    }
+}
