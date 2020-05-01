@@ -46,7 +46,7 @@
 
         <v-spinner v-if="loading"></v-spinner>
 
-        <v-message-error :retry-callback="getMetrics" v-else-if="erred"></v-message-error>
+        <v-message-error @retry="getMetrics" v-else-if="erred"></v-message-error>
 
         <template v-else>
             <h1>

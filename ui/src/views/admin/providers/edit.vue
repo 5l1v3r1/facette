@@ -6,19 +6,14 @@
         <v-toolbar clip="content">
             <v-button
                 icon="save"
-                :disabled="Boolean(error) || saving || testing || !validity"
+                :disabled="erred || saving || testing || !validity"
                 @click="save(true)"
                 v-if="modifierPressed"
             >
                 {{ $t("labels.saveAndGo") }}
             </v-button>
 
-            <v-button
-                icon="save"
-                :disabled="Boolean(error) || saving || testing || !validity"
-                @click="save(false)"
-                v-else
-            >
+            <v-button icon="save" :disabled="erred || saving || testing || !validity" @click="save(false)" v-else>
                 {{ $t("labels.providers.save") }}
             </v-button>
 
@@ -26,24 +21,24 @@
                 icon="trash"
                 @click="deleteProvider()"
                 :disabled="testing"
-                v-if="!error && edit && modifierPressed"
+                v-if="!erred && edit && modifierPressed"
             >
                 {{ $t("labels.delete") }}
             </v-button>
 
-            <v-button :disabled="Boolean(error)" :to="{name: 'admin-providers-list'}" v-else>
+            <v-button :disabled="erred" :to="{name: 'admin-providers-list'}" v-else>
                 {{ $t("labels.cancel") }}
             </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="undo" :disabled="Boolean(error) || loading || testing || !guarded" @click="reset()">
+            <v-button icon="undo" :disabled="erred || loading || testing || !guarded" @click="reset()">
                 {{ $t("labels.reset") }}
             </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="clipboard-check" :disabled="Boolean(error) || testing || !validity" @click="test()">
+            <v-button icon="clipboard-check" :disabled="erred || testing || !validity" @click="test()">
                 {{ $t("labels.providers.test") }}
             </v-button>
 
@@ -58,7 +53,7 @@
 
         <v-spinner v-if="loading"></v-spinner>
 
-        <v-message type="error" v-else-if="error">{{ error }}</v-message>
+        <v-message-error v-else-if="erred"></v-message-error>
 
         <template v-else>
             <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>

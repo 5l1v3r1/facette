@@ -104,7 +104,7 @@
 
         <v-spinner v-if="loading"></v-spinner>
 
-        <v-message-error :retry-callback="getObjects" v-else-if="erred"></v-message-error>
+        <v-message-error @retry="getObjects" v-else-if="erred"></v-message-error>
 
         <template v-else>
             <h1>

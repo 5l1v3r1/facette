@@ -33,11 +33,11 @@ export class CustomMixins extends Vue {
     private unwatchGuard: (() => void) | null = null;
 
     public mounted(): void {
-        this.$root.$on("reset-error", this.onResetError);
+        this.$root.$on("set-error", this.onSetError);
     }
 
     public beforeDestroy(): void {
-        this.$root.$off("reset-error", this.onResetError);
+        this.$root.$off("set-error", this.onSetError);
     }
 
     public formatDate(input: Date | string, format = "MMM D YYYY, HH:mm:ss"): string {
@@ -95,7 +95,9 @@ export class CustomMixins extends Vue {
 
     public handleError(handler?: () => void): (response: HttpResponse) => void {
         return (response: HttpResponse) => {
-            this.erred = true;
+            if (response.status >= 500) {
+                this.$root.$emit("set-error", true);
+            }
 
             this.$components.notify(
                 (response.data?.error
@@ -119,7 +121,7 @@ export class CustomMixins extends Vue {
     }
 
     public resetError(): void {
-        this.$root.$emit("reset-error");
+        this.$root.$emit("set-error", false);
     }
 
     public toggleSidebar(): void {
@@ -150,8 +152,8 @@ export class CustomMixins extends Vue {
         e.returnValue = false;
     }
 
-    private onResetError(): void {
-        this.erred = false;
+    private onSetError(state: boolean): void {
+        this.erred = state;
     }
 
     private get sidebar(): boolean {

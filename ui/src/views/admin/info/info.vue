@@ -7,7 +7,7 @@
 
         <v-spinner v-if="loading"></v-spinner>
 
-        <v-message-error :retry-callback="getVersion" v-else-if="erred"></v-message-error>
+        <v-message-error @retry="getVersion" v-else-if="erred"></v-message-error>
 
         <template v-else>
             <h1>{{ $t("labels.info._") }}</h1>

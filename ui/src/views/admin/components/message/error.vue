@@ -9,16 +9,13 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue} from "vue-property-decorator";
+import {Component, Vue} from "vue-property-decorator";
 
 @Component
 export default class MessageErrorComponent extends Vue {
-    @Prop({required: true, type: Function})
-    public retryCallback!: () => void;
-
     public retry(): void {
-        this.$root.$emit("reset-error");
-        this.retryCallback();
+        this.$root.$emit("set-error", false);
+        this.$emit("retry");
     }
 }
 </script>
