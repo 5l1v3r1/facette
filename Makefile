@@ -24,7 +24,8 @@ endif
 
 GO_TEST_ARGS := -cover
 
-ADDLICENSE_ARGS := -c "The Facette Authors" -f docs/LICENSE.template
+ADDLICENSE_ARGS := -c "The Facette Authors" -f docs/LICENSE.template \
+	cmd/ pkg/ ui/src ui/types
 
 all: build
 
@@ -40,17 +41,29 @@ build-bin: generate
 	@echo "==> Building binaries"
 	@$(GO) build $(GO_BUILD_ARGS) -o bin/ -v ./cmd/...
 
+build-ui:
+	@echo "==> Build UI assets..."
+	@(cd ui/; npm run build)
+
 test: test-bin
 
 test-bin:
 	@echo "==> Testing binary sources"
 	@$(GO) test $(GO_TEST_ARGS) -v ./...
 
-lint: lint-bin
+lint: lint-bin lint-license lint-ui
 
 lint-bin:
 	@echo "==> Linting binary sources"
 	@golangci-lint run ./...
+
+lint-license:
+	@echo "==> Checking for license headers"
+	@addlicense -check $(ADDLICENSE_ARGS)
+
+lint-ui:
+	@echo "==> Linting UI files..."
+	@(cd ui/; npm run lint)
 
 generate:
 	@echo "==> Running code generation"
@@ -58,4 +71,4 @@ generate:
 
 license:
 	@echo "==> Adding license headers"
-	@addlicense $(ADDLICENSE_ARGS) cmd/ pkg/ ui/src ui/types
+	@addlicense $(ADDLICENSE_ARGS)
