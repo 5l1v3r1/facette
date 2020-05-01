@@ -7,9 +7,15 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"batou.dev/httprouter"
+	"golang.org/x/net/context"
+
 	"facette.io/facette/pkg/api"
+	"facette.io/facette/pkg/connector"
+	"facette.io/facette/pkg/errors"
+	httpjson "facette.io/facette/pkg/http/json"
 	"facette.io/facette/pkg/poller"
 )
 
@@ -29,4 +35,54 @@ func (h *handler) PollProvider(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	rw.WriteHeader(http.StatusAccepted)
+}
+
+func (h *handler) TestProvider(rw http.ResponseWriter, r *http.Request) {
+	obj := &api.Provider{}
+
+	err := httpjson.Unmarshal(r, obj)
+	if err != nil {
+		writeTestResponse(rw, err)
+		return
+	}
+
+	err = obj.Validate()
+	if err != nil {
+		writeTestResponse(rw, err)
+		return
+	}
+
+	conn, err := connector.New(obj.Connector.Type, "test", obj.Connector.Settings)
+	if err != nil {
+		writeTestResponse(rw, err)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	err = conn.Test(ctx)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			err = errors.New("timeout reached")
+		}
+
+		writeTestResponse(rw, err)
+
+		return
+	}
+
+	writeTestResponse(rw, nil)
+}
+
+func writeTestResponse(rw http.ResponseWriter, err error) {
+	var resp api.Response
+
+	if err != nil {
+		resp.Error = err.Error()
+	} else {
+		resp.Data = map[string]interface{}{"success": true}
+	}
+
+	httpjson.Write(rw, resp, http.StatusOK)
 }

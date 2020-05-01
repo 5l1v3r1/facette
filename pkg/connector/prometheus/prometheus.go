@@ -10,15 +10,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
 	prometheus "github.com/prometheus/client_golang/api"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prommodel "github.com/prometheus/common/model"
+	promparser "github.com/prometheus/prometheus/promql/parser"
 
 	"facette.io/facette/pkg/catalog"
 	"facette.io/facette/pkg/connector"
+	"facette.io/facette/pkg/errors"
 	httpclient "facette.io/facette/pkg/http/client"
 	"facette.io/facette/pkg/labels"
 	"facette.io/facette/pkg/series"
@@ -133,6 +136,30 @@ func (c *Connector) Query(ctx context.Context, q *connector.Query) (connector.Re
 	}
 
 	return result, nil
+}
+
+// Test tests for validity of the time series connector.
+func (c *Connector) Test(ctx context.Context) error {
+	_, err := c.api.Config(ctx)
+	if err != nil {
+		var opErr *net.OpError
+
+		ok := errors.As(err, &opErr)
+		if ok {
+			err = opErr
+		}
+
+		return err
+	}
+
+	if c.settings.Filter != "" {
+		_, err = promparser.ParseExpr(c.settings.Filter)
+		if err != nil {
+			return fmt.Errorf("invalid filter: %s", c.settings.Filter)
+		}
+	}
+
+	return nil
 }
 
 func init() {

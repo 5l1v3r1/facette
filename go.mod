@@ -11,6 +11,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/prometheus/client_golang v1.6.0
 	github.com/prometheus/common v0.9.1
+	github.com/prometheus/prometheus v1.8.2-0.20200428100226-05038b48bdf0
 	github.com/rakyll/statik v0.1.7
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/stretchr/testify v1.5.1

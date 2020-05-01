@@ -77,6 +77,8 @@ func Register(
 		Post(h.Save)
 	providers.Endpoint("/poll").
 		Post(h.PollProvider)
+	providers.Endpoint("/test").
+		Post(h.TestProvider)
 	providers.Endpoint("/:id").
 		Delete(h.Delete).
 		Get(h.Get).

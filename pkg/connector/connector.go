@@ -18,6 +18,7 @@ import (
 type Connector interface {
 	Metrics(ctx context.Context, ch chan<- catalog.Metric, errCh chan<- error)
 	Query(ctx context.Context, q *Query) (Result, error)
+	Test(ctx context.Context) error
 }
 
 // New creates a new upstream time series connector instance.
