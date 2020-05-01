@@ -87,6 +87,9 @@ func Register(
 	providers.Endpoint("/:id/poll").
 		Post(h.PollProvider)
 
+	root.Endpoint("/query").
+		Post(h.ExecuteQuery)
+
 	root.Endpoint("/version").
 		Get(h.GetVersion)
 

@@ -5,6 +5,26 @@
 
 package connector
 
-type Query struct{}
+import (
+	"time"
 
-type Result struct{}
+	"facette.io/facette/pkg/catalog"
+	"facette.io/facette/pkg/series"
+)
+
+// Query is a time series connector query.
+type Query struct {
+	From    time.Time
+	To      time.Time
+	Step    time.Duration
+	Metrics []catalog.Metric
+}
+
+// Result is a time series connector result.
+type Result []Sample
+
+// Sample is a time series connector sample.
+type Sample struct {
+	Metric catalog.Metric
+	Points []series.Point
+}
