@@ -18,6 +18,7 @@ import (
 	"facette.io/facette/pkg/store"
 
 	"facette.io/facette/pkg/http/server/internal/api"
+	"facette.io/facette/pkg/http/server/internal/assets"
 )
 
 // Server is an HTTP server.
@@ -31,6 +32,8 @@ func New(config *Config, catalog *catalog.Catalog, store *store.Store, poller *p
 	router := httprouter.New()
 
 	api.Register(router, catalog, store, poller)
+
+	assets.Register(router)
 
 	return &Server{
 		config: config,

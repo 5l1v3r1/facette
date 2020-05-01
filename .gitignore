@@ -1,3 +1,5 @@
 /bin
+/dist
+/pkg/http/server/internal/assets/generated
 /ui/node_modules
 /var
