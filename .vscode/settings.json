@@ -9,6 +9,7 @@
         "go.sum": true,
         "pkg/http/server/internal/assets/generated": true,
         "ui/node_modules": true,
+        "ui/package-lock.json": true,
         "var": true
     }
 }
