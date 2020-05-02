@@ -364,8 +364,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         }
 
         const markers: Array<BoulaMarker> = Object.values(this.markers);
-        this.getOption("constants", []).forEach((y: number) => {
-            markers.push({label: true, y});
+        this.value.options?.axes?.y?.left?.constants?.forEach(constant => {
+            markers.push({label: constant.label || true, y: constant.value});
         });
 
         let series: Array<BoulaSeries>;
@@ -432,16 +432,16 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     },
                 },
                 y: {
-                    center: this.getOption("axisCenter", false),
-                    draw: false,
-                    stack: this.getOption("stack", false),
+                    center: this.value.options?.axes?.y?.center ?? false,
+                    stack: this.value.options?.axes?.y?.left?.stack || false,
                     label: {
-                        text: this.getOption("axisLabel"),
+                        text: this.value.options?.axes?.y?.left?.label,
                     },
-                    max: this.getOption("axisMax"),
-                    min: this.getOption("axisMin"),
+                    max: this.value.options?.axes?.y?.left?.max,
+                    min: this.value.options?.axes?.y?.left?.min,
                     ticks: {
-                        format: v => this.formatValue(v, this.value.options?.unit),
+                        draw: false,
+                        format: v => this.formatValue(v, this.value.options?.axes?.y?.left?.unit),
                     },
                 },
             },

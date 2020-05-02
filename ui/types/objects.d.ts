@@ -21,15 +21,49 @@ declare interface Chart extends ObjectMeta {
 
 declare interface ChartOptions {
     axes?: ChartAxes;
-    constants?: Array<number>;
-    stack?: StackMode;
     title?: string;
     type?: ChartType;
-    unit?: Unit;
     variables?: Array<TemplateVariable>;
 }
 
+declare interface ChartAxes {
+    x?: ChartXAxis;
+    y?: ChartYAxes;
+}
+
+declare interface ChartXAxis {
+    show?: boolean;
+}
+
+declare interface ChartYAxes {
+    center?: boolean;
+    left?: ChartYAxis;
+    right?: ChartYAxis;
+}
+
+declare interface ChartYAxis {
+    show?: boolean;
+    constants?: Array<Constant>;
+    label?: string;
+    max?: number;
+    min?: number;
+    stack?: StackMode;
+    unit?: Unit;
+}
+
+declare interface Constant {
+    label?: string;
+    value: number;
+}
+
 declare type StackMode = "" | "normal" | "percent";
+
+declare interface Unit {
+    type?: UnitType;
+    base?: string;
+}
+
+declare type UnitType = "" | "binary" | "count" | "duration" | "metric";
 
 declare type ChartType = "area" | "bar" | "line";
 
@@ -41,25 +75,6 @@ declare interface ChartSeries {
 declare interface ChartSeriesOptions {
     color?: string;
 }
-
-declare interface ChartAxes {
-    yLeft: ChartAxis;
-    yRight: ChartAxis;
-}
-
-declare interface ChartAxis {
-    center?: boolean;
-    label?: string;
-    max?: number;
-    min?: number;
-}
-
-declare interface Unit {
-    type?: UnitType;
-    base?: string;
-}
-
-declare type UnitType = "" | "binary" | "count" | "duration" | "metric";
 
 declare interface Provider extends ObjectMeta {
     connector: ProviderConnector;

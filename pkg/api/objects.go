@@ -16,6 +16,7 @@ import (
 	"facette.io/facette/pkg/catalog"
 	"facette.io/facette/pkg/connector"
 	"facette.io/facette/pkg/errors"
+	"facette.io/facette/pkg/series"
 )
 
 var nameRegexp = regexp.MustCompile(`(?i)^[a-z0-9](?:[a-z0-9\-_]*[a-z0-9])?$`)
@@ -126,26 +127,44 @@ func (c Chart) Validate() error {
 // +store:generate=type
 type ChartOptions struct {
 	Axes      ChartAxes          `json:"axes,omitempty"`
-	Constants []float64          `json:"constants,omitempty"`
-	Stack     StackMode          `json:"stack,omitempty"`
 	Title     string             `json:"title,omitempty"`
 	Type      ChartType          `json:"type,omitempty"`
-	Unit      Unit               `json:"unit,omitempty"`
 	Variables []TemplateVariable `json:"variables,omitempty"`
 }
 
 // ChartAxes are chart axes options.
 type ChartAxes struct {
-	YLeft  ChartAxis `json:"yLeft,omitempty"`
-	YRight ChartAxis `json:"yRight,omitempty"`
+	X ChartXAxis `json:"x,omitempty"`
+	Y ChartYAxes `json:"y,omitempty"`
 }
 
-// ChartAxis are a single chart axis options.
-type ChartAxis struct {
-	Center bool     `json:"center,omitempty"`
-	Label  string   `json:"label,omitempty"`
-	Max    *float64 `json:"max,omitempty"`
-	Min    *float64 `json:"min,omitempty"`
+// ChartXAxis are chart X axis options.
+type ChartXAxis struct {
+	Show bool `json:"show,omitempty"`
+}
+
+// ChartYAxes are chart Y axes options.
+type ChartYAxes struct {
+	Center bool       `json:"center,omitempty"`
+	Left   ChartYAxis `json:"left,omitempty"`
+	Right  ChartYAxis `json:"right,omitempty"`
+}
+
+// ChartYAxis are chart Y axis options.
+type ChartYAxis struct {
+	Show      bool       `json:"show,omitempty"`
+	Constants []Constant `json:"constants,omitempty"`
+	Label     string     `json:"label,omitempty"`
+	Max       *float64   `json:"max,omitempty"`
+	Min       *float64   `json:"min,omitempty"`
+	Stack     StackMode  `json:"stack,omitempty"`
+	Unit      Unit       `json:"unit,omitempty"`
+}
+
+// Constant is a chart series constant.
+type Constant struct {
+	Label string       `json:"label,omitempty"`
+	Value series.Value `json:"value"`
 }
 
 // StackMode is a chart series stacking mode.
