@@ -92,7 +92,6 @@ func (p *Parser) read() (rune, Position) {
 	return ch, p.last
 }
 
-// nolint:gosec
 func (p *Parser) run(set []byte) []byte {
 	b := bytes.NewBuffer(nil)
 
@@ -171,7 +170,6 @@ func (p *Parser) scan() *Token {
 	return newToken(INVALID, pos, string(c))
 }
 
-// nolint:gosec
 func (p *Parser) scanIdent() *Token {
 	start := p.pos
 
@@ -196,7 +194,6 @@ loop:
 	return newToken(IDENT, start, buf.String())
 }
 
-// nolint:gosec
 func (p *Parser) scanNumber() *Token {
 	digits := []byte("0123456789")
 	start := p.pos
@@ -239,7 +236,6 @@ func (p *Parser) scanNumber() *Token {
 	return newToken(NUMBER, start, buf.String())
 }
 
-// nolint:gosec
 func (p *Parser) scanString() *Token {
 	quote, start := p.read()
 

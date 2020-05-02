@@ -3,14 +3,18 @@ issues:
   exclude-use-default: false
 
 linters:
-  disable:
-  - funlen
-  - gochecknoglobals
-  - gochecknoinits
-  - godox
-  - gomnd
-  - nestif
-  - testpackage
-  enable-all: true
+  enable:
+  - bodyclose
+  - gocognit
+  - gocyclo
+  - goimports
+  - golint
+  - gosec
+  - lll
+  - prealloc
+  - unconvert
+  - unparam
+  - whitespace
+  - wsl
 
 # vim: ts=2 sw=2 et

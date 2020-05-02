@@ -60,7 +60,6 @@ func action(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
 	defer store.Close()
 
 	// Run tasks concurrently. Tasks will be stopped as soon as one of them

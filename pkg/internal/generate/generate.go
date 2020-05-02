@@ -64,7 +64,7 @@ func Generate(dstPath, srcPath, typ, text string) error {
 	if err != nil {
 		return fmt.Errorf("cannot open destination: %w", err)
 	}
-	defer f.Close() // nolint:errcheck
+	defer f.Close() // nolint:errcheck,gosec
 
 	tmpl, err := template.New("types").Funcs(template.FuncMap{"lower": strings.ToLower}).Parse(text)
 	if err != nil {

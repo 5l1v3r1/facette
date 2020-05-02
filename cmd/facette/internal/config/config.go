@@ -50,7 +50,7 @@ func Load(path string) (*Config, error) {
 		} else if err != nil {
 			return nil, err
 		}
-		defer f.Close() // nolint:errcheck
+		defer f.Close() // nolint:errcheck,gosec
 
 		err = yaml.NewDecoder(f).Decode(cfg)
 		if err != nil {

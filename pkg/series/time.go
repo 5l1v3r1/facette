@@ -52,7 +52,7 @@ func ParseTime(text string) (time.Time, error) {
 				break
 			}
 
-			buf.WriteRune(c) // nolint:gosec
+			buf.WriteRune(c)
 		}
 
 		text = text[buf.Len():]
