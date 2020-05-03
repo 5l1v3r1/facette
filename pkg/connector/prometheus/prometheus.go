@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -21,7 +20,6 @@ import (
 
 	"facette.io/facette/pkg/catalog"
 	"facette.io/facette/pkg/connector"
-	"facette.io/facette/pkg/errors"
 	httpclient "facette.io/facette/pkg/http/client"
 	"facette.io/facette/pkg/labels"
 	"facette.io/facette/pkg/series"
@@ -142,14 +140,7 @@ func (c *Connector) Query(ctx context.Context, q *connector.Query) (connector.Re
 func (c *Connector) Test(ctx context.Context) error {
 	_, err := c.api.Config(ctx)
 	if err != nil {
-		var opErr *net.OpError
-
-		ok := errors.As(err, &opErr)
-		if ok {
-			err = opErr
-		}
-
-		return err
+		return httpclient.Error(err)
 	}
 
 	if c.settings.Filter != "" {
