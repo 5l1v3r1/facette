@@ -52,6 +52,7 @@ export default {
         charts: {
             _: "Chart|Charts",
             create: "Create chart",
+            delete: "Delete chart|Delete charts",
             new: "New chart",
             filter: "Filter charts",
         },
@@ -70,6 +71,7 @@ export default {
         delete: "Delete",
         displayHelp: "Display this help",
         documentation: "Documentation",
+        empty: "Empty",
         filters: {
             _: "Filter|Filters",
             action: {
@@ -128,8 +130,10 @@ export default {
             example: "e.g. {0}",
         },
         preview: "Preview",
+        properties: "Properties",
         providers: {
             _: "Provider|Providers",
+            delete: "Delete provider|Delete providers",
             disable: "Disable",
             disabled: "Providers is disabled",
             enable: "Enable",
@@ -191,7 +195,12 @@ export default {
 
     messages: {
         charts: {
+            delete:
+                "You are about to delete the “{name}” chart. Are you sure?|" +
+                "You are about to delete {count} charts. Are you sure?",
+            deleted: "Chart successfully deleted|Charts successfully deleted",
             none: "No charts defined",
+            selected: "{0} chart selected|{0} charts selected",
         },
         confirmLeave: "All unsaved data will be lost. Are you sure?",
         dashboards: {
@@ -219,6 +228,10 @@ export default {
         },
         notAvailable: "Not available",
         providers: {
+            delete:
+                "You are about to delete the “{name}” provider. Are you sure?|" +
+                "You are about to delete {count} providers. Are you sure?",
+            deleted: "Provider successfully deleted|Providers successfully deleted",
             disable:
                 "You are about to disable the “{name}” provider. Are you sure?|" +
                 "You are about to disable {count} providers. Are you sure?",
@@ -233,7 +246,7 @@ export default {
             selected: "{0} provider selected|{0} providers selected",
             test: {
                 error: "Provider failed to validate: {0}",
-                success: "Provider successfully validated",
+                success: "Provider successfully tested",
             },
         },
         settings: {
