@@ -294,7 +294,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         const filters: Array<FilterRule> = this.provider.filters;
 
-        this.$components.modal("provider-filter", Object.assign({}, filters[index]), (value: FilterRule) => {
+        this.$components.modal("provider-filter", cloneDeep(filters[index]), (value: FilterRule) => {
             if (value) {
                 filters.splice(index, 1, value);
             }
@@ -378,7 +378,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             .then(response => response.json())
             .then(
                 (response: APIResponse<Provider>) => {
-                    this.provider = merge(cloneDeep(defaultProvider), response.data);
+                    this.provider = merge({}, defaultProvider, response.data);
                     this.loading = false;
                     this.emitUpdate();
                     this.guardWatch("provider");

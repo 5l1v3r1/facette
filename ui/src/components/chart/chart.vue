@@ -95,7 +95,6 @@ import Boula, {Config as BoulaConfig, Marker as BoulaMarker, Series as BoulaSeri
 import * as d3 from "d3";
 import dayjs from "dayjs";
 import debounce from "lodash/debounce";
-import get from "lodash/get";
 import ResizeObserver from "resize-observer-polyfill";
 import slugify from "slugify";
 import {Component, Mixins, Prop, Watch} from "vue-property-decorator";
@@ -188,7 +187,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
 
         const el: HTMLAnchorElement = document.createElement("a");
 
-        const baseName = `${slugify(this.getOption("title", this.value.name))}_${dayjs(this.data.from).format(
+        const baseName = `${slugify(this.value.options?.title || this.value.name)}_${dayjs(this.data.from).format(
             dateFormatFilename,
         )}_${dayjs(this.data.to).format(dateFormatFilename)}`;
 
@@ -369,7 +368,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         });
 
         let series: Array<BoulaSeries>;
-        if (this.data && this.data.series) {
+        if (this.data?.series) {
             const disabledSeries: Array<string> = this.chart
                 ? this.chart.config.series.reduce((names: Array<string>, s: BoulaSeries) => {
                       if (s.disabled && s.name) {
@@ -491,9 +490,9 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 },
             },
             title: {
-                text: this.getOption("title", this.value.name),
+                text: this.value.options?.title,
             },
-            type: this.getOption("type", "area"),
+            type: this.value.options?.type || "area",
         };
 
         if (!this.chart) {
@@ -510,11 +509,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         if (this.resize === null) {
             this.observeResize();
         }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private getOption(path: string, defaultValue?: any): any {
-        return get(this.value.options, path, defaultValue);
     }
 
     private observeIntersection(): void {

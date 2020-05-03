@@ -149,7 +149,7 @@ export default class InputComponent extends Vue {
 
     public focus(select = false): void {
         if (!this.focused) {
-            const input: HTMLInputElement = this.$refs.input as HTMLInputElement;
+            const input = this.$refs.input as HTMLInputElement;
             if (input) {
                 input[select ? "select" : "focus"]();
             }

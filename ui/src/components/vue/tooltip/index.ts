@@ -37,7 +37,7 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
             timeout = setTimeout(() => {
                 wt._components.set("tooltip", {
                     anchor: modifiers.length > 0 ? modifiers[modifiers.length - 1] : "bottom",
-                    rect: (this as HTMLElement).getBoundingClientRect(),
+                    rect: this.getBoundingClientRect(),
                     value: wt._binding.value,
                 } as TooltipState);
             }, 750);

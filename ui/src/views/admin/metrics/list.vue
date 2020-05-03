@@ -247,7 +247,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public previewChart(metrics: Array<Metric>): void {
-        this.$components.modal("chart-preview", {exprs: metrics.map((metric: Metric) => labelsToString(metric))});
+        this.$components.modal("chart-preview", {exprs: metrics.map(metric => labelsToString(metric))});
     }
 
     public setMatch(key: string, value: string): void {

@@ -124,7 +124,7 @@ export default class ButtonComponent extends Vue {
 
     public mounted(): void {
         this.checkSlots();
-        this.inDropdown = this.$parent.$el && this.$parent.$el.classList.contains("v-dropdown");
+        this.inDropdown = Boolean(this.$parent.$el?.classList.contains("v-dropdown"));
 
         if (this.autofocus) {
             this.$nextTick(() => {

@@ -56,7 +56,7 @@ export default class CheckboxComponent extends Vue {
     }
 
     private checkSlots(): void {
-        this.label = Boolean(this.$slots && this.$slots.default);
+        this.label = Boolean(this.$slots?.default);
     }
 }
 </script>
