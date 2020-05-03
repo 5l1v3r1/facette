@@ -178,6 +178,9 @@ export default {
             select: "Select a time zone…",
             utc: "UTC",
         },
+        tls: {
+            skipVerify: "Skip server certificate verification (Insecure)",
+        },
         toggleSidebar: "Toggle sidebar",
         url: "URL",
         visit: {

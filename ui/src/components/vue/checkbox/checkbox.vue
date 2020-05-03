@@ -4,11 +4,11 @@
         tabindex="0"
         :aria-disabled="disabled"
         :aria-readonly="readonly"
-        :class="{checked: value}"
-        @click="toggle"
-        @keydown.enter="toggle"
+        :class="{check: !toggle, checked: value, toggle}"
+        @click="onChange"
+        @keydown.enter="onChange"
     >
-        <v-icon :icon="value ? 'check' : ''"></v-icon>
+        <v-icon :icon="icon"></v-icon>
         <div class="v-checkbox-label" v-if="label">
             <slot></slot>
         </div>
@@ -30,6 +30,9 @@ export default class CheckboxComponent extends Vue {
     @Prop({default: false, type: Boolean})
     public readonly!: boolean;
 
+    @Prop({default: false, type: Boolean})
+    public toggle!: boolean;
+
     @Prop({default: false, required: true, type: Boolean})
     public value!: boolean;
 
@@ -42,13 +45,21 @@ export default class CheckboxComponent extends Vue {
         this.input = this.$refs.input as HTMLInputElement;
     }
 
-    public updated(): void {
-        this.checkSlots();
+    public get icon(): string {
+        if (this.toggle) {
+            return this.value ? "toggle-on" : "toggle-off";
+        } else {
+            return this.value ? "check" : "";
+        }
     }
 
-    public toggle(): void {
+    public onChange(): void {
         this.input.checked = !this.input.checked;
         this.update();
+    }
+
+    public updated(): void {
+        this.checkSlots();
     }
 
     public update(): void {
@@ -74,43 +85,49 @@ export default class CheckboxComponent extends Vue {
         color: var(--light-gray);
         pointer-events: none;
 
-        &.checked .v-icon {
+        &.check.checked .v-icon {
             background-color: var(--gray);
         }
     }
 
     &:focus {
         outline: none;
+    }
 
-        .v-icon {
+    &.check {
+        &:focus .v-icon {
             border-color: var(--color);
         }
-    }
 
-    &.checked:focus .v-icon {
-        background-color: var(--checkbox-focus);
-        color: var(--white);
-    }
+        &.checked:focus .v-icon {
+            background-color: var(--checkbox-focus);
+            color: var(--white);
+        }
 
-    .v-icon {
-        background-color: var(--checkbox-background);
-        border-radius: 0.2rem;
-        border: 1.5px solid var(--checkbox-border);
-        color: var(--checkbox-color);
-        height: 1em;
-        margin: 0.125em;
-        pointer-events: none;
-        width: 1em;
+        .v-icon {
+            background-color: var(--checkbox-background);
+            border-radius: 0.2rem;
+            border: 1.5px solid var(--checkbox-border);
+            color: var(--checkbox-color);
+            height: 1em;
+            margin: 0.125em;
+            pointer-events: none;
+            width: 1em;
 
-        ::v-deep .fa {
-            font-size: 0.75rem;
+            ::v-deep .fa {
+                font-size: 0.75rem;
+            }
+        }
+
+        &.checked .v-icon {
+            background-color: var(--color);
+            border: none;
+            color: var(--background);
         }
     }
 
-    &.checked .v-icon {
-        background-color: var(--color);
-        border: none;
-        color: var(--background);
+    &.toggle .v-icon {
+        font-size: 1.1rem;
     }
 
     .v-checkbox-label {

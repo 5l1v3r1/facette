@@ -8,6 +8,8 @@
             :placeholder="$t('labels.placeholders.example', ['http://localhost:8080/'])"
             v-model="settings.url"
         ></v-input>
+
+        <v-checkbox toggle v-model="settings.skipVerify" v-if="secured">{{ $t("labels.tls.skipVerify") }}</v-checkbox>
     </div>
 </template>
 
@@ -17,5 +19,9 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 export default class ProviderKairosDBComponent extends Vue {
     @Prop({required: true, type: Object})
     public settings!: Record<string, unknown>;
+
+    public get secured(): boolean {
+        return Boolean(((this.settings.url ?? "") as string).startsWith("https://"));
+    }
 }
 </script>
