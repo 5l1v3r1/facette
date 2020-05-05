@@ -14,7 +14,7 @@ declare interface APIResponse<T> {
 declare interface BulkResult {
     status: number;
     headers: Record<string, string>;
-    response?: unknown;
+    response: APIResponse<unknown>;
 }
 
 declare type Labels = Record<string, string>;
