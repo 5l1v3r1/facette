@@ -19,11 +19,11 @@ import (
 	"facette.io/facette/pkg/poller"
 )
 
-func (h *handler) PollProvider(rw http.ResponseWriter, r *http.Request) {
+func (h handler) PollProvider(rw http.ResponseWriter, r *http.Request) {
 	if httprouter.ContextParam(r, "id") != nil {
 		provider := &api.Provider{ObjectMeta: metaFromRequest(r)}
 
-		err := h.store.Get(provider)
+		err := h.store.Get(provider, false, nil)
 		if err != nil {
 			h.WriteError(rw, err)
 			return
@@ -37,7 +37,7 @@ func (h *handler) PollProvider(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusAccepted)
 }
 
-func (h *handler) TestProvider(rw http.ResponseWriter, r *http.Request) {
+func (h handler) TestProvider(rw http.ResponseWriter, r *http.Request) {
 	obj := &api.Provider{}
 
 	err := httpjson.Unmarshal(r, obj)

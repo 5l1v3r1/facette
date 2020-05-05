@@ -9,9 +9,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/imdario/mergo"
 	"github.com/jinzhu/gorm"
 
 	"facette.io/facette/pkg/api"
+	"facette.io/facette/pkg/errors"
+	"facette.io/facette/pkg/template"
 )
 
 // Chart is a back-end storage chart object.
@@ -67,6 +70,93 @@ func (c Chart) Copy(dst api.Object) error {
 		Link:       c.Link.String,
 		Template:   c.Template,
 	}
+
+	return nil
+}
+
+// Resolve resolves th back-end storage chart from the linked object given data.
+func (c *Chart) Resolve(data map[string]string, get func(api.Object) (Object, error)) error {
+	if c.Template {
+		return nil
+	} else if !c.Link.Valid {
+		return errors.New("invalid link reference")
+	}
+
+	var (
+		proxy *Chart
+		err   error
+	)
+
+	curData := make(map[string]string)
+
+	if c.Link.Valid {
+		tmpl := &api.Chart{ObjectMeta: api.ObjectMeta{ID: c.Link.String}}
+
+		v, err := get(tmpl)
+		if err != nil {
+			return err
+		}
+
+		var ok bool
+
+		proxy, ok = v.(*Chart)
+		if !ok {
+			return fmt.Errorf("expected *Chart but got %T", v)
+		}
+
+		err = mergo.Merge(&proxy.Options, c.Options, mergo.WithOverride)
+		if err != nil {
+			return err
+		}
+
+		for _, variable := range c.Options.Variables {
+			if !variable.Dynamic {
+				curData[variable.Name] = variable.Value
+			}
+		}
+	} else {
+		proxy = c
+	}
+
+	if data != nil {
+		err := mergo.Merge(&curData, data, mergo.WithOverride)
+		if err != nil {
+			return err
+		}
+	}
+
+	for idx := range proxy.Series {
+		proxy.Series[idx].Expr, err = template.Render(proxy.Series[idx].Expr, curData)
+		if err != nil {
+			return err
+		}
+	}
+
+	if proxy.Options.Axes.Y.Left.Label != "" {
+		proxy.Options.Axes.Y.Left.Label, err = template.Render(proxy.Options.Axes.Y.Left.Label, curData)
+		if err != nil {
+			return err
+		}
+	}
+
+	if proxy.Options.Axes.Y.Right.Label != "" {
+		proxy.Options.Axes.Y.Right.Label, err = template.Render(proxy.Options.Axes.Y.Right.Label, curData)
+		if err != nil {
+			return err
+		}
+	}
+
+	proxy.Options.Title, err = template.Render(proxy.Options.Title, curData)
+	if err != nil {
+		return err
+	}
+
+	proxy.ObjectMeta = c.ObjectMeta
+	proxy.Options.Variables = nil
+	proxy.Link = c.Link
+	proxy.Template = false
+
+	*c = *proxy
 
 	return nil
 }

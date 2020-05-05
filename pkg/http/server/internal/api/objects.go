@@ -25,7 +25,7 @@ const (
 	sectionProviders  = "providers"
 )
 
-func (h *handler) Delete(rw http.ResponseWriter, r *http.Request) {
+func (h handler) DeleteObject(rw http.ResponseWriter, r *http.Request) {
 	section := httprouter.ContextParam(r, "section").(string)
 	meta := metaFromRequest(r)
 
@@ -40,6 +40,9 @@ func (h *handler) Delete(rw http.ResponseWriter, r *http.Request) {
 
 	case sectionProviders:
 		obj = &api.Provider{ObjectMeta: meta}
+
+	default:
+		panic("unknown section")
 	}
 
 	err := h.store.Delete(obj)
@@ -56,7 +59,7 @@ func (h *handler) Delete(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-func (h *handler) Get(rw http.ResponseWriter, r *http.Request) {
+func (h handler) GetObject(rw http.ResponseWriter, r *http.Request) {
 	meta := metaFromRequest(r)
 
 	var obj api.Object
@@ -70,9 +73,12 @@ func (h *handler) Get(rw http.ResponseWriter, r *http.Request) {
 
 	case sectionProviders:
 		obj = &api.Provider{ObjectMeta: meta}
+
+	default:
+		panic("unknown section")
 	}
 
-	err := h.store.Get(obj)
+	err := h.store.Get(obj, false, nil)
 	if err != nil {
 		h.WriteError(rw, err)
 		return
@@ -86,7 +92,40 @@ func (h *handler) Get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) List(rw http.ResponseWriter, r *http.Request) {
+func (h handler) GetObjectVars(rw http.ResponseWriter, r *http.Request) {
+	meta := metaFromRequest(r)
+
+	var tmpl api.Template
+
+	switch httprouter.ContextParam(r, "section").(string) {
+	case sectionCharts:
+		tmpl = &api.Chart{ObjectMeta: meta}
+
+	case sectionDashboards:
+		tmpl = &api.Dashboard{ObjectMeta: meta}
+
+	default:
+		panic("unknown section")
+	}
+
+	err := h.store.Get(tmpl, false, nil)
+	if err != nil {
+		h.WriteError(rw, err)
+		return
+	}
+
+	var variables []string
+
+	variables, err = tmpl.Variables()
+	if err != nil {
+		h.WriteError(rw, err)
+		return
+	}
+
+	httpjson.Write(rw, api.Response{Data: variables}, http.StatusOK)
+}
+
+func (h handler) ListObjects(rw http.ResponseWriter, r *http.Request) {
 	opts, err := listOptionsFromRequest(r)
 	if err != nil {
 		h.WriteError(rw, err)
@@ -104,6 +143,9 @@ func (h *handler) List(rw http.ResponseWriter, r *http.Request) {
 
 	case sectionProviders:
 		list = &api.ProviderList{}
+
+	default:
+		panic("unknown section")
 	}
 
 	total, err := h.store.List(list, opts)
@@ -120,7 +162,45 @@ func (h *handler) List(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: result, Total: total}, http.StatusOK)
 }
 
-func (h *handler) Save(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ResolveObject(rw http.ResponseWriter, r *http.Request) {
+	meta := metaFromRequest(r)
+
+	var tmpl api.Template
+
+	switch httprouter.ContextParam(r, "section").(string) {
+	case sectionCharts:
+		tmpl = &api.Chart{ObjectMeta: meta}
+
+	case sectionDashboards:
+		tmpl = &api.Dashboard{ObjectMeta: meta}
+
+	default:
+		panic("unknown section")
+	}
+
+	var (
+		data map[string]string
+		err  error
+	)
+
+	if r.ContentLength > 0 {
+		err = httpjson.Unmarshal(r, &data)
+		if err != nil {
+			h.WriteError(rw, err)
+			return
+		}
+	}
+
+	err = h.store.Get(tmpl, true, data)
+	if err != nil {
+		h.WriteError(rw, err)
+		return
+	}
+
+	httpjson.Write(rw, api.Response{Data: tmpl}, http.StatusOK)
+}
+
+func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 	section := httprouter.ContextParam(r, "section").(string)
 
 	var obj api.Object
@@ -134,6 +214,9 @@ func (h *handler) Save(rw http.ResponseWriter, r *http.Request) {
 
 	case sectionProviders:
 		obj = &api.Provider{}
+
+	default:
+		panic("unknown section")
 	}
 
 	var err error
@@ -143,7 +226,7 @@ func (h *handler) Save(rw http.ResponseWriter, r *http.Request) {
 		// back-end storage.
 		obj.SetMeta(metaFromRequest(r))
 
-		err = h.store.Get(obj)
+		err = h.store.Get(obj, false, nil)
 		if err != nil {
 			h.WriteError(rw, err)
 			return
@@ -155,7 +238,7 @@ func (h *handler) Save(rw http.ResponseWriter, r *http.Request) {
 			// current state and reset metadata to create a whole new object.
 			obj.SetMeta(api.ObjectMeta{ID: copy})
 
-			err = h.store.Get(obj)
+			err = h.store.Get(obj, false, nil)
 			if err != nil {
 				h.WriteError(rw, err)
 				return

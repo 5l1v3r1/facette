@@ -44,23 +44,31 @@ func Register(
 
 	charts := root.Endpoint("/charts").Use(withSection("charts"))
 	charts.
-		Get(h.List).
-		Post(h.Save)
+		Get(h.ListObjects).
+		Post(h.SaveObject)
 	charts.Endpoint("/:id").
-		Delete(h.Delete).
-		Get(h.Get).
-		Patch(h.Save).
-		Put(h.Save)
+		Delete(h.DeleteObject).
+		Get(h.GetObject).
+		Patch(h.SaveObject).
+		Put(h.SaveObject)
+	charts.Endpoint("/:id/resolve").
+		Post(h.ResolveObject)
+	charts.Endpoint("/:id/vars").
+		Get(h.GetObjectVars)
 
 	dashboards := root.Endpoint("/dashboards").Use(withSection("dashboards"))
 	dashboards.
-		Get(h.List).
-		Post(h.Save)
+		Get(h.ListObjects).
+		Post(h.SaveObject)
 	dashboards.Endpoint("/:id").
-		Delete(h.Delete).
-		Get(h.Get).
-		Patch(h.Save).
-		Put(h.Save)
+		Delete(h.DeleteObject).
+		Get(h.GetObject).
+		Patch(h.SaveObject).
+		Put(h.SaveObject)
+	dashboards.Endpoint("/:id/resolve").
+		Post(h.ResolveObject)
+	dashboards.Endpoint("/:id/vars").
+		Get(h.GetObjectVars)
 
 	labels := root.Endpoint("/labels")
 	labels.
@@ -73,17 +81,17 @@ func Register(
 
 	providers := root.Endpoint("/providers").Use(withSection("providers"))
 	providers.
-		Get(h.List).
-		Post(h.Save)
+		Get(h.ListObjects).
+		Post(h.SaveObject)
 	providers.Endpoint("/poll").
 		Post(h.PollProvider)
 	providers.Endpoint("/test").
 		Post(h.TestProvider)
 	providers.Endpoint("/:id").
-		Delete(h.Delete).
-		Get(h.Get).
-		Patch(h.Save).
-		Put(h.Save)
+		Delete(h.DeleteObject).
+		Get(h.GetObject).
+		Patch(h.SaveObject).
+		Put(h.SaveObject)
 	providers.Endpoint("/:id/poll").
 		Post(h.PollProvider)
 
@@ -125,7 +133,7 @@ type handler struct {
 	log     *zap.Logger
 }
 
-func (h *handler) WriteError(rw http.ResponseWriter, err error) {
+func (h handler) WriteError(rw http.ResponseWriter, err error) {
 	v := errors.Unwrap(err)
 	if v == nil {
 		v = err

@@ -7,6 +7,7 @@ require (
 	batou.dev/httprouter v0.1.0
 	batou.dev/httpserver v0.1.0
 	github.com/cespare/xxhash/v2 v2.1.1
+	github.com/imdario/mergo v0.3.5
 	github.com/jinzhu/gorm v1.9.12
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/prometheus/client_golang v1.6.0

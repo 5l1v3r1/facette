@@ -18,7 +18,7 @@ import (
 	"facette.io/facette/pkg/series"
 )
 
-func (h *handler) ExecuteQuery(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ExecuteQuery(rw http.ResponseWriter, r *http.Request) {
 	q := &series.Query{}
 
 	err := httpjson.Unmarshal(r, q)

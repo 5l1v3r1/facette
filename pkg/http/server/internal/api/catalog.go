@@ -13,7 +13,7 @@ import (
 	httpjson "facette.io/facette/pkg/http/json"
 )
 
-func (h *handler) ListLabels(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ListLabels(rw http.ResponseWriter, r *http.Request) {
 	opts, err := listOptionsFromRequest(r)
 	if err != nil {
 		h.WriteError(rw, err)
@@ -36,7 +36,7 @@ func (h *handler) ListLabels(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: labels, Total: total}, http.StatusOK)
 }
 
-func (h *handler) ListMetrics(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ListMetrics(rw http.ResponseWriter, r *http.Request) {
 	opts, err := listOptionsFromRequest(r)
 	if err != nil {
 		h.WriteError(rw, err)
@@ -63,7 +63,7 @@ func (h *handler) ListMetrics(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: metrics, Total: total}, http.StatusOK)
 }
 
-func (h *handler) ListValues(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ListValues(rw http.ResponseWriter, r *http.Request) {
 	opts, err := listOptionsFromRequest(r)
 	if err != nil {
 		h.WriteError(rw, err)

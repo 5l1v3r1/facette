@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (h *handler) ExecBulk(rw http.ResponseWriter, r *http.Request) {
+func (h handler) ExecBulk(rw http.ResponseWriter, r *http.Request) {
 	bulk := api.BulkRequest{}
 
 	err := httpjson.Unmarshal(r, &bulk)

@@ -128,3 +128,8 @@ func ListFromAPI(v interface{}) (ObjectList, error) {
 
 	return nil, fmt.Errorf("unhandled objects list: %T", v)
 }
+
+// Resolver is a back-end storage resolver interface.
+type Resolver interface {
+	Resolve(data map[string]string, get func(obj api.Object) (Object, error)) error
+}

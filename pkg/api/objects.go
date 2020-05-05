@@ -17,6 +17,7 @@ import (
 	"facette.io/facette/pkg/connector"
 	"facette.io/facette/pkg/errors"
 	"facette.io/facette/pkg/series"
+	"facette.io/facette/pkg/template"
 )
 
 var nameRegexp = regexp.MustCompile(`(?i)^[a-z0-9](?:[a-z0-9\-_]*[a-z0-9])?$`)
@@ -121,6 +122,41 @@ func (c Chart) Validate() error {
 	}
 
 	return nil
+}
+
+// Variables parses the chart API object for template variables references and
+// returns their names if found.
+func (c Chart) Variables() ([]string, error) {
+	if !c.Template {
+		return nil, nil
+	}
+
+	var data string
+
+	if c.Options.Axes.Y.Left.Label != "" {
+		data += fmt.Sprintf("\xff%s", c.Options.Axes.Y.Left.Label)
+	}
+
+	if c.Options.Axes.Y.Right.Label != "" {
+		data += fmt.Sprintf("\xff%s", c.Options.Axes.Y.Right.Label)
+	}
+
+	if c.Options.Title != "" {
+		data += fmt.Sprintf("\xff%s", c.Options.Title)
+	}
+
+	for _, series := range c.Series {
+		data += fmt.Sprintf("\xff%s", series.Expr)
+	}
+
+	tmpl := template.New()
+
+	err := tmpl.Parse(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return tmpl.Variables(), nil
 }
 
 // ChartOptions are chart options.
@@ -326,6 +362,29 @@ func (d Dashboard) Validate() error {
 	return nil
 }
 
+// Variables parses the chart API object for template variables references and
+// returns their names if found.
+func (d Dashboard) Variables() ([]string, error) {
+	if !d.Template {
+		return nil, nil
+	}
+
+	var data string
+
+	if d.Options.Title != "" {
+		data += fmt.Sprintf("\xff%s", d.Options.Title)
+	}
+
+	tmpl := template.New()
+
+	err := tmpl.Parse(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return tmpl.Variables(), nil
+}
+
 // DashboardOptions are dashboard options.
 // +store:generate=type
 type DashboardOptions struct {
@@ -459,6 +518,17 @@ func (p ProviderList) Objects() []Object {
 func (p ProviderList) Len() int {
 	return len(p)
 }
+
+// Template is an API object template interface.
+type Template interface {
+	Object
+	Variables() ([]string, error)
+
+	template()
+}
+
+func (Chart) template()     {}
+func (Dashboard) template() {}
 
 // TemplateVariable is a template variable.
 type TemplateVariable struct {

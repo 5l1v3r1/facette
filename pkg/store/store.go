@@ -102,7 +102,32 @@ func (s *Store) Delete(obj api.Object) error {
 }
 
 // Get returns an object from the back-end storage.
-func (s *Store) Get(obj api.Object) error {
+func (s *Store) Get(obj api.Object, resolve bool, data map[string]string) error {
+	v, err := s.get(obj)
+	if err != nil {
+		return err
+	}
+
+	// Check for resolution flag. If not set, directly return the object
+	// retrieved from the back-end storage; otherwise resolve it.
+	if !resolve {
+		return v.Copy(obj)
+	}
+
+	resolver, ok := v.(types.Resolver)
+	if !ok {
+		return fmt.Errorf("expected types.Resolver but got %T", v)
+	}
+
+	err = resolver.Resolve(data, s.get)
+	if err != nil {
+		return err
+	}
+
+	return v.Copy(obj)
+}
+
+func (s *Store) get(obj api.Object) (types.Object, error) {
 	var column, value string
 
 	meta := obj.GetMeta()
@@ -117,22 +142,22 @@ func (s *Store) Get(obj api.Object) error {
 		value = meta.Name
 
 	default:
-		return api.ErrNotFound
+		return nil, api.ErrNotFound
 	}
 
 	v, err := types.FromAPI(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = s.db.Where(fmt.Sprintf("%v = ?", s.db.Dialect().Quote(column)), value).First(v).Error
 	if err == gorm.ErrRecordNotFound {
-		return api.ErrNotFound
+		return nil, api.ErrNotFound
 	} else if err != nil {
-		return s.driver.Error(err)
+		return nil, s.driver.Error(err)
 	}
 
-	return v.Copy(obj)
+	return v, nil
 }
 
 // List returns a list of objects from the back-end storage.
