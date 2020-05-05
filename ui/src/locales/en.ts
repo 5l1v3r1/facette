@@ -13,6 +13,15 @@ export default {
     },
 
     help: {
+        charts: {
+            axes: {
+                label: "Label of the axis. @:help.common.templateSupport",
+                max: "Maximum value of the axis.",
+                min: "Minimum value of the axis.",
+            },
+            name: "Name of the chart. @:help.common.name",
+            title: "Title of the chart. @:help.common.templateSupport",
+        },
         common: {
             name:
                 "Must start and end by an alphanumerical character, and contain alphanumerical characters, hyphens " +
@@ -43,22 +52,47 @@ export default {
             },
             url: "URL to the upstream {0} service.",
         },
+        series: {
+            alias:
+                "Series name to display in both chart tooltip and summary. Use pattern like `{{__name__}}` or " +
+                "`{{instance}}` to insert the value associated with the corresponding label.",
+        },
     },
 
     labels: {
         adminPanel: "Administration panel",
+        auto: "Automatic",
         cancel: "Cancel",
         catalog: "Catalog",
         charts: {
             _: "Chart|Charts",
+            axes: {
+                _: "Axes",
+                max: "Max",
+                min: "Min",
+                x: "X",
+                yLeft: "Left Y",
+                yRight: "Right Y",
+            },
             create: "Create chart",
             delete: "Delete chart|Delete charts",
+            name: "Chart name",
             new: "New chart",
             filter: "Filter charts",
+            reset: "Reset chart",
+            save: "Save chart",
+            type: {
+                _: "Type",
+                area: "Area",
+                bar: "Bar",
+                line: "Line",
+                select: "Select a type…",
+            },
         },
         clearSelection: "Clear selection",
         clone: "Clone",
         close: "Close",
+        color: "Color",
         connectors: {
             _: "Connector|Connectors",
             select: "Select a connector…",
@@ -79,8 +113,10 @@ export default {
                 select: "Select an action…",
             },
             add: "Add filter",
+            edit: "Edit filter",
             into: "Into",
             pattern: "Pattern",
+            remove: "Remove filter",
             targets: {
                 _: "Targets",
                 add: "Add target",
@@ -94,6 +130,7 @@ export default {
         general: "General",
         goto: {
             adminPanel: "Go to administration panel",
+            charts: "Go to chart|Go to charts",
             home: "Go to home",
             metrics: "Go to metrics",
             providers: "Go to providers",
@@ -126,6 +163,7 @@ export default {
         name: "Name",
         ok: "OK",
         openMenu: "Open menu",
+        options: "Options",
         placeholders: {
             example: "e.g. {0}",
         },
@@ -159,6 +197,11 @@ export default {
         reset: "Reset",
         retry: "Retry",
         saveAndGo: "Save and Go",
+        series: {
+            _: "Series|Series",
+            add: "Add series",
+            alias: "Alias",
+        },
         settings: {
             display: {
                 _: "Display",
@@ -167,10 +210,14 @@ export default {
             personal: "Personal settings",
             save: "Save settings",
         },
+        show: "Show",
         system: "System",
         templates: {
             _: "Template|Templates",
+            edit: "Edit template",
             newFrom: "New from template",
+            save: "Save template",
+            select: "Select a template…",
         },
         theme: {
             _: "Theme",
@@ -182,11 +229,21 @@ export default {
             select: "Select a time zone…",
             utc: "UTC",
         },
+        title: "Title",
         tls: {
             skipVerify: "Skip server certificate verification (Insecure)",
         },
         toggleSidebar: "Toggle sidebar",
         url: "URL",
+        value: "Value",
+        variables: {
+            _: "Variables",
+            add: "Add variable",
+            clear: "Clear variable",
+            dynamic: "Dynamic",
+            edit: "Edit variable",
+            fixed: "Fixed",
+        },
         visit: {
             documentation: "Visit documentation",
             website: "Visit website",
@@ -200,6 +257,7 @@ export default {
                 "You are about to delete {count} charts. Are you sure?",
             deleted: "Chart successfully deleted|Charts successfully deleted",
             none: "No charts defined",
+            saved: "Chart successfully saved",
             selected: "{0} chart selected|{0} charts selected",
         },
         confirmLeave: "All unsaved data will be lost. Are you sure?",
@@ -221,12 +279,16 @@ export default {
         filters: {
             none: "No provider filters defined",
         },
+        labels: {
+            emptyDiscarded: "Labels having empty values will be discarded",
+        },
         lastModified: "Last modified on {0}",
         metrics: {
             none: "No metrics found",
             selected: "{0} metric selected|{0} metrics selected",
         },
         notAvailable: "Not available",
+        notDefined: "Not defined",
         providers: {
             delete:
                 "You are about to delete the “{name}” provider. Are you sure?|" +
@@ -249,11 +311,17 @@ export default {
                 success: "Provider successfully tested",
             },
         },
+        series: {
+            none: "No series defined",
+        },
         settings: {
             saved: "Settings successfully saved",
         },
         templates: {
             none: "No templates defined",
+        },
+        variables: {
+            none: "No variables defined",
         },
     },
 };

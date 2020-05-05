@@ -657,7 +657,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
 @import "./mixins";
 
 .v-content {
-    @include admin;
+    @include content;
 
     .v-toolbar .v-input {
         width: 20rem;

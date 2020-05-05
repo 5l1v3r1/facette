@@ -8,7 +8,7 @@
             v-for="(value, key) in filteredLabels"
         >
             <div class="key">{{ key }}</div>
-            <div class="discarded value" v-if="!value">{{ $t("labels.discarded") }}</div>
+            <div class="empty value" v-if="value === ''">{{ $t("labels.empty") }}</div>
             <div class="value" v-else>{{ value }}</div>
         </v-flex>
     </v-flex>
@@ -65,7 +65,7 @@ export default class LabelsComponent extends Vue {
         .value {
             color: var(--button-focus-color);
 
-            &.discarded {
+            &.empty {
                 opacity: 0.5;
                 text-transform: lowercase;
             }

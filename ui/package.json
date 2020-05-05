@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.13.0",
+    "@types/vue-color": "2.4.2",
     "core-js": "3.6.5",
     "d3": "5.16.0",
     "dayjs": "1.8.26",
@@ -15,6 +16,7 @@
     "typeface-roboto-mono": "0.0.75",
     "vue": "2.6.11",
     "vue-class-component": "7.2.3",
+    "vue-color": "2.7.1",
     "vue-i18n": "8.17.4",
     "vue-mixin-decorator": "1.2.0",
     "vue-property-decorator": "8.4.2",

@@ -1,48 +1,70 @@
-@mixin admin {
+@mixin content {
     h1 .count {
         color: var(--gray);
         font-size: 1.35rem;
         margin-left: 1rem;
     }
 
-    .columns {
-        justify-content: space-between;
-        width: 100%;
-
-        &.two > * {
-            width: calc(50% - 0.75rem);
+    h1,
+    h2 {
+        + .v-checkbox,
+        + .v-label {
+            margin-top: 0 !important;
         }
     }
 
     .half {
-        max-width: 35rem;
         width: 50% !important;
     }
 
-    .v-flex.column {
-        align-items: flex-start;
+    .third {
+        width: 33.33% !important;
     }
 
-    .v-flex.column,
+    .monospace {
+        font-family: "Roboto Mono", monospace;
+        font-size: 0.8rem;
+    }
+
     .v-form {
-        > .v-input,
-        > .v-select {
+        .columns {
+            align-items: flex-start;
+
+            > .v-flex + .v-flex {
+                margin-left: 4rem !important;
+            }
+        }
+
+        .v-flex {
+            h2,
+            .v-label {
+                align-self: flex-start;
+            }
+
+            &.row .v-flex.column + .v-flex.column {
+                margin-left: 1.5rem;
+            }
+        }
+
+        > .v-flex + h2,
+        > .v-flex + .v-flex > h2 {
+            margin-top: 2rem;
+        }
+
+        .v-input,
+        .v-select {
             width: 100%;
         }
 
-        > .v-label {
+        .v-input + .v-button,
+        .v-select + .v-button {
+            margin-left: 1rem;
+        }
+
+        .v-checkbox,
+        .v-label {
             margin-top: 0.75rem;
         }
-
-        > .v-message {
-            margin: 1.5rem 0;
-        }
-    }
-
-    .v-message + .v-toolbar,
-    .v-table + .v-toolbar {
-        background: none;
-        justify-content: flex-end;
     }
 
     .v-message {
@@ -101,6 +123,25 @@
                 .reveal {
                     visibility: visible;
                 }
+            }
+        }
+    }
+
+    .v-message + .v-toolbar,
+    .v-table + .v-toolbar {
+        background: none;
+        margin-top: 0.25rem;
+
+        > :first-child {
+            margin-left: 0;
+        }
+
+        .v-message {
+            line-height: var(--input-height);
+            padding: 0 0.65rem;
+
+            &.note {
+                color: var(--gray);
             }
         }
     }

@@ -11,6 +11,8 @@ import {defineParams} from "@/src/router";
 
 import "./components";
 
+import chartsEdit from "./charts/edit.vue";
+import chartsSidebar from "./charts/sidebar.vue";
 import info from "./info/info.vue";
 import list from "./list.vue";
 import metricsList from "./metrics/list.vue";
@@ -55,8 +57,8 @@ export default [
     },
     {
         components: {
-            // default: editCharts,
-            // sidebar: sidebarCharts,
+            default: chartsEdit,
+            sidebar: chartsSidebar,
             toolbar: toolbar,
         },
         name: "admin-charts-edit",

@@ -14,9 +14,13 @@ Vue.use(Vuex);
 class State {
     public connectors: Array<string> = [];
 
+    public data: unknown = null;
+
     public locale = "en";
 
     public modifierPressed = false;
+
+    public prevRoute: string | null = null;
 
     public routeGuarded = false;
 
@@ -36,12 +40,20 @@ const store = new Vuex.Store({
             return state.connectors;
         },
 
+        data(state: State): unknown {
+            return state.data;
+        },
+
         locale(state: State): string {
             return state.locale;
         },
 
         modifierPressed(state: State): boolean {
             return state.modifierPressed;
+        },
+
+        prevRoute(state: State): string | null {
+            return state.prevRoute;
         },
 
         routeGuarded(state: State): boolean {
@@ -69,12 +81,20 @@ const store = new Vuex.Store({
             state.connectors = value;
         },
 
+        data(state: State, value: unknown): void {
+            state.data = value;
+        },
+
         locale(state: State, value: string): void {
             state.locale = value;
         },
 
         modifierPressed(state: State, value: boolean): void {
             state.modifierPressed = value;
+        },
+
+        prevRoute(state: State, value: string | null): void {
+            state.prevRoute = value;
         },
 
         routeGuarded(state: State, value: boolean): void {
@@ -102,6 +122,7 @@ const store = new Vuex.Store({
             key: "facette",
             reducer: (state: State): object => ({
                 locale: state.locale,
+                prevRoute: state.prevRoute,
                 sidebar: state.sidebar,
                 theme: state.theme,
                 timezoneUTC: state.timezoneUTC,

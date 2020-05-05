@@ -39,6 +39,7 @@ import TabBarComponent from "./tab/tab-bar.vue";
 import TabComponent from "./tab/tab.vue";
 import TableCellComponent from "./table/cell.vue";
 import TableComponent from "./table/table.vue";
+import TextareaComponent from "./textarea/textarea.vue";
 import ToolbarComponent from "./toolbar/toolbar.vue";
 import TooltipComponent from "./tooltip/tooltip.vue";
 
@@ -73,6 +74,7 @@ const components: Record<string, VueConstructor> = {
     TabComponent,
     TableComponent,
     TableCellComponent,
+    TextareaComponent,
     ToolbarComponent,
     TooltipComponent,
 };

@@ -473,7 +473,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
 .v-content {
     ::v-deep {
-        @include admin;
+        @include content;
     }
 
     .empty {

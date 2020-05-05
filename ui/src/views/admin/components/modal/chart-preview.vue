@@ -32,7 +32,9 @@ export default class ModalChartPreviewComponent extends Vue {
     };
 
     public createChart(exprs: Array<string>): void {
-        this.$store.commit("seriesPrefill", exprs); // TODO: add prefill to store
+        // Prefill series data into store
+        this.$store.commit("data", exprs);
+
         this.$router.push({name: "admin-charts-edit", params: {id: "new"}});
     }
 
