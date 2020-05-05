@@ -22,9 +22,6 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 @Component
 export default class CheckboxComponent extends Vue {
     @Prop({default: false, type: Boolean})
-    public autofocus!: boolean;
-
-    @Prop({default: false, type: Boolean})
     public disabled!: boolean;
 
     @Prop({default: false, type: Boolean})

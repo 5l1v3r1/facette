@@ -528,7 +528,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     private observeResize(): void {
         this.resize = new ResizeObserver(
             debounce((entries: Array<ResizeObserverEntry>) => {
-                if (!this.$refs.chart || (this.domRect && entries[0].contentRect.width == this.domRect.width)) {
+                if (!this.$refs.chart || (this.domRect && entries[0].contentRect.width === this.domRect.width)) {
                     return;
                 }
 

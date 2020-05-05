@@ -110,7 +110,7 @@ export class Parser {
         this.last = Object.assign({}, this.pos);
         this.lastCh = c;
 
-        if (c == "\n") {
+        if (c === "\n") {
             this.pos.line++;
             this.pos.char = 1;
         } else {
@@ -141,44 +141,44 @@ export class Parser {
             c = this.read();
         }
 
-        if (c == "") {
+        if (c === "") {
             return this.tokenAtPos(TokenType.EOF);
-        } else if (c == "-" || isDigit(c)) {
+        } else if (c === "-" || isDigit(c)) {
             this.unread();
             return this.scanNumber();
         } else if (isIdentChar(c)) {
             this.unread();
             return this.scanIdent();
-        } else if (c == '"' || c == "'") {
+        } else if (c === '"' || c === "'") {
             this.unread();
             return this.scanString();
-        } else if (c == "=") {
+        } else if (c === "=") {
             const next = this.read();
-            if (next == "~") {
+            if (next === "~") {
                 return this.tokenAtPos(TokenType.EQREGEXP);
             }
 
             this.unread();
 
             return this.tokenAtPos(TokenType.EQ);
-        } else if (c == "!") {
+        } else if (c === "!") {
             const next = this.read();
-            if (next == "=") {
+            if (next === "=") {
                 return this.tokenAtPos(TokenType.NEQ);
-            } else if (next == "~") {
+            } else if (next === "~") {
                 return this.tokenAtPos(TokenType.NEQREGEXP);
             }
 
             this.unread();
-        } else if (c == "{") {
+        } else if (c === "{") {
             return this.tokenAtPos(TokenType.LBRACE);
-        } else if (c == "}") {
+        } else if (c === "}") {
             return this.tokenAtPos(TokenType.RBRACE);
-        } else if (c == "(") {
+        } else if (c === "(") {
             return this.tokenAtPos(TokenType.LPAREN);
-        } else if (c == ")") {
+        } else if (c === ")") {
             return this.tokenAtPos(TokenType.RPAREN);
-        } else if (c == ",") {
+        } else if (c === ",") {
             return this.tokenAtPos(TokenType.COMMA);
         }
 
@@ -190,7 +190,7 @@ export class Parser {
 
         for (;;) {
             const c = this.read();
-            if (c == "") {
+            if (c === "") {
                 break;
             } else if (isIdentChar(c)) {
                 s += c;
@@ -207,7 +207,7 @@ export class Parser {
         let s = "";
 
         let next = this.read();
-        if (next == "-") {
+        if (next === "-") {
             s += next;
         } else {
             this.unread();
@@ -216,7 +216,7 @@ export class Parser {
         s += this.run(digits);
 
         next = this.read();
-        if (next == ".") {
+        if (next === ".") {
             s += next + this.run(digits);
         } else {
             this.unread();

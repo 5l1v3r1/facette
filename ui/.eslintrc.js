@@ -40,6 +40,7 @@ module.exports = {
         "@typescript-eslint/array-type": ["error", {default: "generic"}],
         "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
         "@typescript-eslint/explicit-function-return-type": ["error", {allowExpressions: true}],
+        "eqeqeq": ["error", "always"],
         "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
         "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
         "prettier/prettier": [

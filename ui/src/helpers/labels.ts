@@ -44,7 +44,7 @@ export function parseLabels(text: string): Labels {
 
     // Stop if not a left brace and name was at least provided
     tok = parser.peek();
-    if (tok.type != TokenType.LBRACE && isName) {
+    if (tok.type !== TokenType.LBRACE && isName) {
         return labels;
     }
 
