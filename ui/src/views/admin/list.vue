@@ -331,7 +331,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
     public cloneObject(obj: ObjectMeta, name?: string): void {
         if (name) {
             this.$http
-                .post(`/api/v1/${this.params.type}?inherit=${obj.id}`, {
+                .post(`/api/v1/${this.params.type}?copy=${obj.id}`, {
                     name,
                 })
                 .then(() => {
