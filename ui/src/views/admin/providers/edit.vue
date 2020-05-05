@@ -58,7 +58,7 @@
         <template v-else>
             <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
 
-            <v-form class="half" @validity="onValidity" v-show="section === 'general'">
+            <v-form class="third" @validity="onValidity" v-show="section === 'general'">
                 <v-label>{{ $t("labels.name") }}</v-label>
                 <v-input
                     ref="name"
@@ -101,64 +101,68 @@
             <template v-if="section === 'filters'">
                 <h1>{{ $tc("labels.filters._", 2) }}</h1>
 
-                <v-message type="info" v-if="!provider.filters || provider.filters.length === 0">
-                    {{ $t("messages.filters.none") }}
-                </v-message>
+                <v-form class="half">
+                    <v-message type="info" v-if="!provider.filters || provider.filters.length === 0">
+                        {{ $t("messages.filters.none") }}
+                    </v-message>
 
-                <v-table draggable v-model="provider.filters" v-else>
-                    <template slot="header">
-                        <v-table-cell>
-                            {{ $t("labels.filters.action._") }}
-                        </v-table-cell>
+                    <v-table draggable v-model="provider.filters" v-else>
+                        <template slot="header">
+                            <v-table-cell>
+                                {{ $t("labels.filters.action._") }}
+                            </v-table-cell>
 
-                        <v-table-cell>
-                            {{ $tc("labels.labels", 1) }}
-                        </v-table-cell>
+                            <v-table-cell grow>
+                                {{ $t("labels.properties") }}
+                            </v-table-cell>
 
-                        <v-table-cell grow>
-                            {{ $t("labels.properties") }}
-                        </v-table-cell>
+                            <v-table-cell></v-table-cell>
+                        </template>
 
-                        <v-table-cell></v-table-cell>
-                    </template>
+                        <template slot-scope="item">
+                            <v-table-cell>
+                                {{ item.value.action }}
+                            </v-table-cell>
 
-                    <template slot-scope="item">
-                        <v-table-cell>
-                            {{ item.value.action }}
-                        </v-table-cell>
+                            <v-table-cell grow>
+                                <v-flex>
+                                    <v-labels :labels="{[item.value.label]: item.value.pattern}"></v-labels>
 
-                        <v-table-cell>
-                            {{ item.value.label }}
-                        </v-table-cell>
+                                    <template v-if="item.value.action === 'relabel'">
+                                        <v-icon icon="arrow-right"></v-icon>
+                                        <v-labels :labels="item.value.targets"></v-labels>
+                                    </template>
 
-                        <v-table-cell grow>
-                            <v-flex>
-                                <span class="empty" v-if="!item.value.pattern">{{ $t("labels.empty") }}</span>
-                                <code v-else>{{ item.value.pattern }}</code>
+                                    <template v-else-if="item.value.action === 'rewrite'">
+                                        <v-icon icon="arrow-right"></v-icon>
+                                        <v-labels :labels="{[item.value.label]: item.value.into}"></v-labels>
+                                    </template>
+                                </v-flex>
+                            </v-table-cell>
 
-                                <template v-if="item.value.action === 'relabel'">
-                                    <v-icon icon="arrow-right"></v-icon>
-                                    <v-labels :labels="item.value.targets"></v-labels>
-                                </template>
+                            <v-table-cell>
+                                <v-button
+                                    class="reveal"
+                                    icon="pencil-alt"
+                                    @click="editFilter(item.index)"
+                                    v-tooltip="$t('labels.filters.edit')"
+                                ></v-button>
+                                <v-button
+                                    class="reveal"
+                                    icon="times"
+                                    @click="removeFilter(item.index)"
+                                    v-tooltip="$t('labels.filters.remove')"
+                                ></v-button>
+                            </v-table-cell>
+                        </template>
+                    </v-table>
 
-                                <template v-else-if="item.value.action === 'rewrite'">
-                                    <v-icon icon="arrow-right"></v-icon>
-                                    <span class="empty" v-if="!item.value.into">{{ $t("labels.empty") }}</span>
-                                    <code v-else>{{ item.value.into }}</code>
-                                </template>
-                            </v-flex>
-                        </v-table-cell>
-
-                        <v-table-cell>
-                            <v-button class="reveal" icon="pencil-alt" @click="editFilter(item.index)"></v-button>
-                            <v-button class="reveal" icon="times" @click="removeFilter(item.index)"></v-button>
-                        </v-table-cell>
-                    </template>
-                </v-table>
-
-                <v-toolbar>
-                    <v-button icon="plus" @click="addFilter">{{ $t("labels.filters.add") }}</v-button>
-                </v-toolbar>
+                    <v-toolbar>
+                        <v-button icon="plus" @click="addFilter">{{ $t("labels.filters.add") }}</v-button>
+                        <v-spacer></v-spacer>
+                        <v-message icon="info-circle" type="note">{{ $t("messages.labels.emptyDiscarded") }}</v-message>
+                    </v-toolbar>
+                </v-form>
             </template>
         </template>
     </v-content>
