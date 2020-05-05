@@ -48,9 +48,6 @@ import {shortcutLabel} from "../shortcut";
 
 @Component
 export default class InputComponent extends Vue {
-    @Prop({default: false, type: Boolean})
-    public autofocus!: boolean;
-
     @Prop({default: null, type: Function})
     public customValidity!: (value: string) => Promise<string>;
 
@@ -107,12 +104,6 @@ export default class InputComponent extends Vue {
             this.updateDebounce = debounce(() => {
                 this.update(true);
             }, this.delay);
-        }
-
-        if (this.autofocus) {
-            this.$nextTick(() => {
-                this.focus(true);
-            });
         }
     }
 

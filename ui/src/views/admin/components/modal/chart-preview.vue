@@ -5,7 +5,7 @@
 
             <template slot="bottom">
                 <v-button @click="modal.close(false)">{{ $t("labels.close") }}</v-button>
-                <v-button autofocus primary @click="createChart(modal.params.exprs)">
+                <v-button primary @click="createChart(modal.params.exprs)" v-autofocus>
                     {{ $t("labels.charts.create") }}
                 </v-button>
             </template>

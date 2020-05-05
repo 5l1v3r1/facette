@@ -6,10 +6,10 @@
             <template slot="bottom">
                 <v-button @click="modal.close(false)">{{ $t("labels.cancel") }}</v-button>
                 <v-button
-                    autofocus
                     :danger="modal.params.button.danger"
                     :primary="modal.params.button.primary"
                     @click="modal.close(true)"
+                    v-autofocus
                 >
                     {{ modal.params.button && modal.params.button.label ? modal.params.button.label : $t("labels.ok") }}
                 </v-button>

@@ -13,9 +13,9 @@
         <v-form>
             <v-label>{{ $t("labels.language._") }}</v-label>
             <v-select
-                autofocus
                 :options="locales"
                 :placeholder="$t('labels.language.select')"
+                v-autofocus
                 v-model="settings.locale"
             ></v-select>
 

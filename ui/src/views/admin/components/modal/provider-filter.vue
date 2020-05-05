@@ -3,10 +3,10 @@
         <v-form slot-scope="modal">
             <v-label>{{ $t("labels.filters.action._") }}</v-label>
             <v-select
-                autofocus
                 :help="$t('help.filters.action')"
                 :options="actions"
                 :placeholder="$t('labels.filters.action.select')"
+                v-autofocus
                 v-model="modal.params.action"
             ></v-select>
 

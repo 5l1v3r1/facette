@@ -66,9 +66,6 @@ import {SelectOption} from "@/types/components";
 
 @Component
 export default class SelectComponent extends Vue {
-    @Prop({default: false, type: Boolean})
-    public autofocus!: boolean;
-
     @Prop({default: null, type: String})
     public help!: string;
 
@@ -106,14 +103,6 @@ export default class SelectComponent extends Vue {
     private filteredOptions: Array<SelectOption> = [];
 
     private selected = -1;
-
-    public mounted(): void {
-        if (this.autofocus) {
-            this.$nextTick(() => {
-                this.focus();
-            });
-        }
-    }
 
     public get currentOptions(): Array<SelectOption> {
         return (this.filter ? this.filteredOptions : this.options) ?? [];

@@ -61,11 +61,11 @@
             <v-form class="half" @validity="onValidity" v-show="section === 'general'">
                 <v-label>{{ $t("labels.name") }}</v-label>
                 <v-input
-                    autofocus
                     ref="name"
                     required
                     :help="$t('help.providers.name')"
                     :pattern="namePattern"
+                    v-autofocus.select
                     v-model="provider.name"
                 ></v-input>
 

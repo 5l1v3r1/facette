@@ -42,6 +42,7 @@ import TableComponent from "./table/table.vue";
 import ToolbarComponent from "./toolbar/toolbar.vue";
 import TooltipComponent from "./tooltip/tooltip.vue";
 
+import AutofocusDirective from "./autofocus";
 import ShortcutDirective, {Shortcut, shortcutLabel, shortcuts} from "./shortcut";
 import TooltipDirective from "./tooltip";
 
@@ -77,6 +78,7 @@ const components: Record<string, VueConstructor> = {
 };
 
 const directives: Record<string, DirectiveOptions> = {
+    AutofocusDirective,
     ShortcutDirective,
     TooltipDirective,
 };

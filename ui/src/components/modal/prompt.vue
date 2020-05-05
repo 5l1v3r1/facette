@@ -3,9 +3,9 @@
         <v-form slot-scope="modal">
             <v-label>{{ modal.params.message }}</v-label>
             <v-input
-                autofocus
                 :help="modal.params.input && modal.params.input.help ? modal.params.input.help : null"
                 :type="modal.params.input && modal.params.input.type ? modal.params.input.type : 'text'"
+                v-autofocus
                 v-model="modal.params.input.value"
             ></v-input>
 

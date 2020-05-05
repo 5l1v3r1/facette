@@ -67,9 +67,6 @@ import {shortcutLabel} from "../shortcut";
 
 @Component
 export default class ButtonComponent extends Vue {
-    @Prop({default: false, type: Boolean})
-    public autofocus!: boolean;
-
     @Prop({default: null, type: [Number, String]})
     public badge!: number | string | null;
 
@@ -125,12 +122,6 @@ export default class ButtonComponent extends Vue {
     public mounted(): void {
         this.checkSlots();
         this.inDropdown = Boolean(this.$parent.$el?.classList.contains("v-dropdown"));
-
-        if (this.autofocus) {
-            this.$nextTick(() => {
-                this.focus();
-            });
-        }
     }
 
     public updated(): void {
