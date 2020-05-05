@@ -16,8 +16,8 @@
     >
         <component
             class="v-button-content"
+            ref="content"
             :exact="exact"
-            :href="href"
             :is="tag"
             :tabindex="disabled ? -1 : 0"
             :target="target"
@@ -120,6 +120,10 @@ export default class ButtonComponent extends Vue {
     public shortcutLabel: (keys: Array<string>) => string = shortcutLabel;
 
     public mounted(): void {
+        if (this.href) {
+            (this.$refs.content as HTMLAnchorElement).href = this.href;
+        }
+
         this.checkSlots();
         this.inDropdown = Boolean(this.$parent.$el?.classList.contains("v-dropdown"));
     }
