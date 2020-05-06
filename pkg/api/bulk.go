@@ -11,10 +11,7 @@ import (
 )
 
 // BulkRequest in an API bulk request.
-type BulkRequest []BulkUnit
-
-// BulkUnit in an API bulk request unit.
-type BulkUnit struct {
+type BulkRequest struct {
 	Method   string                 `json:"method"`
 	Endpoint string                 `json:"endpoint"`
 	Params   map[string]interface{} `json:"params,omitempty"`

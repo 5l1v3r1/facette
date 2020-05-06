@@ -20,7 +20,7 @@ import (
 )
 
 func (h handler) ExecBulk(rw http.ResponseWriter, r *http.Request) {
-	bulk := api.BulkRequest{}
+	bulk := []api.BulkRequest{}
 
 	err := httpjson.Unmarshal(r, &bulk)
 	if err != nil {
@@ -62,25 +62,25 @@ func (h handler) ExecBulk(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: results}, http.StatusOK)
 }
 
-func requestFromBulkUnit(ctx context.Context, unit api.BulkUnit) (*http.Request, error) {
+func requestFromBulkUnit(ctx context.Context, r api.BulkRequest) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
-		unit.Method,
-		api.Prefix+"/"+strings.TrimLeft(unit.Endpoint, "/"),
-		bytes.NewReader(unit.Data),
+		r.Method,
+		api.Prefix+"/"+strings.TrimLeft(r.Endpoint, "/"),
+		bytes.NewReader(r.Data),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	switch unit.Method {
+	switch r.Method {
 	case http.MethodPatch, http.MethodPost, http.MethodPut:
 		req.Header.Set("Content-Type", "application/json")
 	}
 
 	q := req.URL.Query()
 
-	for key, value := range unit.Params {
+	for key, value := range r.Params {
 		q.Set(key, fmt.Sprintf("%v", value))
 	}
 
