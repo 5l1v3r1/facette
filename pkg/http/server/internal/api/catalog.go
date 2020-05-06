@@ -10,6 +10,7 @@ import (
 
 	"batou.dev/httprouter"
 	"facette.io/facette/pkg/api"
+	"facette.io/facette/pkg/errors"
 	httpjson "facette.io/facette/pkg/http/json"
 )
 
@@ -22,7 +23,7 @@ func (h handler) ListLabels(rw http.ResponseWriter, r *http.Request) {
 
 	matcher, err := matcherFromRequest(r)
 	if err != nil {
-		h.WriteError(rw, err)
+		h.WriteError(rw, errors.Wrap(api.ErrInvalid, err.Error()))
 		return
 	}
 
@@ -45,7 +46,7 @@ func (h handler) ListMetrics(rw http.ResponseWriter, r *http.Request) {
 
 	matcher, err := matcherFromRequest(r)
 	if err != nil {
-		h.WriteError(rw, err)
+		h.WriteError(rw, errors.Wrap(api.ErrInvalid, err.Error()))
 		return
 	}
 
@@ -72,7 +73,7 @@ func (h handler) ListValues(rw http.ResponseWriter, r *http.Request) {
 
 	matcher, err := matcherFromRequest(r)
 	if err != nil {
-		h.WriteError(rw, err)
+		h.WriteError(rw, errors.Wrap(api.ErrInvalid, err.Error()))
 		return
 	}
 
