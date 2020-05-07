@@ -84,7 +84,15 @@ export default class ModalTemplateVariableComponent extends Vue {
     private available: Array<TemplateVariable> = [];
 
     public get cleanedVariable(): TemplateVariable {
-        return Object.assign({}, this.variable, this.variable.dynamic ? {value: ""} : {label: "", filter: ""});
+        const variable: TemplateVariable = Object.assign({}, this.variable);
+        if (variable.dynamic) {
+            delete variable.value;
+        } else {
+            delete variable.label;
+            delete variable.filter;
+        }
+
+        return variable;
     }
 
     public onModalShow(params: TemplateParams): void {

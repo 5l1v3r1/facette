@@ -5,6 +5,7 @@
   display: inline-flex;
   height: var(--input-height);
   line-height: var(--input-height);
+  min-width: 12rem;
   padding: 0 0.5rem;
   position: relative;
   vertical-align: middle;

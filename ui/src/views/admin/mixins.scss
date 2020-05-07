@@ -46,11 +46,6 @@
             }
         }
 
-        > .v-flex + h2,
-        > .v-flex + .v-flex > h2 {
-            margin-top: 2rem;
-        }
-
         .v-input,
         .v-select {
             width: 100%;
@@ -61,8 +56,13 @@
             margin-left: 1rem;
         }
 
-        .v-checkbox,
-        .v-label {
+        > .v-flex + h2,
+        > .v-flex + .v-flex > h2 {
+            margin-top: 2rem;
+        }
+
+        > .v-checkbox,
+        > .v-label {
             margin-top: 0.75rem;
         }
     }

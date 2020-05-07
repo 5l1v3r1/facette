@@ -11,6 +11,13 @@ declare interface APIResponse<T> {
     error?: string;
 }
 
+declare interface BulkRequest {
+    endpoint: string;
+    method: string;
+    params?: Record<string, unknown>;
+    data?: unknown;
+}
+
 declare interface BulkResult {
     status: number;
     headers: Record<string, string>;

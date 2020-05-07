@@ -28,7 +28,7 @@
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="undo" :disabled="erred || loading.main || !guarded" @click="reset()">
+            <v-button icon="undo" :disabled="erred || loading || !guarded" @click="reset()">
                 {{ $t("labels.reset") }}
             </v-button>
 
@@ -41,12 +41,23 @@
             </template>
         </v-toolbar>
 
-        <v-spinner v-if="loading.main || (section === 'layout' && loading.refs)"></v-spinner>
+        <v-spinner v-if="loading"></v-spinner>
 
         <v-message-error @retry="reset(true)" v-else-if="erred"></v-message-error>
 
         <template v-else>
             <div class="preview">
+                <v-form v-if="dynamicVariables.length > 0">
+                    <v-select
+                        :key="index"
+                        :label="variable.name"
+                        :options="dynamicOptions[variable.name] || []"
+                        v-model="resolveData[variable.name]"
+                        v-for="(variable, index) in dynamicVariables"
+                    >
+                    </v-select>
+                </v-form>
+
                 <v-chart tooltip v-model="chartModel"></v-chart>
             </div>
 
@@ -197,10 +208,13 @@ import {SelectOption} from "@/types/components";
 
 import {beforeRoute} from "@/src/helpers/route";
 import {resolveOption} from "@/src/helpers/select";
-import {parseVariables} from "@/src/helpers/template";
+import {parseVariables, renderTemplate} from "@/src/helpers/template";
 import {CustomMixins} from "@/src/mixins";
 
 import {namePattern} from "..";
+import {hash} from "../../../helpers/hash";
+
+type DynamicData = Record<string, {hash: string; entries: Array<string>}>;
 
 const defaultXAxis: ChartXAxis = {
     show: true,
@@ -284,17 +298,19 @@ function parseChartVariables(chart: Chart): Array<TemplateVariable> {
 export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public chart: Chart | null = null;
 
-    public loading: {
-        main: boolean;
-        linked: boolean;
-    } = {
-        main: true,
-        linked: true,
-    };
+    public chartModel: Chart | null = null;
+
+    public dynamicData: DynamicData = {};
+
+    public dynamicOptions: Record<string, Array<SelectOption>> = {};
+
+    public loading = true;
 
     public linked: Chart | null = null;
 
     public namePattern = namePattern;
+
+    public resolveData: Record<string, string> = {};
 
     public saving = false;
 
@@ -335,10 +351,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         });
     }
 
-    public get chartModel(): Chart | null {
-        return this.link ? this.linked : this.chart;
-    }
-
     public deleteChart(apply = false): void {
         if (this.chart === null) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
@@ -377,6 +389,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    public get dynamicVariables(): Array<TemplateVariable> {
+        return this.chart?.options?.variables?.filter(variable => variable.dynamic) ?? [];
+    }
+
     public get edit(): boolean {
         return this.params.id !== "link" && this.params.id !== "new";
     }
@@ -405,12 +421,93 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         return this.params.id === "link" || Boolean(this.chart?.link);
     }
 
+    @Watch("chart.options.variables", {deep: true})
+    public async onVariables(to: Array<TemplateVariable>): Promise<void> {
+        if (this.linked === null) {
+            return;
+        }
+
+        const req: Array<BulkRequest> = [];
+        const variables: Array<string> = [];
+
+        const data = to.reduce((data: Record<string, string>, variable: TemplateVariable) => {
+            if (variable.dynamic) {
+                const hashValue = hash(variable);
+
+                if (this.dynamicData[variable.name]?.hash === hashValue) {
+                    data[variable.name] = this.dynamicData[variable.name].entries[0];
+                } else {
+                    this.dynamicData[variable.name] = {hash: hashValue, entries: []};
+
+                    req.push({
+                        endpoint: `/labels/${variable.label}/values`,
+                        method: "GET",
+                        params: variable.filter ? {match: variable.filter} : undefined,
+                    });
+
+                    variables.push(variable.name);
+                }
+            } else {
+                data[variable.name] = variable.value as string;
+            }
+
+            return data;
+        }, {});
+
+        if (req.length > 0) {
+            await this.$http
+                .post("/api/v1/bulk", req)
+                .then(response => response.json())
+                .then((response: APIResponse<Array<BulkResult>>) => {
+                    if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
+                        this.$components.notify(this.$t("messages.error.bulk") as string, "error");
+                        return;
+                    }
+
+                    response.data?.forEach((result: BulkResult, index: number) => {
+                        const values = result.response.data as Array<string>;
+
+                        if (values.length > 0) {
+                            data[variables[index]] = values[0];
+                        }
+
+                        this.dynamicData[variables[index]].entries = values;
+                    });
+
+                    this.updateDynamicOptions();
+                });
+        } else {
+            this.updateDynamicOptions();
+        }
+
+        this.resolveData = data;
+    }
+
     @Watch("params.id")
     public onParamsID(to: string, from: string): void {
         if (to !== from) {
             this.section = defaultSection;
             this.reset(true);
         }
+    }
+
+    @Watch("resolveData", {deep: true})
+    public onResolveData(to: Record<string, string>): void {
+        if (this.linked === null) {
+            return;
+        }
+
+        const chart = cloneDeep(this.linked);
+
+        if (chart.options?.title) {
+            chart.options.title = renderTemplate(chart.options.title, to);
+        }
+
+        chart.series?.forEach(series => {
+            series.expr = renderTemplate(series.expr, to);
+        });
+
+        this.chartModel = chart;
     }
 
     @Watch("$route.hash", {immediate: true})
@@ -482,13 +579,13 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             }
 
             this.chart = chart;
-            this.loading.main = false;
+            this.loading = false;
             this.guardWatch("chart");
 
             return;
         }
 
-        this.loading.main = true;
+        this.loading = true;
 
         this.$http
             .get(`/api/v1/charts/${this.params.id}`)
@@ -504,11 +601,11 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         this.chart = merge({}, defaultChart, response.data);
                     }
 
-                    this.loading.main = false;
+                    this.loading = false;
                     this.guardWatch("chart");
                 },
                 this.handleError(() => {
-                    this.loading.main = false;
+                    this.loading = false;
                 }),
             );
     }
@@ -574,6 +671,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         const variables = parseChartVariables(to);
 
         Object.assign(this, {
+            chartModel: to,
             template: variables.length > 0,
             variables,
         });
@@ -581,47 +679,42 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.emitUpdate();
     }
 
-    private onChartLinked(to: Chart): void {
-        if (!to.link) {
-            this.loading.linked = false;
+    private onChartLinked(to: Chart, from: Chart | undefined): void {
+        if (!to.link || to.link === from?.link) {
             this.emitUpdate();
             return;
         }
 
         this.$http
-            .post("/api/v1/bulk", [
-                {
-                    endpoint: `/charts/${this.params.id}/resolve`,
-                    method: "POST",
-                },
-                {
-                    endpoint: `/charts/${to.link}/vars`,
-                    method: "GET",
-                },
-            ])
+            .get(`/api/v1/charts/${to.link}`)
             .then(response => response.json())
             .then(
-                (response: APIResponse<Array<BulkResult>>) => {
-                    if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
-                        this.$components.notify(this.$t("messages.error.bulk") as string, "error");
-                    }
-
+                (response: APIResponse<Chart>) => {
                     Object.assign(this, {
-                        linked: response.data?.[0].response.data as Chart,
-                        variables: (response.data?.[1].response.data as Array<string>).map(name => ({
-                            name,
-                            dynamic: false,
-                        })),
+                        linked: response.data,
+                        variables: parseChartVariables(response.data as Chart),
                     });
 
-                    this.loading.linked = false;
+                    // FIXME: avoid having to trigger this manually (useful for
+                    // initial template rendering)
+                    this.onVariables(this.chart?.options?.variables ?? []);
+
                     this.emitUpdate();
                 },
                 this.handleError(() => {
-                    this.loading.linked = false;
                     this.emitUpdate();
                 }),
             );
+    }
+
+    private updateDynamicOptions(): void {
+        this.dynamicOptions = Object.keys(this.dynamicData).reduce(
+            (options: Record<string, Array<SelectOption>>, name: string) => {
+                options[name] = this.dynamicData[name].entries.map(value => ({label: value, value}));
+                return options;
+            },
+            {},
+        );
     }
 }
 </script>
@@ -634,7 +727,30 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         @include content;
     }
 
-    padding-top: 19rem;
+    .preview {
+        background-color: var(--background);
+        border-bottom: 1px solid var(--sidebar-background);
+        margin: -2rem -2rem 2rem;
+        padding: 1rem;
+        position: sticky;
+        top: calc(var(--toolbar-size) * 2);
+        z-index: 1;
+
+        .v-select {
+            background-color: var(--toolbar-background);
+            border-color: transparent;
+            width: auto;
+        }
+
+        .v-chart {
+            height: 16rem;
+            width: 100%;
+        }
+    }
+
+    &.sidebar-static .preview {
+        left: calc(var(--sidebar-width));
+    }
 
     .color {
         border-radius: 0.1rem;
@@ -643,27 +759,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         margin-right: 0.5rem;
         min-width: 0.6rem;
         width: 0.6rem;
-    }
-
-    .preview {
-        background-color: var(--background);
-        border-bottom: 1px solid var(--sidebar-background);
-        height: 17rem;
-        left: 0;
-        padding: 1rem;
-        position: fixed;
-        right: 0;
-        top: calc(var(--toolbar-size) * 2);
-        z-index: 1;
-
-        .v-chart {
-            height: 100%;
-            width: 100%;
-        }
-    }
-
-    &.sidebar-static .preview {
-        left: calc(var(--sidebar-width));
     }
 }
 </style>
