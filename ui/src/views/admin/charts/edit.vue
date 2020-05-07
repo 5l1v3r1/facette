@@ -748,8 +748,13 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         }
     }
 
-    &.sidebar-static .preview {
-        left: calc(var(--sidebar-width));
+    .color {
+        border-radius: 0.1rem;
+        display: inline-block;
+        height: 0.6rem;
+        margin-right: 0.5rem;
+        min-width: 0.6rem;
+        width: 0.6rem;
     }
 
     .color {
