@@ -8,13 +8,19 @@
 import {registerComponents} from "@/src/helpers/vue";
 
 import ChartComponent from "./chart/chart.vue";
+import GridComponent from "./grid/grid.vue";
+import GridItemComponent from "./grid/item.vue";
+import MessageErrorComponent from "./message/error.vue";
 import ModalConfirmComponent from "./modal/confirm.vue";
 import ModalHelpComponent from "./modal/help.vue";
 import ModalPromptComponent from "./modal/prompt.vue";
 import ToolbarMainComponent from "./toolbar/main.vue";
 
 registerComponents({
+    GridComponent,
+    GridItemComponent,
     ChartComponent,
+    MessageErrorComponent,
     ModalConfirmComponent,
     ModalHelpComponent,
     ModalPromptComponent,

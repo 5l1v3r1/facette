@@ -76,6 +76,42 @@ declare interface ChartSeriesOptions {
     color?: string;
 }
 
+declare interface Dashboard extends ObjectMeta {
+    options?: DashboardOptions;
+    layout?: GridLayout;
+    items?: Array<DashboardItem>;
+    parent?: string;
+    link?: string;
+    template?: boolean;
+    references?: Array<unknown>;
+}
+
+declare interface DashboardOptions {
+    title?: string;
+    variables?: Array<TemplateVariable>;
+}
+
+declare interface DashboardItem {
+    type: DashboardItemType;
+    layout: GridItemLayout;
+    options?: Record<string, unknown>;
+}
+
+declare type DashboardItemType = "chart";
+
+declare interface GridLayout {
+    columns: number;
+    rowHeight: number;
+    rows: number;
+}
+
+declare interface GridItemLayout {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+}
+
 declare interface Provider extends ObjectMeta {
     connector: ProviderConnector;
     filters?: Array<FilterRule>;

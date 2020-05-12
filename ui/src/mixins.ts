@@ -10,7 +10,7 @@ import dayjsUTC from "dayjs/plugin/utc";
 import Vue from "vue";
 import {Mixin} from "vue-mixin-decorator";
 import {HttpResponse} from "vue-resource/types/vue_resource";
-import {Dictionary} from "vue-router/types/router";
+import {Dictionary, Route} from "vue-router/types/router";
 
 dayjs.extend(dayjsUTC);
 
@@ -28,16 +28,14 @@ import {
 
 @Mixin
 export class CustomMixins extends Vue {
-    public erred = false;
-
     private unwatchGuard: (() => void) | null = null;
 
-    public mounted(): void {
-        this.$root.$on("set-error", this.onSetError);
+    public get erred(): boolean {
+        return this.error !== null;
     }
 
-    public beforeDestroy(): void {
-        this.$root.$off("set-error", this.onSetError);
+    public get error(): APIError {
+        return this.$store.getters.error;
     }
 
     public formatDate(input: Date | string, format = "MMM D YYYY, HH:mm:ss"): string {
@@ -95,9 +93,15 @@ export class CustomMixins extends Vue {
 
     public handleError(handler?: () => void): (response: HttpResponse) => void {
         return (response: HttpResponse) => {
-            if (response.status >= 500) {
-                this.$root.$emit("set-error", true);
+            let error: APIError = "unhandled";
+
+            switch (response.status) {
+                case 404:
+                    error = "notFound";
+                    break;
             }
+
+            this.$store.commit("error", error);
 
             this.$components.notify(
                 (response.data?.error
@@ -112,16 +116,20 @@ export class CustomMixins extends Vue {
         };
     }
 
-    public get modifierPressed(): boolean {
-        return this.$store.getters.modifierPressed;
+    public get modifiers(): Modifiers {
+        return this.$store.getters.modifiers;
     }
 
     public get params(): Dictionary<string> {
         return this.$route.params;
     }
 
+    public get prevRoute(): Route | null {
+        return this.$store.getters.prevRoute;
+    }
+
     public resetError(): void {
-        this.$root.$emit("set-error", false);
+        this.$store.commit("error", null);
     }
 
     public toggleSidebar(): void {
@@ -150,10 +158,6 @@ export class CustomMixins extends Vue {
     private onBeforeUnload(e: Event): void {
         e.preventDefault();
         e.returnValue = false;
-    }
-
-    private onSetError(state: boolean): void {
-        this.erred = state;
     }
 
     private get sidebar(): boolean {

@@ -30,15 +30,27 @@ export default class Main extends Vue {
         switch (e.type) {
             case "keydown":
             case "keyup": {
-                const code = (e as KeyboardEvent).code;
-                if (code === "AltLeft" || code === "AltRight") {
-                    this.$store.commit("modifierPressed", e.type === "keydown");
+                const ke = e as KeyboardEvent;
+
+                if (ke.code === "AltLeft" || ke.code === "AltRight") {
+                    const modifiers = Object.assign(this.$store.getters.modifiers, {
+                        alt: e.type === "keydown",
+                    });
+
+                    this.$store.commit("modifiers", modifiers);
+                } else if (ke.code === "ShiftLeft" || ke.code === "ShiftRight") {
+                    const modifiers = Object.assign(this.$store.getters.modifiers, {
+                        shift: e.type === "keydown",
+                    });
+
+                    this.$store.commit("modifiers", modifiers);
                 }
+
                 break;
             }
 
             case "visibilitychange": {
-                this.$store.commit("modifierPressed", false);
+                this.$store.commit("modifiers", {alt: false, shift: false});
                 break;
             }
         }

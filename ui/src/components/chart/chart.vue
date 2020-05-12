@@ -527,17 +527,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
 
     private observeResize(): void {
         this.resize = new ResizeObserver(
-            debounce((entries: Array<ResizeObserverEntry>) => {
-                if (!this.$refs.chart || (this.domRect && entries[0].contentRect.width === this.domRect.width)) {
-                    return;
-                }
-
-                const canvas: HTMLCanvasElement = (this.$refs.chart as HTMLElement).querySelector(
-                    "canvas",
-                ) as HTMLCanvasElement;
-
-                if (canvas) {
-                    Object.assign(canvas, {height: 0, width: 0, style: null});
+            debounce(() => {
+                if (this.$refs.chart) {
                     requestAnimationFrame(() => {
                         this.draw();
                     });
@@ -545,7 +536,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
             }, 200),
         );
 
-        this.resize.observe(document.querySelector("main") as HTMLElement);
+        this.resize.observe(this.$refs.chart as HTMLElement);
     }
 
     private onRefresh(target: Element | null = null): void {

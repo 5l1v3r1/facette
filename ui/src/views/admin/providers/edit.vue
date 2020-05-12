@@ -6,23 +6,23 @@
         <v-toolbar clip="content">
             <v-button
                 icon="save"
-                :disabled="erred || saving || testing || !validity"
+                :disabled="erred || formFailed || saving || testing || !validity"
                 @click="save(true)"
-                v-if="modifierPressed"
+                v-if="modifiers.alt"
             >
                 {{ $t("labels.saveAndGo") }}
             </v-button>
 
-            <v-button icon="save" :disabled="erred || saving || testing || !validity" @click="save(false)" v-else>
+            <v-button
+                icon="save"
+                :disabled="erred || formFailed || saving || testing || !validity"
+                @click="save(false)"
+                v-else
+            >
                 {{ $t("labels.providers.save") }}
             </v-button>
 
-            <v-button
-                icon="trash"
-                @click="deleteProvider()"
-                :disabled="testing"
-                v-if="!erred && edit && modifierPressed"
-            >
+            <v-button icon="trash" @click="deleteProvider()" :disabled="testing" v-if="!erred && edit && modifiers.alt">
                 {{ $t("labels.delete") }}
             </v-button>
 
@@ -38,7 +38,7 @@
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="clipboard-check" :disabled="erred || testing || !validity" @click="test()">
+            <v-button icon="clipboard-check" :disabled="erred || formFailed || testing || !validity" @click="test()">
                 {{ $t("labels.providers.test") }}
             </v-button>
 
@@ -86,7 +86,7 @@
                     v-model="provider.pollInterval"
                 ></v-input>
 
-                <v-message icon="exclamation-triangle" type="error" v-if="formFailed">
+                <v-message type="error" v-if="formFailed">
                     {{ $t("messages.providers.loadFailed", [provider.connector.type]) }}
                 </v-message>
 

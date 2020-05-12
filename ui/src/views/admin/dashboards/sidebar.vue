@@ -3,22 +3,22 @@
         <v-toolbar clip="sidebar">
             <v-button
                 icon="arrow-left"
-                :shortcut="['alt+up', $t('labels.charts.goBack')]"
+                :shortcut="['alt+up', $t('labels.dashboards.goBack')]"
                 :to="prevRoute"
                 :tooltip="''"
-                v-if="prevRoute.name === 'charts-show'"
+                v-if="prevRoute.name === 'dashboards-show'"
             >
-                {{ $t("labels.charts.goBack") }}
+                {{ $t("labels.dashboards.goBack") }}
             </v-button>
 
             <v-button
                 icon="arrow-left"
-                :shortcut="['alt+up', $tc('labels.goto.charts', 2)]"
-                :to="{name: 'admin-charts-list'}"
+                :shortcut="['alt+up', $tc('labels.goto.dashboards', 2)]"
+                :to="{name: 'admin-dashboards-list'}"
                 :tooltip="''"
                 v-else
             >
-                {{ $tc("labels.goto.charts", 2) }}
+                {{ $tc("labels.goto.dashboards", 2) }}
             </v-button>
         </v-toolbar>
 
@@ -26,30 +26,25 @@
             <v-spinner v-if="loading"></v-spinner>
 
             <template v-else>
-                <v-label>{{ $tc("labels.charts._", 1) }}</v-label>
+                <v-label>{{ $tc("labels.dashboards._", 1) }}</v-label>
 
-                <v-button exact :to="{name: 'admin-charts-edit', params: {id: params.id}}">
+                <v-button exact :to="{name: 'admin-dashboards-edit', params: {id: params.id}}">
                     {{ $t("labels.general") }}
                 </v-button>
 
-                <template v-if="!link">
-                    <v-button
-                        exact
-                        :badge="series || null"
-                        :to="{name: 'admin-charts-edit', params: {id: params.id}, hash: '#series'}"
-                    >
-                        {{ $tc("labels.series._", 2) }}
-                    </v-button>
-
-                    <v-button exact :to="{name: 'admin-charts-edit', params: {id: params.id}, hash: '#axes'}">
-                        {{ $t("labels.charts.axes._") }}
-                    </v-button>
-                </template>
+                <v-button
+                    exact
+                    :badge="items || null"
+                    :to="{name: 'admin-dashboards-edit', params: {id: params.id}, hash: '#layout'}"
+                    v-if="!link"
+                >
+                    {{ $t("labels.layout") }}
+                </v-button>
 
                 <v-button
                     exact
                     :badge="variables || null"
-                    :to="{name: 'admin-charts-edit', params: {id: params.id}, hash: '#variables'}"
+                    :to="{name: 'admin-dashboards-edit', params: {id: params.id}, hash: '#variables'}"
                     v-else-if="variables !== null"
                 >
                     {{ $t("labels.variables._") }}
@@ -70,27 +65,27 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public loading = true;
 
-    public series: number | null = null;
+    public items: number | null = null;
 
     public variables: number | null = null;
 
     public mounted(): void {
-        this.$parent.$on("chart-updated", this.onChartUpdated);
+        this.$parent.$on("dashboard-updated", this.onDashboardUpdated);
     }
 
     public beforeDestroy(): void {
-        this.$parent.$off("chart-updated", this.onChartUpdated);
+        this.$parent.$off("dashboard-updated", this.onDashboardUpdated);
     }
 
     public get edit(): boolean {
         return this.params.id !== "link" && this.params.id !== "new";
     }
 
-    public onChartUpdated(link: boolean, series: number | null, variables: number | null): void {
+    public onDashboardUpdated(link: boolean, items: number | null, variables: number | null): void {
         if (this.loading) {
             this.loading = false;
         }
-        Object.assign(this, {link, series, variables});
+        Object.assign(this, {link, items, variables});
     }
 }
 </script>

@@ -26,7 +26,7 @@ export default class MessageComponent extends Vue {
 
         switch (this.type) {
             case "error":
-                return "times-circle";
+                return "exclamation-circle";
 
             case "info":
                 return "info-circle";
@@ -35,7 +35,7 @@ export default class MessageComponent extends Vue {
                 return "check-circle";
 
             case "warning":
-                return "exclamation-circle";
+                return "exclamation-triangle";
         }
 
         return null;
@@ -48,7 +48,7 @@ export default class MessageComponent extends Vue {
     align-items: center;
     border-radius: 0.2rem;
     display: flex;
-    padding: 0.5rem 1rem;
+    padding: 1rem;
 
     &.inline {
         display: inline-flex;
@@ -75,7 +75,8 @@ export default class MessageComponent extends Vue {
     }
 
     .v-icon {
-        margin-right: 0.5rem;
+        font-size: 1.1rem;
+        margin-right: 0.75rem;
     }
 }
 </style>

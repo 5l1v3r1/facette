@@ -6,6 +6,7 @@
  */
 
 import Vue from "vue";
+import {Route} from "vue-router";
 import Vuex from "vuex";
 import VuexPersistedState from "vuex-persistedstate";
 
@@ -16,11 +17,16 @@ class State {
 
     public data: unknown = null;
 
+    public error: APIError = null;
+
     public locale = "en";
 
-    public modifierPressed = false;
+    public modifiers: Modifiers = {
+        alt: false,
+        shift: false,
+    };
 
-    public prevRoute: string | null = null;
+    public prevRoute: Route | null = null;
 
     public routeGuarded = false;
 
@@ -44,15 +50,19 @@ const store = new Vuex.Store({
             return state.data;
         },
 
+        error(state: State): APIError {
+            return state.error;
+        },
+
         locale(state: State): string {
             return state.locale;
         },
 
-        modifierPressed(state: State): boolean {
-            return state.modifierPressed;
+        modifiers(state: State): Modifiers {
+            return state.modifiers;
         },
 
-        prevRoute(state: State): string | null {
+        prevRoute(state: State): Route | null {
             return state.prevRoute;
         },
 
@@ -85,15 +95,19 @@ const store = new Vuex.Store({
             state.data = value;
         },
 
+        error(state: State, value: APIError): void {
+            state.error = value;
+        },
+
         locale(state: State, value: string): void {
             state.locale = value;
         },
 
-        modifierPressed(state: State, value: boolean): void {
-            state.modifierPressed = value;
+        modifiers(state: State, value: Modifiers): void {
+            state.modifiers = value;
         },
 
-        prevRoute(state: State, value: string | null): void {
+        prevRoute(state: State, value: Route | null): void {
             state.prevRoute = value;
         },
 
@@ -122,7 +136,13 @@ const store = new Vuex.Store({
             key: "facette",
             reducer: (state: State): object => ({
                 locale: state.locale,
-                prevRoute: state.prevRoute,
+                prevRoute:
+                    state.prevRoute !== null
+                        ? {
+                              name: state.prevRoute.name,
+                              params: state.prevRoute.params,
+                          }
+                        : null,
                 sidebar: state.sidebar,
                 theme: state.theme,
                 timezoneUTC: state.timezoneUTC,

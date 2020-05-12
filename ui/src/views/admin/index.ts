@@ -13,6 +13,8 @@ import "./components";
 
 import chartsEdit from "./charts/edit.vue";
 import chartsSidebar from "./charts/sidebar.vue";
+import dashboardsEdit from "./dashboards/edit.vue";
+import dashboardsSidebar from "./dashboards/sidebar.vue";
 import info from "./info/info.vue";
 import list from "./list.vue";
 import metricsList from "./metrics/list.vue";
@@ -33,8 +35,8 @@ export default [
     },
     {
         components: {
-            // default: editDashboards,
-            // sidebar: sidebarDashboards,
+            default: dashboardsEdit,
+            sidebar: dashboardsSidebar,
             toolbar: toolbar,
         },
         name: "admin-dashboards-edit",

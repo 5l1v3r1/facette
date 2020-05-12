@@ -90,7 +90,7 @@ export default class TooltipComponent extends Vue {
     border-radius: 0.2rem;
     box-shadow: 0 0.2rem 0.5rem var(--tooltip-shadow);
     left: 0;
-    max-width: 30vw;
+    max-width: 25vw;
     overflow-wrap: break-word;
     padding: 0.35rem 0.65rem;
     pointer-events: none;

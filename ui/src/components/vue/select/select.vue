@@ -8,7 +8,7 @@
         @click="open"
         @focus="onFocus"
         @focusout="onFocus"
-        @keydown.enter="open"
+        @keydown.enter.stop="open"
     >
         <v-icon :icon="iconValue" @mousedown.native.prevent v-if="iconValue"></v-icon>
 
@@ -195,6 +195,7 @@ export default class SelectComponent extends Vue {
             }
 
             case "Escape": {
+                this.opened = false;
                 this.focus();
                 break;
             }

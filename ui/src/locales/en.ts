@@ -28,6 +28,9 @@ export default {
                 "or underscores.",
             templateSupport: "This field supports template variables.",
         },
+        dashboards: {
+            title: "Title of the dashboard. @:help.common.templateSupport",
+        },
         filters: {
             action:
                 "Action to be performed by the filter:\n" +
@@ -81,6 +84,8 @@ export default {
             filter: "Filter charts",
             reset: "Reset chart",
             save: "Save chart",
+            select: "Select a chart…",
+            showLegend: "Show legend",
             type: {
                 _: "Type",
                 area: "Area",
@@ -97,14 +102,21 @@ export default {
             _: "Connector|Connectors",
             select: "Select a connector…",
         },
+        continue: "Continue",
         dashboards: {
             _: "Dashboard|Dashboards",
             new: "New dashboard",
             filter: "Filter dashboards",
+            reset: "Reset dashboard",
+            save: "Save dashboard",
+            types: {
+                chart: "Chart",
+            },
         },
         delete: "Delete",
         displayHelp: "Display this help",
         documentation: "Documentation",
+        edit: "Edit",
         empty: "Empty",
         filters: {
             _: "Filter|Filters",
@@ -131,6 +143,7 @@ export default {
         goto: {
             adminPanel: "Go to administration panel",
             charts: "Go to chart|Go to charts",
+            dashboards: "Go to dashboard|Go to dashboards",
             home: "Go to home",
             metrics: "Go to metrics",
             providers: "Go to providers",
@@ -147,6 +160,10 @@ export default {
             revision: "Revision",
             version: "Version",
         },
+        items: {
+            add: "Add item",
+            remove: "Remove item",
+        },
         keyboardShortcuts: "Keyboard shortcuts",
         labels: "Label|Labels",
         language: {
@@ -154,6 +171,7 @@ export default {
             select: "Select a language…",
         },
         lastModified: "Last modified",
+        layout: "Layout",
         leavePage: "Leave page",
         library: "Library",
         metrics: {
@@ -263,6 +281,11 @@ export default {
         confirmLeave: "All unsaved data will be lost. Are you sure?",
         dashboards: {
             none: "No dashboards defined",
+            notFound: "Dashboard not found",
+            saved: "Dashboard successfully saved",
+            types: {
+                loadFailed: "Cannot load type support: {0}",
+            },
         },
         data: {
             none: "No data found",

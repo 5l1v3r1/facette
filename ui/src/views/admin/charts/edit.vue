@@ -9,7 +9,7 @@
                 icon="save"
                 :disabled="erred || saving || !validity"
                 @click="save(true)"
-                v-if="prevRoute !== 'charts-show' && !template && modifierPressed"
+                v-if="prevRoute.name !== 'charts-show' && !template && modifiers.alt"
             >
                 {{ $t("labels.saveAndGo") }}
             </v-button>
@@ -18,11 +18,11 @@
                 {{ $t(`labels.${template ? "templates" : "charts"}.save`) }}
             </v-button>
 
-            <v-button icon="trash" @click="deleteChart()" v-if="!erred && edit && modifierPressed">
+            <v-button icon="trash" @click="deleteChart()" v-if="!erred && edit && modifiers.alt">
                 {{ $t("labels.delete") }}
             </v-button>
 
-            <v-button :disabled="erred" :to="{name: prevRoute || 'admin-charts-list'}" v-else>
+            <v-button :disabled="erred" :to="prevRoute || {name: 'admin-charts-list'}" v-else>
                 {{ $t("labels.cancel") }}
             </v-button>
 
@@ -76,7 +76,7 @@
 
                 <template v-if="link">
                     <v-label>{{ $tc("labels.templates._", 1) }}</v-label>
-                    <v-flex class="template">
+                    <v-flex>
                         <v-select
                             :options="templates"
                             :placeholder="$t('labels.templates.select')"
@@ -206,13 +206,13 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
+import {hash} from "@/src/helpers/hash";
 import {beforeRoute} from "@/src/helpers/route";
 import {resolveOption} from "@/src/helpers/select";
 import {parseVariables, renderTemplate} from "@/src/helpers/template";
 import {CustomMixins} from "@/src/mixins";
 
 import {namePattern} from "..";
-import {hash} from "../../../helpers/hash";
 
 type DynamicData = Record<string, {hash: string; entries: Array<string>}>;
 
@@ -236,7 +236,6 @@ const defaultYAxis: ChartYAxis = {
 const defaultChart: Chart = {
     id: "",
     name: "",
-    series: [],
     options: {
         axes: {
             x: cloneDeep(defaultXAxis),
@@ -246,9 +245,11 @@ const defaultChart: Chart = {
                 right: merge({}, defaultYAxis, {show: false}),
             },
         },
+        title: "",
         type: "area",
         variables: [],
     },
+    series: [],
 };
 
 const defaultChartLinked: Chart = {
@@ -362,7 +363,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 this.unguard();
                 this.$components.notify(this.$tc("messages.charts.deleted", 1) as string, "success");
                 this.$router.push(
-                    this.prevRoute === "dashboards-show" || this.prevRoute === "charts-show"
+                    this.prevRoute?.name === "charts-show"
                         ? {name: "dashboards-home"}
                         : {name: "admin-charts-list", query: this.template ? {kind: "template"} : {}},
                 );
@@ -519,10 +520,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.validity = to;
     }
 
-    public get prevRoute(): string | null {
-        return this.$store.getters.prevRoute;
-    }
-
     public removeSeries(index: number): void {
         if (this.chart === null || !this.chart.series) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
@@ -631,7 +628,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 this.unguard();
                 this.$components.notify(this.$t("messages.charts.saved") as string, "success");
                 this.$router.push(
-                    go || this.prevRoute === "charts-show"
+                    go || this.prevRoute?.name === "charts-show"
                         ? {name: "charts-show", params: {id: chart.name}}
                         : {name: "admin-charts-list", query: this.template ? {kind: "template"} : {}},
                 );
@@ -695,7 +692,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         variables: parseChartVariables(response.data as Chart),
                     });
 
-                    // FIXME: avoid having to trigger this manually (useful for
+                    // FIXME: avoid having to trigger this manually (needed by
                     // initial template rendering)
                     this.onVariables(this.chart?.options?.variables ?? []);
 

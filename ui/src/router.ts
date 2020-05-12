@@ -5,6 +5,7 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+import isEqual from "lodash/isEqual";
 import Vue from "vue";
 import {HttpResponse} from "vue-resource/types/vue_resource";
 import VueRouter, {Route, RouteConfig} from "vue-router";
@@ -37,6 +38,15 @@ const router = new VueRouter({
 });
 
 export default router;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+router.beforeEach((to: Route, from: Route, next: any) => {
+    if (from.name !== null && !isEqual(to, from)) {
+        store.commit("prevRoute", from);
+    }
+
+    next();
+});
 
 router.onReady(() => {
     (Vue as any) // eslint-disable-line @typescript-eslint/no-explicit-any

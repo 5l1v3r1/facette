@@ -5,6 +5,8 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+declare type APIError = "notFound" | "unhandled" | null;
+
 declare interface APIResponse<T> {
     data?: T;
     total?: number;
