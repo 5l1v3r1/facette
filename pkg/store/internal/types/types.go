@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
-	uuid "github.com/satori/go.uuid"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/errors"
@@ -54,7 +54,7 @@ func (m *ObjectMeta) beforeSave(scope *gorm.Scope) error {
 	}
 
 	if m.ID == "" {
-		uuid, err := uuid.NewV4()
+		uuid, err := uuid.NewRandom()
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func (m *ObjectMeta) beforeSave(scope *gorm.Scope) error {
 			return err
 		}
 	} else {
-		_, err := uuid.FromString(m.ID)
+		_, err := uuid.Parse(m.ID)
 		if err != nil {
 			return errors.New("invalid identifier")
 		}

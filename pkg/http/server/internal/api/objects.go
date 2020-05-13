@@ -11,7 +11,7 @@ import (
 	"strconv"
 
 	"batou.dev/httprouter"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/errors"
@@ -303,7 +303,7 @@ func metaFromRequest(r *http.Request) api.ObjectMeta {
 	meta := api.ObjectMeta{}
 	id := httprouter.ContextParam(r, "id").(string)
 
-	_, err := uuid.FromString(id)
+	_, err := uuid.Parse(id)
 	if err == nil {
 		meta.ID = id
 	} else {

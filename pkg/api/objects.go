@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 
 	"facette.io/facette/pkg/catalog"
 	"facette.io/facette/pkg/connector"
@@ -65,7 +65,7 @@ func (m ObjectMeta) Validate() error {
 	}
 
 	if m.ID != "" {
-		_, err := uuid.FromString(m.ID)
+		_, err := uuid.Parse(m.ID)
 		if err != nil {
 			return errors.Wrapf(ErrInvalid, "invalid identifier: %s", m.ID)
 		}
