@@ -6,7 +6,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"time"
@@ -313,7 +312,7 @@ func (c ChartList) Len() int {
 type Dashboard struct {
 	ObjectMeta `json:",inline"`
 	Options    DashboardOptions `json:"options,omitempty"`
-	Layout     json.RawMessage  `json:"layout,omitempty"`
+	Layout     GridLayout       `json:"layout,omitempty"`
 	Items      DashboardItems   `json:"items,omitempty"`
 	Parent     string           `json:"parent,omitempty"`
 	Link       string           `json:"link,omitempty"`
@@ -351,19 +350,21 @@ func (d Dashboard) Validate() error {
 		return err
 	}
 
+	hasItems := len(d.Items) > 0
+
 	switch {
-	case len(d.Items) == 0 && d.Link == "":
+	case !hasItems && d.Link == "":
 		return errors.Wrap(ErrInvalid, "missing field: items or link")
 
-	case len(d.Items) > 0 && d.Link != "":
+	case hasItems && d.Link != "":
 		return errors.Wrap(ErrInvalid, "conflicting fields: items and link")
 	}
 
 	return nil
 }
 
-// Variables parses the chart API object for template variables references and
-// returns their names if found.
+// Variables parses the dashboard API object for template variables references
+// and returns their names if found.
 func (d Dashboard) Variables() ([]string, error) {
 	if !d.Template {
 		return nil, nil
@@ -395,7 +396,7 @@ type DashboardOptions struct {
 // DashboardItem is a dashboard object.
 type DashboardItem struct {
 	Type    DashboardItemType      `json:"type"`
-	Layout  json.RawMessage        `json:"layout"`
+	Layout  GridItemLayout         `json:"layout"`
 	Options map[string]interface{} `json:"options,omitempty"`
 }
 
@@ -421,6 +422,22 @@ func (d *DashboardItemType) UnmarshalText(b []byte) error {
 const (
 	DashboardItemChart DashboardItemType = "chart"
 )
+
+// GridLayout is a dashboard grid layout.
+// +store:generate=type
+type GridLayout struct {
+	Columns   uint `json:"columns"`
+	RowHeight uint `json:"rowHeight"`
+	Rows      uint `json:"rows"`
+}
+
+// GridItemLayout is a dashboard grid item layout.
+type GridItemLayout struct {
+	X uint `json:"x"`
+	Y uint `json:"y"`
+	W uint `json:"w"`
+	H uint `json:"h"`
+}
 
 // DashboardList is a list of dashboard API objects.
 type DashboardList []Dashboard

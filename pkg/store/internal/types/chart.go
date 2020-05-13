@@ -13,7 +13,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"facette.io/facette/pkg/api"
-	"facette.io/facette/pkg/errors"
 	"facette.io/facette/pkg/template"
 )
 
@@ -78,8 +77,6 @@ func (c Chart) Copy(dst api.Object) error {
 func (c *Chart) Resolve(data map[string]string, get func(api.Object) (Object, error)) error {
 	if c.Template {
 		return nil
-	} else if !c.Link.Valid {
-		return errors.New("invalid link reference")
 	}
 
 	var (

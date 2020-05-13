@@ -72,6 +72,25 @@ func (t DashboardOptions) Value() (driver.Value, error) {
 	return json.Marshal(t)
 }
 
+type GridLayout api.GridLayout
+
+func (t *GridLayout) Scan(v interface{}) error {
+	switch x := v.(type) {
+	case []byte:
+		return json.Unmarshal(x, t)
+
+	case string:
+		return json.Unmarshal([]byte(x), t)
+
+	default:
+		return fmt.Errorf("unsupported type: %T", x)
+	}
+}
+
+func (t GridLayout) Value() (driver.Value, error) {
+	return json.Marshal(t)
+}
+
 type ProviderConnector api.ProviderConnector
 
 func (t *ProviderConnector) Scan(v interface{}) error {

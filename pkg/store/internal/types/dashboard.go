@@ -7,7 +7,6 @@ package types
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -21,7 +20,7 @@ type Dashboard struct {
 	ObjectMeta
 	Options  DashboardOptions `gorm:"type:text"`
 	Items    DashboardItems   `gorm:"type:text"`
-	Layout   json.RawMessage  `gorm:"type:text"`
+	Layout   GridLayout       `gorm:"type:text"`
 	Parent   sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
 	Link     sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
 	Template bool             `gorm:"not null"`
@@ -32,7 +31,7 @@ func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
 		ObjectMeta: ObjectMetaFromAPI(dashboard.ObjectMeta),
 		Options:    DashboardOptions(dashboard.Options),
 		Items:      DashboardItems(dashboard.Items),
-		Layout:     dashboard.Layout,
+		Layout:     GridLayout(dashboard.Layout),
 		Parent:     sql.NullString{String: dashboard.Parent, Valid: dashboard.Parent != ""},
 		Link:       sql.NullString{String: dashboard.Link, Valid: dashboard.Link != ""},
 		Template:   dashboard.Template,
@@ -69,7 +68,7 @@ func (d Dashboard) Copy(dst api.Object) error {
 		ObjectMeta: d.ObjectMeta.ToAPI(),
 		Options:    api.DashboardOptions(d.Options),
 		Items:      api.DashboardItems(d.Items),
-		Layout:     d.Layout,
+		Layout:     api.GridLayout(d.Layout),
 		Template:   d.Template,
 	}
 
