@@ -118,6 +118,7 @@ export default {
             select: "Select a connector…",
         },
         continue: "Continue",
+        custom: "Custom…",
         dashboards: {
             _: "Dashboard|Dashboards",
             edit: "Edit dashboard",
@@ -235,7 +236,6 @@ export default {
             list: "Refresh list",
             next: "Next refresh in {0}",
             setInterval: "Set interval",
-            setIntervalAlt: "Set interval…",
         },
         reset: "Reset",
         retry: "Retry",
@@ -269,10 +269,10 @@ export default {
         timeRange: {
             autoPropagate: "Automatically propagate time range",
             from: "From",
+            multiple: "Multiple time ranges",
             propagate: "Propagate time range",
             reset: "Reset time range",
             set: "Set time range",
-            setCustom: "Custom…",
             to: "To",
             units: {
                 days: ["Last {count} day", "Last {count} days"].join("|"),

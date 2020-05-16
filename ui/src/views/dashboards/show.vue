@@ -6,41 +6,63 @@
         <v-toolbar clip="content">
             <v-button
                 icon="sync"
-                :icon-badge="!erred && options.refresh ? `${options.refresh}s` : null"
+                :icon-badge="!erred && options.refresh ? formatValue(options.refresh, {type: 'duration'}, 0) : null"
                 :disabled="loading || erred"
                 :tooltip="$t(`labels.${params.type}.refresh`)"
             >
                 <template slot="dropdown">
                     <template v-if="options.refresh && modifiers.alt">
-                        <v-button disabled>
-                            {{ $t("labels.refresh.next", [formatValue(refresh.countdown, "duration")]) }}
+                        <v-button disabled icon="">
+                            {{ $t("labels.refresh.next", [formatValue(refresh.countdown, {type: "duration"}, 0)]) }}
                         </v-button>
+
                         <v-divider></v-divider>
                     </template>
 
-                    <v-button :shortcut="['r', $t(`labels.${params.type}.refresh`)]" @click="refreshDashboard">
+                    <v-button icon="" :shortcut="['r', $t(`labels.${params.type}.refresh`)]" @click="refreshDashboard">
                         {{ $t(`labels.${params.type}.refresh`) }}
                     </v-button>
 
                     <v-divider></v-divider>
 
-                    <v-button :shortcut="['shift+r', $t('labels.refresh.setInterval')]" @click="setRefreshInterval()">
-                        {{ $t("labels.refresh.setIntervalAlt") }}
+                    <v-columns :count="2">
+                        <v-button
+                            :icon="value === options.refresh ? 'check' : ''"
+                            :key="index"
+                            @click="setRefreshInterval(value)"
+                            v-for="(value, index) in intervals"
+                        >
+                            {{ formatValue(value, {type: "duration"}) }}
+                        </v-button>
+                    </v-columns>
+
+                    <v-divider></v-divider>
+
+                    <v-button
+                        icon="clock"
+                        :shortcut="['shift+r', $t('labels.refresh.setInterval')]"
+                        @click="setRefreshInterval()"
+                    >
+                        {{ $t("labels.custom") }}
                     </v-button>
                 </template>
             </v-button>
 
-            <v-button icon="clock" :disabled="loading || erred" :tooltip="$t('labels.timeRange.set')">
-                <v-flex class="timerange">
+            <v-button icon="calendar-alt" :disabled="loading || erred" :tooltip="$t('labels.timeRange.set')">
+                <v-flex class="timerange" v-if="timeRangeSynced">
                     <span>{{ $t("labels.timeRange.from") }}</span>
-                    {{ absoluteRange ? formatDate(options.range.from, undefined, false) : options.range.from }}
+                    {{ absoluteRange ? formatDate(options.timeRange.from, undefined, false) : options.timeRange.from }}
                     <span>{{ $t("labels.timeRange.to") }}</span>
-                    {{ absoluteRange ? formatDate(options.range.to, undefined, false) : options.range.to }}
+                    {{ absoluteRange ? formatDate(options.timeRange.to, undefined, false) : options.timeRange.to }}
                     <span class="utc" v-if="timezoneUTC">UTC</span>
                 </v-flex>
 
+                <template v-else>
+                    {{ $t("labels.timeRange.multiple") }}
+                </template>
+
                 <template slot="dropdown">
-                    <v-button icon="history" :disabled="defaultRange" @click="resetTimeRange">
+                    <v-button icon="history" :disabled="!canResetTimeRange" @click="resetTimeRange">
                         {{ $t("labels.timeRange.reset") }}
                     </v-button>
 
@@ -48,7 +70,9 @@
 
                     <v-columns :count="2">
                         <v-button
-                            :icon="range.value === options.range.from && options.range.to === 'now' ? 'check' : ''"
+                            :icon="
+                                range.value === options.timeRange.from && options.timeRange.to === 'now' ? 'check' : ''
+                            "
                             :key="index"
                             @click="setTimeRange({from: range.value, to: 'now'})"
                             v-for="(range, index) in ranges"
@@ -60,11 +84,11 @@
                     <v-divider></v-divider>
 
                     <v-button
-                        icon="calendar-alt"
+                        icon="calendar"
                         :shortcut="['alt+shift+r', $t('labels.timeRange.set')]"
                         @click="setTimeRange()"
                     >
-                        {{ $t("labels.timeRange.setCustom") }}
+                        {{ $t("labels.custom") }}
                     </v-button>
 
                     <v-divider></v-divider>
@@ -132,50 +156,35 @@ import isEqual from "lodash/isEqual";
 import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
-import {dateFormatRFC3339} from "@/src/components/chart/chart.vue";
+import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
 
 interface Options {
-    data: Record<string, string>;
-    range: TimeRange;
+    timeRange: TimeRange;
     refresh: number;
 }
 
-interface Range {
-    unit: string;
-    amount: number;
-    value: string;
-}
-
-const datetimeFormat = "YYYY-MM-DD HH:mm:ss";
-
-const defaultOptions: Options = {
-    data: {},
-    range: {
-        from: "-1h",
-        to: "now",
-    },
+const defaultOptions = {
+    timeRange: defaultTimeRange,
     refresh: 0,
 };
 
 export const itemTypes: Array<string> = ["chart"];
 
-const ranges: Array<Range> = [
-    {unit: "minutes", amount: 5, value: "-5m"},
-    {unit: "minutes", amount: 15, value: "-15m"},
-    {unit: "minutes", amount: 30, value: "-30m"},
-    {unit: "hours", amount: 1, value: "-1h"},
-    {unit: "hours", amount: 3, value: "-3h"},
-    {unit: "hours", amount: 6, value: "-6h"},
-    {unit: "hours", amount: 12, value: "-12h"},
-    {unit: "days", amount: 1, value: "-1d"},
-    {unit: "days", amount: 3, value: "-3d"},
-    {unit: "days", amount: 7, value: "-7d"},
-    {unit: "months", amount: 1, value: "-1M"},
-    {unit: "months", amount: 3, value: "-3M"},
-    {unit: "months", amount: 6, value: "-6M"},
-    {unit: "years", amount: 1, value: "-1y"},
+const intervals: Array<number> = [
+    5, // 5s
+    10, // 10s
+    30, // 30s
+    60, // 1m
+    300, // 5m
+    900, // 15m
+    1800, // 30m
+    3600, // 1h
+    10800, // 3h
+    21600, // 6h
+    43200, // 12h
+    86400, // 1d
 ];
 
 @Component
@@ -184,11 +193,15 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public dashboardRefs: Record<string, unknown> = {};
 
+    public intervals: Array<number> = intervals;
+
     public loading = true;
 
-    public options: Options = cloneDeep(defaultOptions);
+    public options = cloneDeep(defaultOptions);
 
-    public ranges: Array<Range> = ranges;
+    public ranges = ranges;
+
+    public timeRangeSynced = true;
 
     public refresh: {
         countdown: number | null;
@@ -202,14 +215,18 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public mounted(): void {
         document.addEventListener("visibilitychange", this.onVisibilityChange);
+        this.$root.$on("item-timerange", this.onItemTimeRange);
     }
 
     public beforeDestroy(): void {
         document.removeEventListener("visibilitychange", this.onVisibilityChange);
+        this.$root.$off("item-timerange", this.onItemTimeRange);
     }
 
     public get absoluteRange(): boolean {
-        return this.parseDate(this.options.range.from).isValid() && this.parseDate(this.options.range.to).isValid();
+        return (
+            this.parseDate(this.options.timeRange.from).isValid() && this.parseDate(this.options.timeRange.to).isValid()
+        );
     }
 
     public get autoPropagate(): boolean {
@@ -217,25 +234,33 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public set autoPropagate(value: boolean) {
+        // Auto-propagate has been enabled, thus trigger initial resync if
+        // out-of-sync.
+        if (value && !this.timeRangeSynced) {
+            this.$root.$emit("item-timerange", null, this.options.timeRange);
+        }
+
         this.$store.commit("autoPropagate", value);
     }
 
-    public get defaultRange(): boolean {
-        return isEqual(this.options.range, defaultOptions.range);
+    public get canResetTimeRange(): boolean {
+        return !isEqual(this.options.timeRange, defaultTimeRange) || !this.timeRangeSynced;
     }
 
     @Watch("options", {deep: true})
     public onOptions(to: Options): void {
         const q: Dictionary<string> = {};
 
-        if (to.range.from !== defaultOptions.range.from) {
+        if (to.timeRange.from !== defaultTimeRange.from) {
             q.from = this.absoluteRange
-                ? this.parseDate(to.range.from).valueOf().toString()
-                : (to.range.from as string);
+                ? this.parseDate(to.timeRange.from).valueOf().toString()
+                : (to.timeRange.from as string);
         }
 
-        if (to.range.to !== defaultOptions.range.to) {
-            q.to = this.absoluteRange ? this.parseDate(to.range.to).valueOf().toString() : (to.range.to as string);
+        if (to.timeRange.to !== defaultTimeRange.to) {
+            q.to = this.absoluteRange
+                ? this.parseDate(to.timeRange.to).valueOf().toString()
+                : (to.timeRange.to as string);
         }
 
         if (to.refresh > 0) {
@@ -249,25 +274,24 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     @Watch("$route.query", {immediate: true})
     public onRouteQuery(to: Dictionary<string>): void {
-        const options: Options = cloneDeep(defaultOptions);
+        const options = cloneDeep(defaultOptions);
         let n: number;
 
         if (to.from) {
             n = Number(to.from);
-            options.range.from = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.from;
+            options.timeRange.from = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.from;
         }
 
         if (to.to) {
             n = Number(to.to);
-            options.range.to = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.to;
+            options.timeRange.to = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.to;
         }
 
         if (to.refresh) {
-            options.refresh = parseInt(to.refresh, 10);
+            options.refresh = parseInt(to.refresh, 10) || 0;
         }
 
-        Object.assign(this.options, options);
-
+        this.options = options;
         this.getDashboard();
     }
 
@@ -276,7 +300,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public resetTimeRange(): void {
-        this.setTimeRange(Object.assign({}, defaultOptions.range));
+        this.setTimeRange(Object.assign({}, defaultTimeRange));
     }
 
     public get timezoneUTC(): boolean {
@@ -287,7 +311,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         switch (this.params.type) {
             default: {
                 this.$http
-                    .post(`/api/v1/dashboards/${this.params.id}/resolve`, this.options.data || undefined)
+                    .post(`/api/v1/dashboards/${this.params.id}/resolve`) // TODO: handle data
                     .then(response => response.json())
                     .then(
                         (response: APIResponse<Dashboard>) => {
@@ -318,9 +342,9 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         }
     }
 
-    public setRefreshInterval(interval: number | null = null): void {
-        if (interval !== null) {
-            this.options.refresh = interval;
+    public setRefreshInterval(value: number | null = null): void {
+        if (value !== null) {
+            this.options.refresh = value;
             return;
         }
 
@@ -340,27 +364,27 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             },
             (value: string | false) => {
                 if (value !== false) {
-                    this.setRefreshInterval(parseInt(value, 10));
+                    this.setRefreshInterval(parseInt(value, 10) || 0);
                 }
             },
         );
     }
 
-    public setTimeRange(range: TimeRange | null = null, emit = true): void {
+    public setTimeRange(range: TimeRange | null = null): void {
         if (range !== null) {
-            Object.assign(this.options.range, range);
-            if (emit) {
-                this.$root.$emit("item-timerange", null, range);
-            }
+            this.options.timeRange = range;
+            this.$root.$emit("item-timerange", null, range);
+
             return;
         }
+
         this.$components.modal(
             "time-range",
             {
                 timeRange: this.absoluteRange
                     ? {
-                          from: this.parseDate(this.options.range.from).format(datetimeFormat),
-                          to: this.parseDate(this.options.range.to).format(datetimeFormat),
+                          from: this.parseDate(this.options.timeRange.from).format(dateFormatDisplay),
+                          to: this.parseDate(this.options.timeRange.to).format(dateFormatDisplay),
                       }
                     : {
                           from: "",
@@ -369,16 +393,20 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             },
             (value: TimeRange) => {
                 if (value !== false) {
-                    this.setTimeRange(
-                        {
-                            from: this.parseDate(value.from, datetimeFormat).format(dateFormatRFC3339),
-                            to: this.parseDate(value.to, datetimeFormat).format(dateFormatRFC3339),
-                        },
-                        true,
-                    );
+                    this.setTimeRange({
+                        from: this.parseDate(value.from, dateFormatDisplay).format(dateFormatRFC3339),
+                        to: this.parseDate(value.to, dateFormatDisplay).format(dateFormatRFC3339),
+                    });
                 }
             },
         );
+    }
+
+    private onItemTimeRange(target: Element | null, range: TimeRange): void {
+        this.timeRangeSynced = target === null;
+        if (this.timeRangeSynced) {
+            this.options.timeRange = range;
+        }
     }
 
     private onVisibilityChange(): void {

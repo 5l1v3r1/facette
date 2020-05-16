@@ -11,12 +11,38 @@
 
             <v-toolbar v-else>
                 <v-button icon="sync" @click="refresh" v-tooltip="$t('labels.charts.refresh')"></v-button>
+
                 <v-button
-                    icon="history"
-                    @click="update"
-                    v-tooltip="$t('labels.timeRange.reset')"
+                    icon="calendar-alt"
+                    :disabled="loading || erred"
+                    :tooltip="$t('labels.timeRange.set')"
                     v-if="!autoPropagate"
-                ></v-button>
+                >
+                    <template slot="dropdown">
+                        <v-button icon="history" :disabled="isDefaultTimeRange" @click="resetTimeRange">
+                            {{ $t("labels.timeRange.reset") }}
+                        </v-button>
+
+                        <v-divider></v-divider>
+
+                        <v-columns :count="2">
+                            <v-button
+                                :icon="range.value === timeRange.from && timeRange.to === 'now' ? 'check' : ''"
+                                :key="index"
+                                @click="setTimeRange({from: range.value, to: 'now'})"
+                                v-for="(range, index) in ranges"
+                            >
+                                {{ $tc(`labels.timeRange.units.${range.unit}`, range.amount) }}
+                            </v-button>
+                        </v-columns>
+
+                        <v-divider></v-divider>
+
+                        <v-button icon="calendar" @click="setTimeRange()">
+                            {{ $t("labels.custom") }}
+                        </v-button>
+                    </template>
+                </v-button>
 
                 <v-divider vertical></v-divider>
 
@@ -103,18 +129,50 @@
 import Boula, {Config as BoulaConfig, Marker as BoulaMarker, Series as BoulaSeries} from "@facette/boula";
 import * as d3 from "d3";
 import dayjs from "dayjs";
+import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
 import ResizeObserver from "resize-observer-polyfill";
 import slugify from "slugify";
 import {Component, Mixins, Prop, Watch} from "vue-property-decorator";
 
 import {CustomMixins} from "@/src/mixins";
+import isEqual from "lodash/isEqual";
+
+interface Range {
+    unit: string;
+    amount: number;
+    value: string;
+}
+
+export const dateFormatDisplay = "YYYY-MM-DD HH:mm:ss";
 
 export const dateFormatFilename = "YYYYMMDDHHmmss";
 
 export const dateFormatRFC3339 = "YYYY-MM-DDTHH:mm:ss.SSSZ";
 
+export const defaultTimeRange: TimeRange = {
+    from: "-1h",
+    to: "now",
+};
+
 const mouseRange = 40;
+
+export const ranges: Array<Range> = [
+    {unit: "minutes", amount: 5, value: "-5m"},
+    {unit: "minutes", amount: 15, value: "-15m"},
+    {unit: "minutes", amount: 30, value: "-30m"},
+    {unit: "hours", amount: 1, value: "-1h"},
+    {unit: "hours", amount: 3, value: "-3h"},
+    {unit: "hours", amount: 6, value: "-6h"},
+    {unit: "hours", amount: 12, value: "-12h"},
+    {unit: "days", amount: 1, value: "-1d"},
+    {unit: "days", amount: 3, value: "-3d"},
+    {unit: "days", amount: 7, value: "-7d"},
+    {unit: "months", amount: 1, value: "-1M"},
+    {unit: "months", amount: 3, value: "-3M"},
+    {unit: "months", amount: 6, value: "-6M"},
+    {unit: "years", amount: 1, value: "-1y"},
+];
 
 @Component
 export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
@@ -143,6 +201,10 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     public loading = true;
 
     public more = false;
+
+    public timeRange: TimeRange = cloneDeep(defaultTimeRange);
+
+    public ranges = ranges;
 
     private chart: Boula | null = null;
 
@@ -173,6 +235,10 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         if (this.value) {
             this.update();
         }
+    }
+
+    public get isDefaultTimeRange(): boolean {
+        return isEqual(this.timeRange, defaultTimeRange);
     }
 
     public updated(): void {
@@ -256,10 +322,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         }
     }
 
-    public get series(): boolean {
-        return Boolean(!this.loading && this.data?.series);
-    }
-
     public get autoPropagate(): boolean {
         return this.$store.getters.autoPropagate;
     }
@@ -307,6 +369,46 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         this.$root.$emit("item-refresh", this.$el);
     }
 
+    public resetTimeRange(): void {
+        this.setTimeRange(Object.assign({}, defaultTimeRange));
+    }
+
+    public get series(): boolean {
+        return Boolean(!this.loading && this.data?.series);
+    }
+
+    public setTimeRange(range: TimeRange | null = null): void {
+        if (range !== null) {
+            this.timeRange = range;
+            this.$root.$emit("item-timerange", this.$el, range);
+
+            return;
+        }
+
+        this.$components.modal(
+            "time-range",
+            {
+                timeRange: this.absoluteRange
+                    ? {
+                          from: this.parseDate(this.timeRange.from).format(dateFormatDisplay),
+                          to: this.parseDate(this.timeRange.to).format(dateFormatDisplay),
+                      }
+                    : {
+                          from: "",
+                          to: "",
+                      },
+            },
+            (value: TimeRange) => {
+                if (value !== false) {
+                    this.setTimeRange({
+                        from: this.parseDate(value.from, dateFormatDisplay).format(dateFormatRFC3339),
+                        to: this.parseDate(value.to, dateFormatDisplay).format(dateFormatRFC3339),
+                    });
+                }
+            },
+        );
+    }
+
     public updateRange(mode: "backward" | "forward" | "propagate" | "zoom-in" | "zoom-out"): void {
         if (!this.data) {
             return;
@@ -352,6 +454,10 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         } else {
             this.update(range);
         }
+    }
+
+    private get absoluteRange(): boolean {
+        return this.parseDate(this.timeRange.from).isValid() && this.parseDate(this.timeRange.to).isValid();
     }
 
     private checkSlots(): void {
@@ -469,11 +575,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                             to: this.parseDate(to).format(dateFormatRFC3339),
                         };
 
-                        if (this.autoPropagate) {
-                            this.$root.$emit("item-timerange", null, range);
-                        } else {
-                            this.update(range);
-                        }
+                        this.$root.$emit("item-timerange", this.autoPropagate ? null : this.$el, range);
                     }
                 },
             },
@@ -547,8 +649,9 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         }
     }
 
-    private onTimeRange(target: Element | null = null, range: TimeRange | null = null): void {
+    private onTimeRange(target: Element | null, range: TimeRange): void {
         if (target === null || target === this.$el) {
+            this.timeRange = range;
             this.update(range);
         }
     }
