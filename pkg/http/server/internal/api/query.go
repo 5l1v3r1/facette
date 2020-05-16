@@ -6,6 +6,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -13,6 +14,7 @@ import (
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/catalog"
 	"facette.io/facette/pkg/connector"
+	"facette.io/facette/pkg/errors"
 	httpjson "facette.io/facette/pkg/http/json"
 	"facette.io/facette/pkg/labels"
 	"facette.io/facette/pkg/series"
@@ -37,7 +39,10 @@ func (h handler) ExecuteQuery(rw http.ResponseWriter, r *http.Request) {
 
 		result, err := cq.Connector.Query(r.Context(), cq.Query)
 		if err != nil {
-			h.log.Error("cannot fetch points", zap.Error(err))
+			if !errors.Is(err, context.Canceled) {
+				h.log.Error("cannot fetch points", zap.Error(err))
+			}
+
 			continue
 		}
 
