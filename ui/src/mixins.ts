@@ -38,12 +38,17 @@ export class CustomMixins extends Vue {
         return this.$store.getters.error;
     }
 
-    public formatDate(input: Date | string, format = "MMM D YYYY, HH:mm:ss"): string {
+    public formatDate(input: Date | number | string, format = "MMM D YYYY, HH:mm:ss", timezone = true): string {
         if (this.$store.getters.timezoneUTC) {
-            return dayjs(input).utc().format(format) + " UTC";
+            let value = this.parseDate(input).format(format);
+            if (timezone) {
+                value += " UTC";
+            }
+
+            return value;
         }
 
-        return dayjs(input).format(format);
+        return this.parseDate(input).format(format);
     }
 
     public formatValue(input: number | null, unit?: Unit, decimals = 2): string {
@@ -122,6 +127,10 @@ export class CustomMixins extends Vue {
 
     public get params(): Dictionary<string> {
         return this.$route.params;
+    }
+
+    public get parseDate(): (input?: dayjs.ConfigType, format?: string) => dayjs.Dayjs {
+        return this.$store.getters.timezoneUTC ? dayjs.utc : dayjs;
     }
 
     public get prevRoute(): Route | null {

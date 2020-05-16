@@ -187,9 +187,9 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
 
         const el: HTMLAnchorElement = document.createElement("a");
 
-        const baseName = `${slugify(this.value.options?.title || this.value.name)}_${dayjs(this.data.from).format(
-            dateFormatFilename,
-        )}_${dayjs(this.data.to).format(dateFormatFilename)}`;
+        const baseName = `${slugify(this.value.options?.title || this.value.name)}_${dayjs
+            .utc(this.data.from)
+            .format(dateFormatFilename)}_${this.parseDate(this.data.to).format(dateFormatFilename)}`;
 
         switch (type) {
             case "csv":
@@ -310,8 +310,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
             return;
         }
 
-        const from: dayjs.Dayjs = dayjs(this.data.from);
-        const to: dayjs.Dayjs = dayjs(this.data.to);
+        const from: dayjs.Dayjs = this.parseDate(this.data.from);
+        const to: dayjs.Dayjs = this.parseDate(this.data.to);
         let delta: number;
 
         switch (mode) {
@@ -405,8 +405,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
             axes: {
                 x: {
                     grid: false,
-                    max: (this.data && dayjs(this.data.to).valueOf()) || undefined,
-                    min: (this.data && dayjs(this.data.from).valueOf()) || undefined,
+                    max: (this.data && this.parseDate(this.data.to).valueOf()) || undefined,
+                    min: (this.data && this.parseDate(this.data.from).valueOf()) || undefined,
                     ticks: {
                         count: Math.max(Math.floor(refChart.clientWidth / 80), 2),
                         format: (date: Date): string => {
@@ -463,8 +463,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 select: (from: Date, to: Date) => {
                     if (to > from) {
                         const range: TimeRange = {
-                            from: dayjs(from).format(dateFormatRFC3339),
-                            to: dayjs(to).format(dateFormatRFC3339),
+                            from: this.parseDate(from).format(dateFormatRFC3339),
+                            to: this.parseDate(to).format(dateFormatRFC3339),
                         };
 
                         if (this.autoPropagate) {
