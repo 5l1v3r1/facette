@@ -86,12 +86,16 @@ type Chart struct {
 func (c Chart) Excerpt() interface{} {
 	return struct {
 		ObjectMeta `json:",inline"`
-		Link       string `json:"link,omitempty"`
-		Template   bool   `json:"enabled"`
+		Options    map[string]interface{} `json:"options,omitempty"`
+		Link       string                 `json:"link,omitempty"`
+		Template   bool                   `json:"enabled"`
 	}{
 		ObjectMeta: c.ObjectMeta,
-		Link:       c.Link,
-		Template:   c.Template,
+		Options: map[string]interface{}{
+			"title": c.Options.Title,
+		},
+		Link:     c.Link,
+		Template: c.Template,
 	}
 }
 
@@ -324,12 +328,16 @@ type Dashboard struct {
 func (d Dashboard) Excerpt() interface{} {
 	return struct {
 		ObjectMeta `json:",inline"`
-		Link       string `json:"link,omitempty"`
-		Template   bool   `json:"enabled"`
+		Options    map[string]interface{} `json:"options,omitempty"`
+		Link       string                 `json:"link,omitempty"`
+		Template   bool                   `json:"enabled"`
 	}{
 		ObjectMeta: d.ObjectMeta,
-		Link:       d.Link,
-		Template:   d.Template,
+		Options: map[string]interface{}{
+			"title": d.Options.Title,
+		},
+		Link:     d.Link,
+		Template: d.Template,
 	}
 }
 
