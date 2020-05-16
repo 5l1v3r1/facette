@@ -89,7 +89,12 @@ func (s *Set) Slice() []interface{} {
 
 // StringSlice returns a strings slice representation of all set values.
 func StringSlice(s *Set) []string {
+	if s == nil {
+		return nil
+	}
+
 	result := []string{}
+
 	for _, v := range s.Slice() {
 		result = append(result, fmt.Sprintf("%v", v))
 	}
