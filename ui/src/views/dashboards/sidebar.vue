@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Mixins} from "vue-property-decorator";
+import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
@@ -169,6 +169,19 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
         return this.$tc("labels.dashboards._", 2) as string;
     }
 
+    @Watch("$route.path")
+    public onRoutePath(): void {
+        Object.assign(this, {
+            dashboard: null,
+            dashboardsRefs: {},
+            loading: true,
+        });
+
+        if (this.$route.name === "dashboards-home") {
+            this.getDashboards();
+        }
+    }
+
     public onType(): void {
         switch (this.type) {
             // case "basket":
@@ -202,7 +215,7 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
             );
     }
 
-    private onDashboardLoaded(dashboard: Dashboard | null, dashboardRefs: Record<string, unknown>): void {
+    private onDashboardLoaded(dashboard: Dashboard | null, dashboardRefs: Record<string, unknown> = {}): void {
         if (dashboard === null) {
             // Dashboard load failed, only disable loading
             this.loading = false;
