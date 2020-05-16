@@ -17,16 +17,18 @@
                     v-tooltip="$t('labels.timeRange.reset')"
                     v-if="!autoPropagate"
                 ></v-button>
+
                 <v-divider vertical></v-divider>
+
                 <v-button
                     icon="search-minus"
                     @click="updateRange('zoom-out')"
-                    v-tooltip="$t('labels.charts.zoomOut')"
+                    v-tooltip="$t('labels.charts.zoom.out')"
                 ></v-button>
                 <v-button
                     icon="search-plus"
                     @click="updateRange('zoom-in')"
-                    v-tooltip="$t('labels.charts.zoomIn')"
+                    v-tooltip="$t('labels.charts.zoom.in')"
                 ></v-button>
                 <v-button
                     icon="arrows-alt-h"
@@ -34,11 +36,21 @@
                     v-tooltip="$t('labels.timeRange.propagate')"
                     v-if="!autoPropagate"
                 ></v-button>
+
                 <v-divider vertical></v-divider>
+
+                <v-button
+                    icon="list"
+                    @click="toggleSummary(true)"
+                    v-tooltip="$t('labels.charts.showSummary')"
+                ></v-button>
+
+                <v-divider vertical></v-divider>
+
                 <v-button
                     class="icon"
                     dropdown-anchor="bottom-right"
-                    icon="angle-double-down"
+                    icon="angle-down"
                     :tooltip="$t('labels.moreActions')"
                 >
                     <template slot="dropdown">
@@ -80,9 +92,6 @@
                         @click="updateRange('forward')"
                     ></v-button>
                 </div>
-                <v-button class="summary" icon="list" :class="{active: sliders.summary}" @click="toggleSummary(true)">
-                    {{ $t("labels.charts.showSummary") }}
-                </v-button>
             </div>
         </div>
 
@@ -145,10 +154,12 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
 
     private resize: ResizeObserver | null = null;
 
-    private sliders: Record<string, boolean> = {
+    private sliders: {
+        backward: boolean;
+        forward: boolean;
+    } = {
         backward: false,
         forward: false,
-        summary: false,
     };
 
     public mounted(): void {
@@ -264,7 +275,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 const related: Element = e.relatedTarget as Element;
                 const closest: Element | null = related ? related.closest(".v-chart") : null;
                 if (!related || closest !== this.$el) {
-                    this.sliders = {backward: false, forward: false, summary: false};
+                    this.sliders = {backward: false, forward: false};
                 }
 
                 break;
@@ -276,7 +287,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 }
 
                 const relX: number = e.pageX - this.domRect.x;
-                const relY: number = e.pageY - this.domRect.y;
 
                 if (!this.sliders.backward && !this.sliders.forward) {
                     if (relX <= mouseRange) {
@@ -286,14 +296,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     }
                 } else if (relX > mouseRange * 1.65 && relX < this.domRect.width - mouseRange * 1.65) {
                     Object.assign(this.sliders, {backward: false, forward: false});
-                }
-
-                if (relY >= this.domRect.height - mouseRange) {
-                    if (!this.sliders.summary) {
-                        this.sliders.summary = true;
-                    }
-                } else if (this.sliders.summary) {
-                    this.sliders.summary = false;
                 }
 
                 break;
@@ -649,14 +651,15 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         .v-toolbar {
             align-self: flex-end;
             border-bottom-left-radius: 0.2rem;
-            height: 2rem;
-            min-height: 2rem;
-            padding: 0 0 0.5rem;
+            height: 2.1rem;
+            min-height: 2.1rem;
+            padding: 0.175rem 0.175rem 0.375rem 0;
             pointer-events: auto;
 
             > .v-button {
                 height: 1.5rem;
                 line-height: 1.5rem;
+                margin-right: 0.375rem;
                 min-height: 1.5rem;
                 min-width: 1.5rem;
 
@@ -667,14 +670,14 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 &.icon {
                     width: 1.5rem;
 
-                    .v-icon {
+                    ::v-deep .v-icon {
                         font-size: 0.8rem;
                     }
                 }
             }
 
             > .v-divider {
-                height: 1.3rem;
+                height: 1.35rem;
             }
         }
 
