@@ -11,19 +11,19 @@ import toolbar from "./toolbar.vue";
 
 export default [
     {
-        name: "settings-root",
         path: "/settings",
+        name: "settings-root",
         redirect: {
             name: "settings-display",
         },
     },
     {
+        path: "/settings/display",
+        name: "settings-display",
         components: {
             default: display,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "settings-display",
-        path: "/settings/display",
     },
 ];

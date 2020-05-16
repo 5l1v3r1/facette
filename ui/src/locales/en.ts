@@ -55,6 +55,9 @@ export default {
             },
             url: "URL to the upstream {0} service.",
         },
+        refresh: {
+            interval: "Time interval for automatic refresh in seconds. Use `0` to disable.",
+        },
         series: {
             alias:
                 "Series name to display in both chart tooltip and summary. Use pattern like `{{__name__}}` or " +
@@ -117,8 +120,11 @@ export default {
         continue: "Continue",
         dashboards: {
             _: "Dashboard|Dashboards",
-            new: "New dashboard",
+            edit: "Edit dashboard",
             filter: "Filter dashboards",
+            goBack: "Go back to dashboard",
+            new: "New dashboard",
+            refresh: "Refresh dashboard",
             reset: "Reset dashboard",
             save: "Save dashboard",
             types: {
@@ -163,6 +169,7 @@ export default {
             settingsAlt: "Settings…",
         },
         help: "Help",
+        home: "Home",
         info: {
             _: "Information",
             branch: "Branch",
@@ -175,6 +182,7 @@ export default {
         items: {
             add: "Add item",
             remove: "Remove item",
+            unsupported: "Unsupported item",
         },
         keyboardShortcuts: "Keyboard shortcuts",
         labels: "Label|Labels",
@@ -223,7 +231,11 @@ export default {
             test: "Test provider",
         },
         refresh: {
+            interval: "Refresh interval",
             list: "Refresh list",
+            next: "Next refresh in {0}",
+            setInterval: "Set interval",
+            setIntervalAlt: "Set interval…",
         },
         reset: "Reset",
         retry: "Retry",
@@ -254,6 +266,22 @@ export default {
             _: "Theme",
             select: "Select a theme…",
         },
+        timeRange: {
+            autoPropagate: "Automatically propagate time range",
+            from: "From",
+            propagate: "Propagate time range",
+            reset: "Reset time range",
+            set: "Set time range",
+            setCustom: "Custom…",
+            to: "To",
+            units: {
+                days: ["Last {count} day", "Last {count} days"].join("|"),
+                hours: ["Last {count} hour", "Last {count} hours"].join("|"),
+                minutes: ["Last {count} minute", "Last {count} minutes"].join("|"),
+                months: ["Last {count} month", "Last {count} months"].join("|"),
+                years: ["Last {count} year", "Last {count} years"].join("|"),
+            },
+        },
         timezone: {
             _: "Time zone",
             local: "Local time",
@@ -265,6 +293,7 @@ export default {
             skipVerify: "Skip server certificate verification (Insecure)",
         },
         toggleSidebar: "Toggle sidebar",
+        unnamed: "Unnamed",
         url: "URL",
         value: "Value",
         variables: {
@@ -314,6 +343,9 @@ export default {
         },
         filters: {
             none: "No provider filters defined",
+        },
+        items: {
+            none: "No items found",
         },
         labels: {
             emptyDiscarded: "Labels having empty values will be discarded",

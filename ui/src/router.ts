@@ -16,6 +16,7 @@ Vue.use(VueRouter);
 import store from "./store";
 
 import admin from "./views/admin";
+import dashboards from "./views/dashboards";
 import settings from "./views/settings";
 
 interface Options {
@@ -24,10 +25,13 @@ interface Options {
 
 const routes: Array<RouteConfig> = [
     {
-        name: "root",
         path: "/",
-    },
-].concat(admin, settings);
+        name: "root",
+        redirect: {
+            name: "dashboards-home",
+        },
+    } as RouteConfig,
+].concat(admin, dashboards, settings);
 
 const router = new VueRouter({
     routes,

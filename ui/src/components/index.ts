@@ -8,6 +8,7 @@
 import {registerComponents} from "@/src/helpers/vue";
 
 import ChartComponent from "./chart/chart.vue";
+import DatetimeComponent from "./datetime/datetime.vue";
 import GridComponent from "./grid/grid.vue";
 import GridItemComponent from "./grid/item.vue";
 import MessageErrorComponent from "./message/error.vue";
@@ -17,6 +18,7 @@ import ModalPromptComponent from "./modal/prompt.vue";
 import ToolbarMainComponent from "./toolbar/main.vue";
 
 registerComponents({
+    DatetimeComponent,
     GridComponent,
     GridItemComponent,
     ChartComponent,

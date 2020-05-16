@@ -1,0 +1,215 @@
+<template>
+    <v-sidebar :active="sidebar">
+        <v-toolbar clip="sidebar">
+            <v-select
+                :options="types"
+                :search="false"
+                @input="onType"
+                v-model="type"
+                v-if="$route.name === 'basket-show' || $route.name === 'dashboards-home'"
+            ></v-select>
+
+            <v-button
+                exact
+                icon="arrow-left"
+                :shortcut="['alt+up', $t('labels.goto.parent')]"
+                :to="{name: 'dashboards-show', params: {id: dashboard.parent}}"
+                :tooltip="''"
+                v-else-if="dashboard && dashboard.parent"
+            >
+                {{ $t("labels.goto.parent") }}
+            </v-button>
+
+            <v-button
+                exact
+                icon="arrow-left"
+                :shortcut="['alt+up', $t('labels.goto.home')]"
+                :to="{name: 'dashboards-home'}"
+                :tooltip="''"
+                v-else
+            >
+                {{ $t("labels.goto.home") }}
+            </v-button>
+        </v-toolbar>
+
+        <v-spinner v-if="loading"></v-spinner>
+
+        <template v-else>
+            <v-label>{{ title }}</v-label>
+
+            <template v-if="params.type === 'dashboards'">
+                <v-button
+                    icon="folder"
+                    :key="dashboard.id"
+                    :to="{name: 'dashboards-show', params: {id: dashboard.name}}"
+                    v-for="dashboard in dashboards"
+                >
+                    {{ dashboard.options && dashboard.options.title ? dashboard.options.title : dashboard.name }}
+                </v-button>
+            </template>
+
+            <template v-if="dashboard">
+                <v-button class="empty" disabled v-if="!dashboard.items || dashboard.items.length === 0">
+                    {{ $t(`messages.${params.type}.empty`) }}
+                </v-button>
+
+                <v-button
+                    :class="{unsupported: !checkType(item.type)}"
+                    :href="`#item${index}`"
+                    :icon="!checkType(item.type) ? 'exclamation-triangle' : null"
+                    :key="index"
+                    :ref="`item${index}`"
+                    v-for="(item, index) in dashboard.items"
+                >
+                    {{ itemLabel(item) }}
+                </v-button>
+            </template>
+        </template>
+    </v-sidebar>
+</template>
+
+<script lang="ts">
+import {Component, Mixins} from "vue-property-decorator";
+
+import {SelectOption} from "@/types/components";
+
+import {resolveOption} from "@/src/helpers/select";
+import {CustomMixins} from "@/src/mixins";
+
+import {itemTypes} from "./show.vue";
+
+const types: Array<SelectOption> = [
+    {label: "labels.home", value: "dashboards", icon: "home"},
+    // {label: "labels.basket._", value: "basket", icon: "shopping-cart"},
+];
+
+@Component
+export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
+    public dashboard: Dashboard | null = null;
+
+    public dashboards: Array<Dashboard> = [];
+
+    public dashboardRefs: Record<string, unknown> = {};
+
+    public loading = true;
+
+    public type!: string;
+
+    public created(): void {
+        this.type = this.params.type;
+    }
+
+    public mounted(): void {
+        this.$parent.$on("dashboard-loaded", this.onDashboardLoaded);
+
+        if (this.$route.name === "dashboards-home") {
+            this.getDashboards();
+        }
+    }
+
+    public beforeDestroy(): void {
+        this.$parent.$off("dashboard-loaded", this.onDashboardLoaded);
+    }
+
+    public checkType(type: string): boolean {
+        return itemTypes.includes(type);
+    }
+
+    public itemLabel(item: DashboardItem): string {
+        switch (item.type) {
+            case "chart": {
+                if (item.options) {
+                    const ref = this.dashboardRefs[`chart|${item.options.id}`] as Chart;
+                    if (ref) {
+                        return ref.options?.title ?? ref.name;
+                    }
+
+                    return item.options.id as string;
+                }
+
+                break;
+            }
+
+            default:
+                return this.$t("labels.items.unsupported") as string;
+        }
+
+        return this.$t("labels.unnamed") as string;
+    }
+
+    public get title(): string {
+        if (this.params.type === "basket") {
+            return this.$t("labels.basket._") as string;
+        } else if (this.dashboard) {
+            return this.dashboard?.options?.title ?? this.dashboard.name;
+        } else if (this.$route.name === "dashboards-show") {
+            return this.$route.params.id;
+        }
+
+        return this.$tc("labels.dashboards._", 2) as string;
+    }
+
+    public onType(): void {
+        switch (this.type) {
+            // case "basket":
+            //     this.$router.push({name: "basket-show"});
+            //     break;
+
+            case "dashboards":
+                this.$router.push({name: "dashboards-home"});
+                break;
+        }
+    }
+
+    public get types(): Array<SelectOption> {
+        return types.map(option => resolveOption(this, option));
+    }
+
+    private getDashboards(): void {
+        this.$http
+            .get("/api/v1/dashboards", {params: {parent: this.dashboard?.id}})
+            .then(response => response.json())
+            .then(
+                (response: APIResponse<Array<Dashboard>>) => {
+                    if (response.data) {
+                        this.dashboards = response.data;
+                    }
+                    this.loading = false;
+                },
+                this.handleError(() => {
+                    this.loading = false;
+                }),
+            );
+    }
+
+    private onDashboardLoaded(dashboard: Dashboard | null, dashboardRefs: Record<string, unknown>): void {
+        if (dashboard === null) {
+            // Dashboard load failed, only disable loading
+            this.loading = false;
+            return;
+        }
+
+        Object.assign(this, {
+            dashboard,
+            dashboardRefs,
+        });
+
+        this.getDashboards();
+    }
+}
+</script>
+
+<style lang="scss" scoped>
+.v-sidebar {
+    .v-toolbar {
+        .v-button,
+        .v-select {
+            flex-grow: 1;
+        }
+
+        .v-button ::v-deep .v-button-content {
+            justify-content: flex-start;
+        }
+    }
+}
+</style>

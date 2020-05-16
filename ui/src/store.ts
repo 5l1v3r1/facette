@@ -13,6 +13,8 @@ import VuexPersistedState from "vuex-persistedstate";
 Vue.use(Vuex);
 
 class State {
+    public autoPropagate = true;
+
     public connectors: Array<string> = [];
 
     public data: unknown = null;
@@ -42,6 +44,10 @@ class State {
 const store = new Vuex.Store({
     state: new State(),
     getters: {
+        autoPropagate(state: State): boolean {
+            return state.autoPropagate;
+        },
+
         connectors(state: State): Array<string> {
             return state.connectors;
         },
@@ -87,6 +93,10 @@ const store = new Vuex.Store({
         },
     },
     mutations: {
+        autoPropagate(state: State, value: boolean): void {
+            state.autoPropagate = value;
+        },
+
         connectors(state: State, value: Array<string>): void {
             state.connectors = value;
         },
@@ -135,6 +145,7 @@ const store = new Vuex.Store({
         VuexPersistedState({
             key: "facette",
             reducer: (state: State): object => ({
+                autoPropagate: state.autoPropagate,
                 locale: state.locale,
                 prevRoute:
                     state.prevRoute !== null

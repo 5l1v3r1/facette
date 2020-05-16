@@ -5,7 +5,7 @@
             <v-input
                 :help="modal.params.input && modal.params.input.help ? modal.params.input.help : null"
                 :type="modal.params.input && modal.params.input.type ? modal.params.input.type : 'text'"
-                v-autofocus
+                v-autofocus.select
                 v-model="modal.params.input.value"
             ></v-input>
 

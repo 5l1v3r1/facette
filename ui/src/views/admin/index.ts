@@ -27,100 +27,100 @@ export const namePattern = "^[a-zA-Z0-9](?:[a-zA-Z0-9-_]*[a-zA-Z0-9])?$";
 
 export default [
     {
-        name: "admin-root",
         path: "/admin",
+        name: "admin-root",
         redirect: {
             name: "admin-dashboards-list",
         },
     },
     {
+        path: "/admin/dashboards/:id",
+        name: "admin-dashboards-edit",
         components: {
             default: dashboardsEdit,
             sidebar: dashboardsSidebar,
             toolbar: toolbar,
         },
-        name: "admin-dashboards-edit",
-        path: "/admin/dashboards/:id",
         props: {
             default: (route: Route) => defineParams(route, {type: "dashboards"}),
         },
     },
     {
+        path: "/admin/dashboards",
+        name: "admin-dashboards-list",
         components: {
             default: list,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "admin-dashboards-list",
-        path: "/admin/dashboards",
         props: {
             default: (route: Route) => defineParams(route, {type: "dashboards"}),
         },
     },
     {
+        path: "/admin/charts/:id",
+        name: "admin-charts-edit",
         components: {
             default: chartsEdit,
             sidebar: chartsSidebar,
             toolbar: toolbar,
         },
-        name: "admin-charts-edit",
-        path: "/admin/charts/:id",
         props: {
             default: (route: Route) => defineParams(route, {type: "charts"}),
         },
     },
     {
+        path: "/admin/charts",
+        name: "admin-charts-list",
         components: {
             default: list,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "admin-charts-list",
-        path: "/admin/charts",
         props: {
             default: (route: Route) => defineParams(route, {type: "charts"}),
         },
     },
     {
+        path: "/admin/metrics",
+        name: "admin-metrics-list",
         components: {
             default: metricsList,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "admin-metrics-list",
-        path: "/admin/metrics",
     },
     {
+        path: "/admin/providers/:id",
+        name: "admin-providers-edit",
         components: {
             default: providersEdit,
             sidebar: providersSidebar,
             toolbar: toolbar,
         },
-        name: "admin-providers-edit",
-        path: "/admin/providers/:id",
         props: {
             default: (route: Route) => defineParams(route, {type: "providers"}),
         },
     },
     {
+        path: "/admin/providers",
+        name: "admin-providers-list",
         components: {
             default: list,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "admin-providers-list",
-        path: "/admin/providers",
         props: {
             default: (route: Route) => defineParams(route, {type: "providers"}),
         },
     },
     {
+        path: "/admin/info",
+        name: "admin-info",
         components: {
             default: info,
             sidebar: sidebar,
             toolbar: toolbar,
         },
-        name: "admin-info",
-        path: "/admin/info",
     },
 ];
