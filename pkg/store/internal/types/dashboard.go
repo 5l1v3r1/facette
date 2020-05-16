@@ -9,21 +9,25 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/imdario/mergo"
 	"github.com/jinzhu/gorm"
 
 	"facette.io/facette/pkg/api"
+	"facette.io/facette/pkg/set"
+	"facette.io/facette/pkg/template"
 )
 
 // Dashboard is a back-end storage dashboard object.
 // nolint:lll
 type Dashboard struct {
 	ObjectMeta
-	Options  DashboardOptions `gorm:"type:text"`
-	Items    DashboardItems   `gorm:"type:text"`
-	Layout   GridLayout       `gorm:"type:text"`
-	Parent   sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
-	Link     sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
-	Template bool             `gorm:"not null"`
+	Options    DashboardOptions `gorm:"type:text"`
+	Items      DashboardItems   `gorm:"type:text"`
+	Layout     GridLayout       `gorm:"type:text"`
+	Parent     sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
+	Link       sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
+	Template   bool             `gorm:"not null"`
+	References []api.Reference  `gorm:"-"`
 }
 
 func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
@@ -35,6 +39,7 @@ func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
 		Parent:     sql.NullString{String: dashboard.Parent, Valid: dashboard.Parent != ""},
 		Link:       sql.NullString{String: dashboard.Link, Valid: dashboard.Link != ""},
 		Template:   dashboard.Template,
+		References: dashboard.References,
 	}
 }
 
@@ -70,6 +75,128 @@ func (d Dashboard) Copy(dst api.Object) error {
 		Items:      api.DashboardItems(d.Items),
 		Layout:     api.GridLayout(d.Layout),
 		Template:   d.Template,
+		References: d.References,
+	}
+
+	return nil
+}
+
+// Resolve resolves the back-end storage dashboard from the linked object given
+// data.
+func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
+	if d.Template {
+		return nil
+	}
+
+	var (
+		proxy *Dashboard
+		err   error
+	)
+
+	curData := make(map[string]string)
+
+	if d.Link.Valid {
+		tmpl := &api.Dashboard{ObjectMeta: api.ObjectMeta{ID: d.Link.String}}
+
+		v, err := store.Get(tmpl)
+		if err != nil {
+			return err
+		}
+
+		var ok bool
+
+		proxy, ok = v.(*Dashboard)
+		if !ok {
+			return fmt.Errorf("expected *Dashboard but got %T", v)
+		}
+
+		err = mergo.Merge(&proxy.Options, d.Options, mergo.WithOverride)
+		if err != nil {
+			return err
+		}
+
+		for _, variable := range d.Options.Variables {
+			if !variable.Dynamic {
+				curData[variable.Name] = variable.Value
+			}
+		}
+	} else {
+		proxy = d
+	}
+
+	if data != nil {
+		err = mergo.Merge(&curData, data, mergo.WithOverride)
+		if err != nil {
+			return err
+		}
+	}
+
+	proxy.Options.Title, err = template.Render(proxy.Options.Title, curData)
+	if err != nil {
+		return err
+	}
+
+	// Loop through dashboard items are fetch each known referenced element. If
+	// those elements are resolvable, resolve them too.
+	refs := map[api.DashboardItemType]*set.Set{}
+
+	for _, item := range proxy.Items {
+		_, ok := refs[item.Type]
+		if !ok {
+			refs[item.Type] = set.New()
+		}
+
+		switch item.Type {
+		case api.DashboardItemChart:
+			id, ok := item.Options["id"]
+			if ok {
+				refs[item.Type].Add(id)
+			}
+		}
+	}
+
+	if refs["chart"] != nil {
+		err = resolveChartReferences(data, proxy, store, set.StringSlice(refs["chart"])...)
+		if err != nil {
+			return err
+		}
+	}
+
+	proxy.ObjectMeta = d.ObjectMeta
+	proxy.Options.Variables = nil
+	proxy.Link = d.Link
+	proxy.Template = false
+
+	*d = *proxy
+
+	return nil
+}
+
+func resolveChartReferences(data map[string]string, dashboard *Dashboard, store StoreFuncs, ids ...string) error {
+	var charts api.ChartList
+
+	list, _, err := store.List(&charts, &api.ListOptions{Filter: api.ListFilter{"id": ids}})
+	if err != nil {
+		return err
+	}
+
+	for _, obj := range list.Objects() {
+		err = obj.(Resolver).Resolve(data, store)
+		if err != nil {
+			return err
+		}
+
+		var chart api.Chart
+
+		err = obj.Copy(&chart)
+		if err != nil {
+			return err
+		}
+
+		dashboard.References = append(dashboard.References, api.Reference{
+			Type:  string(api.DashboardItemChart),
+			Value: chart,
+		})
 	}
 
 	return nil
@@ -97,4 +224,16 @@ func (d DashboardList) Copy(dst api.ObjectList) error {
 	}
 
 	return nil
+}
+
+// Objects satisfies the ObjectList interface.
+func (d DashboardList) Objects() []Object {
+	l := make([]Object, len(d))
+
+	for idx, dashboard := range d {
+		x := dashboard
+		l[idx] = &x
+	}
+
+	return l
 }

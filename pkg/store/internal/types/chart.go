@@ -73,8 +73,9 @@ func (c Chart) Copy(dst api.Object) error {
 	return nil
 }
 
-// Resolve resolves th back-end storage chart from the linked object given data.
-func (c *Chart) Resolve(data map[string]string, get func(api.Object) (Object, error)) error {
+// Resolve resolves the back-end storage chart from the linked object given
+// data.
+func (c *Chart) Resolve(data map[string]string, store StoreFuncs) error {
 	if c.Template {
 		return nil
 	}
@@ -89,7 +90,7 @@ func (c *Chart) Resolve(data map[string]string, get func(api.Object) (Object, er
 	if c.Link.Valid {
 		tmpl := &api.Chart{ObjectMeta: api.ObjectMeta{ID: c.Link.String}}
 
-		v, err := get(tmpl)
+		v, err := store.Get(tmpl)
 		if err != nil {
 			return err
 		}
@@ -116,7 +117,7 @@ func (c *Chart) Resolve(data map[string]string, get func(api.Object) (Object, er
 	}
 
 	if data != nil {
-		err := mergo.Merge(&curData, data, mergo.WithOverride)
+		err = mergo.Merge(&curData, data, mergo.WithOverride)
 		if err != nil {
 			return err
 		}
@@ -180,4 +181,16 @@ func (c ChartList) Copy(dst api.ObjectList) error {
 	}
 
 	return nil
+}
+
+// Objects satisfies the ObjectList interface.
+func (c ChartList) Objects() []Object {
+	l := make([]Object, len(c))
+
+	for idx, chart := range c {
+		x := chart
+		l[idx] = &x
+	}
+
+	return l
 }

@@ -83,7 +83,7 @@ declare interface Dashboard extends ObjectMeta {
     parent?: string;
     link?: string;
     template?: boolean;
-    references?: Array<unknown>;
+    references?: Array<Reference>;
 }
 
 declare interface DashboardOptions {
@@ -134,6 +134,11 @@ declare interface FilterRule {
 }
 
 declare type FilterAction = "discard" | "relabel" | "rewrite" | "sieve";
+
+declare interface Reference {
+    type: string;
+    value: unknown;
+}
 
 declare interface TemplateVariable {
     name: string;

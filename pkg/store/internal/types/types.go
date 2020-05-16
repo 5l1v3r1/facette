@@ -111,6 +111,7 @@ func FromAPI(obj api.Object) (Object, error) {
 // ObjectList is a back-end storage objects list interface.
 type ObjectList interface {
 	Copy(dst api.ObjectList) error
+	Objects() []Object
 }
 
 // ListFromAPI returns a back-end storage representation of an API objects list.
@@ -131,5 +132,11 @@ func ListFromAPI(v interface{}) (ObjectList, error) {
 
 // Resolver is a back-end storage resolver interface.
 type Resolver interface {
-	Resolve(data map[string]string, get func(obj api.Object) (Object, error)) error
+	Resolve(data map[string]string, store StoreFuncs) error
+}
+
+// StoreFuncs are back-end storage functions.
+type StoreFuncs struct {
+	Get  func(obj api.Object) (Object, error)
+	List func(objects api.ObjectList, opts *api.ListOptions) (ObjectList, uint, error)
 }

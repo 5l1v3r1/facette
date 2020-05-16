@@ -79,3 +79,15 @@ func (p ProviderList) Copy(dst api.ObjectList) error {
 
 	return nil
 }
+
+// Objects satisfies the ObjectList interface.
+func (p ProviderList) Objects() []Object {
+	l := make([]Object, len(p))
+
+	for idx, provider := range p {
+		x := provider
+		l[idx] = &x
+	}
+
+	return l
+}

@@ -8,8 +8,9 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
+	"reflect"
 	"regexp"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/mattn/go-sqlite3"
@@ -73,21 +74,26 @@ func (d *Driver) Open() (*gorm.DB, error) {
 // WhereClause returns driver-specific WHERE clause.
 func (d *Driver) WhereClause(column string, v interface{}) (string, interface{}) {
 	operator := "="
-	extra := ""
+	placeholder := "?"
 
-	switch tv := v.(type) {
-	case store.RegexpPattern:
-		operator = "REGEXP"
-		v = "(?i)" + string(tv)
+	if reflect.TypeOf(v).Kind() == reflect.Slice {
+		operator = "IN"
+		placeholder = "(?)"
+	} else {
+		switch x := v.(type) {
+		case store.RegexpPattern:
+			operator = "REGEXP"
+			v = "(?i)" + string(x)
 
-	case string:
-		if tv == "null" {
-			operator = "IS"
-			v = nil
+		case string:
+			if x == "null" {
+				operator = "IS"
+				v = nil
+			}
 		}
 	}
 
-	return fmt.Sprintf("%s %s ?%s", column, operator, extra), v
+	return strings.Join([]string{column, operator, placeholder}, " "), v
 }
 
 // ZapFields returns SQLite-specific back-end storage zap fields.

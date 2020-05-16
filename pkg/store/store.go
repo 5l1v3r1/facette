@@ -119,7 +119,7 @@ func (s *Store) Get(obj api.Object, resolve bool, data map[string]string) error 
 		return fmt.Errorf("expected types.Resolver but got %T", v)
 	}
 
-	err = resolver.Resolve(data, s.get)
+	err = resolver.Resolve(data, types.StoreFuncs{Get: s.get, List: s.list})
 	if err != nil {
 		return err
 	}
@@ -162,14 +162,28 @@ func (s *Store) get(obj api.Object) (types.Object, error) {
 
 // List returns a list of objects from the back-end storage.
 func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (uint, error) {
-	v, err := types.ListFromAPI(objects)
+	v, total, err := s.list(objects, opts)
 	if err != nil {
 		return 0, err
 	}
 
+	err = v.Copy(objects)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.ObjectList, uint, error) {
+	v, err := types.ListFromAPI(objects)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	tx := s.db.Begin()
 	if tx.Error != nil {
-		return 0, s.driver.Error(tx.Error)
+		return nil, 0, s.driver.Error(tx.Error)
 	}
 
 	defer tx.Commit()
@@ -187,13 +201,13 @@ func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (uint, error
 
 	err = tx.Count(&total).Error
 	if err != nil {
-		return 0, s.driver.Error(err)
+		return nil, 0, s.driver.Error(err)
 	}
 
 	if opts != nil {
 		for _, field := range opts.SortFields() {
 			if !tx.Dialect().HasColumn(tx.NewScope(v).TableName(), field.Name) {
-				return 0, errors.Wrapf(api.ErrInvalid, "unknown field: %s", field.Name)
+				return nil, 0, errors.Wrapf(api.ErrInvalid, "unknown field: %s", field.Name)
 			}
 
 			if field.Desc {
@@ -210,15 +224,10 @@ func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (uint, error
 
 	err = tx.Find(v).Error
 	if err != nil {
-		return 0, s.driver.Error(err)
+		return nil, 0, s.driver.Error(err)
 	}
 
-	err = v.Copy(objects)
-	if err != nil {
-		return 0, err
-	}
-
-	return total, nil
+	return v, total, nil
 }
 
 // Save stores an object into the back-end storage.

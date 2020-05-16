@@ -321,7 +321,7 @@ type Dashboard struct {
 	Parent     string           `json:"parent,omitempty"`
 	Link       string           `json:"link,omitempty"`
 	Template   bool             `json:"template"`
-	References []interface{}    `json:"references,omitempty"`
+	References []Reference      `json:"references,omitempty"`
 }
 
 // Excerpt returns an excerpted version of the dashboard API object.
@@ -542,6 +542,12 @@ func (p ProviderList) Objects() []Object {
 // Len satisfies the ObjectList interface.
 func (p ProviderList) Len() int {
 	return len(p)
+}
+
+// Reference is an value reference.
+type Reference struct {
+	Type  string      `json:"type"`
+	Value interface{} `json:"value"`
 }
 
 // Template is an API object template interface.
