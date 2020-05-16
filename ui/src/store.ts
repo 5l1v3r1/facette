@@ -38,6 +38,8 @@ class State {
 
     public theme = "dark";
 
+    public timeRange: TimeRange | null = null;
+
     public timezoneUTC = false;
 }
 
@@ -88,6 +90,10 @@ const store = new Vuex.Store({
             return state.theme;
         },
 
+        timeRange(state: State): TimeRange | null {
+            return state.timeRange;
+        },
+
         timezoneUTC(state: State): boolean {
             return state.timezoneUTC;
         },
@@ -135,6 +141,10 @@ const store = new Vuex.Store({
 
         theme(state: State, value: string): void {
             state.theme = value;
+        },
+
+        timeRange(state: State, value: TimeRange | null): void {
+            state.timeRange = value;
         },
 
         timezoneUTC(state: State, value: boolean): void {

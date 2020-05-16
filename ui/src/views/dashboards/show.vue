@@ -215,11 +215,13 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public mounted(): void {
         document.addEventListener("visibilitychange", this.onVisibilityChange);
+        this.$root.$on("item-loaded", this.onItemLoaded);
         this.$root.$on("item-timerange", this.onItemTimeRange);
     }
 
     public beforeDestroy(): void {
         document.removeEventListener("visibilitychange", this.onVisibilityChange);
+        this.$root.$off("item-loaded", this.onItemLoaded);
         this.$root.$off("item-timerange", this.onItemTimeRange);
     }
 
@@ -400,6 +402,14 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                 }
             },
         );
+    }
+
+    private onItemLoaded(range: TimeRange): void {
+        if (this.$store.getters.timeRange === null) {
+            // We only keep the first received time range from items as a
+            // reference.
+            this.$store.commit("timeRange", range);
+        }
     }
 
     private onItemTimeRange(target: Element | null, range: TimeRange): void {

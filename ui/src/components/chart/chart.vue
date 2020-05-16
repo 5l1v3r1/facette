@@ -704,7 +704,10 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     this.loading = false;
 
                     if (this.data) {
+                        // Emit item-loaded event (useful to keep track of
+                        // current time range when lazy loading dashboards).
                         this.$root.$emit("item-loaded", {from: this.data.from, to: this.data.to});
+
                         this.$nextTick(() => {
                             this.draw();
                         });
