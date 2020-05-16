@@ -54,7 +54,9 @@ func listOptionsFromRequest(r *http.Request) (*api.ListOptions, error) {
 		opts.Filter["name"] = name
 	}
 
-	switch filepath.Base(r.URL.Path) {
+	section := filepath.Base(r.URL.Path)
+
+	switch section {
 	case "charts", "dashboards":
 		switch httprouter.QueryParam(r, "kind") {
 		case "plain":
@@ -62,6 +64,13 @@ func listOptionsFromRequest(r *http.Request) (*api.ListOptions, error) {
 
 		case "template":
 			opts.Filter["template"] = true
+		}
+
+		if section == "dashboards" {
+			parent := httprouter.QueryParam(r, "parent")
+			if parent != "" {
+				opts.Filter["parent"] = parent
+			}
 		}
 
 	case "providers":
