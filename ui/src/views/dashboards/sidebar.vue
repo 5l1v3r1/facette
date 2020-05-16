@@ -59,6 +59,9 @@
                     :icon="!checkType(item.type) ? 'exclamation-triangle' : null"
                     :key="index"
                     :ref="`item${index}`"
+                    @click="highlight($event)"
+                    @focus="highlight($event, index)"
+                    @focusout="highlight($event)"
                     v-for="(item, index) in dashboard.items"
                 >
                     {{ itemLabel(item) }}
@@ -113,6 +116,23 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public checkType(type: string): boolean {
         return itemTypes.includes(type);
+    }
+
+    public highlight(e: KeyboardEvent | MouseEvent, index?: number): void {
+        if (e.ctrlKey || e.metaKey) {
+            return;
+        } else if (e.type === "click") {
+            e.preventDefault();
+            return;
+        }
+
+        history.replaceState(
+            null,
+            "",
+            e.type === "focusout" ? window.location.pathname + window.location.search : `#item${index}`,
+        );
+
+        window.dispatchEvent(new Event("hashchange"));
     }
 
     public itemLabel(item: DashboardItem): string {

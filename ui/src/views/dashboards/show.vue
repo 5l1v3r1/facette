@@ -133,7 +133,13 @@
                 {{ $t(`messages.${this.params.type}.empty`) }}
             </v-message>
 
-            <v-grid readonly :layout="dashboard.layout" v-model="dashboard.items">
+            <v-grid
+                readonly
+                ref="grid"
+                :highlight-index="highlightIndex"
+                :layout="dashboard.layout"
+                v-model="dashboard.items"
+            >
                 <template slot-scope="item">
                     <v-chart
                         controls
@@ -157,6 +163,7 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
 import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
+import GridComponent from "@/src/components/grid/grid.vue";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
 
@@ -193,6 +200,8 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public dashboardRefs: Record<string, unknown> = {};
 
+    public highlightIndex: number | null = null;
+
     public intervals: Array<number> = intervals;
 
     public loading = true;
@@ -215,12 +224,14 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public mounted(): void {
         document.addEventListener("visibilitychange", this.onVisibilityChange);
+        window.addEventListener("hashchange", this.onHashChange);
         this.$root.$on("item-loaded", this.onItemLoaded);
         this.$root.$on("item-timerange", this.onItemTimeRange);
     }
 
     public beforeDestroy(): void {
         document.removeEventListener("visibilitychange", this.onVisibilityChange);
+        window.removeEventListener("hashchange", this.onHashChange);
         this.$root.$off("item-loaded", this.onItemLoaded);
         this.$root.$off("item-timerange", this.onItemTimeRange);
     }
@@ -404,6 +415,19 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    private onHashChange(): void {
+        if (window.location.hash) {
+            const index = parseInt(window.location.hash.substr(5), 10);
+            this.highlightIndex = !isNaN(index) ? index : null;
+
+            this.$nextTick(() => {
+                (this.$refs.grid as GridComponent).scrollTo(window.location.hash.substr(1));
+            });
+        } else {
+            this.highlightIndex = null;
+        }
+    }
+
     private onItemLoaded(range: TimeRange): void {
         if (this.$store.getters.timeRange === null) {
             // We only keep the first received time range from items as a
@@ -495,11 +519,17 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     ::v-deep .v-grid-item {
-        border: 0.15rem solid transparent;
         background-color: #272727;
 
         &:hover {
             border-color: var(--toolbar-background);
+        }
+
+        .v-grid-anchor {
+            display: block;
+            height: 0;
+            transform: translateY(calc(-2 * var(--toolbar-size) - 1rem));
+            width: 0;
         }
     }
 }

@@ -86,7 +86,13 @@
                 <v-label v-else>{{ placeholder.w }} x {{ placeholder.h }}</v-label>
             </v-grid-item>
 
-            <v-grid-item :index="index" :key="index" :layout="item.layout" v-for="(item, index) in value">
+            <v-grid-item
+                :class="{highlight: index === highlightIndex}"
+                :index="index"
+                :key="index"
+                :layout="item.layout"
+                v-for="(item, index) in value"
+            >
                 <slot v-bind="{index, value: item}"></slot>
             </v-grid-item>
         </div>
@@ -116,6 +122,9 @@ const minRowHeight = 160;
 export default class GridComponent extends Mixins<CustomMixins>(CustomMixins) {
     @Prop({default: null, type: Function})
     public addHandler!: ((layout: GridItemLayout) => void) | undefined;
+
+    @Prop({default: null, type: Number})
+    public highlightIndex!: number;
 
     @Prop({required: true, type: Object})
     public layout!: GridLayout;
@@ -238,6 +247,13 @@ export default class GridComponent extends Mixins<CustomMixins>(CustomMixins) {
         value.splice(index, 1);
 
         this.$emit("input", value);
+    }
+
+    public scrollTo(id: string): void {
+        const el: HTMLElement | null = document.getElementById(id);
+        if (el !== null) {
+            el.scrollIntoView(true);
+        }
     }
 
     public setDragging(index: number | null): void {

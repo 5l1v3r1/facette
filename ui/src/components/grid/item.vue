@@ -91,6 +91,7 @@ export default class GridItemComponent extends Vue {
 <style lang="scss" scoped>
 .v-grid-item {
     background-color: #272727; // FIXME: don't hardcode here
+    border: 0.15rem solid transparent;
     border-radius: 0.2rem;
     grid-column-end: var(--column-end);
     grid-column-start: var(--column-start);
@@ -99,12 +100,12 @@ export default class GridItemComponent extends Vue {
     min-width: 0; // This value is need to ensure proper grid resizing
     position: relative;
 
-    &.draggable {
-        border: 0.15rem solid transparent;
+    &.draggable:hover {
+        border-color: var(--toolbar-background);
+    }
 
-        &:hover {
-            border-color: var(--toolbar-background);
-        }
+    &.highlight {
+        border-color: var(--blue);
     }
 
     &.placeholder {
