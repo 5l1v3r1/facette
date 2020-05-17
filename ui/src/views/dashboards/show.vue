@@ -182,6 +182,7 @@
                         emit-cursor
                         tooltip
                         :legend="item.value.options.legend"
+                        :range="Object.assign({}, options.timeRange)"
                         v-model="dashboardRefs[`chart|${item.value.options.id}`]"
                         v-if="item.value.type === 'chart'"
                     >
@@ -340,7 +341,6 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public clearBasket(): void {
         this.$store.commit("basket", []);
-        // TODO: verify sidebar status
     }
 
     public getDashboard(): void {
@@ -470,24 +470,31 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     @Watch("$route.query", {immediate: true})
     public onRouteQuery(to: Dictionary<string>): void {
-        const options = cloneDeep(defaultOptions);
+        const timeRange = cloneDeep(this.options.timeRange);
         let n: number;
+        let update = false;
 
         if (to.from) {
             n = Number(to.from);
-            options.timeRange.from = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.from;
+            timeRange.from = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339, false) : to.from;
+            update = true;
         }
 
         if (to.to) {
             n = Number(to.to);
-            options.timeRange.to = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339) : to.to;
+            timeRange.to = !isNaN(n) ? this.formatDate(n, dateFormatRFC3339, false) : to.to;
+            update = true;
+        }
+
+        if (update) {
+            this.setTimeRange(timeRange);
         }
 
         if (to.refresh) {
-            options.refresh = parseInt(to.refresh, 10) || 0;
+            this.setRefreshInterval(parseInt(to.refresh, 10) || 0);
         }
 
-        this.options = options;
+        // this.options = options;
         this.getDashboard();
     }
 
