@@ -733,25 +733,20 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         top: calc(var(--toolbar-size) * 2);
         z-index: 1;
 
-        .v-select {
-            background-color: var(--toolbar-background);
-            border-color: transparent;
-            width: auto;
+        .v-form {
+            margin-bottom: 1rem;
+
+            .v-select {
+                background-color: var(--toolbar-background);
+                border-color: transparent;
+                width: auto;
+            }
         }
 
         .v-chart {
             height: 16rem;
             width: 100%;
         }
-    }
-
-    .color {
-        border-radius: 0.1rem;
-        display: inline-block;
-        height: 0.6rem;
-        margin-right: 0.5rem;
-        min-width: 0.6rem;
-        width: 0.6rem;
     }
 
     .color {
