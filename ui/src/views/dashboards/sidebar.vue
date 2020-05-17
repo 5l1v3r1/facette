@@ -48,25 +48,32 @@
                 </v-button>
             </template>
 
-            <template v-if="dashboard">
-                <v-button class="empty" disabled v-if="!dashboard.items || dashboard.items.length === 0">
-                    {{ $t(`messages.${params.type}.empty`) }}
-                </v-button>
+            <v-button
+                class="empty"
+                disabled
+                icon="info-circle"
+                v-if="
+                    $route.name !== 'dashboards-home' &&
+                    (!dashboard || !dashboard.items || dashboard.items.length === 0)
+                "
+            >
+                {{ $t(`messages.${params.type}.empty`) }}
+            </v-button>
 
-                <v-button
-                    :class="{unsupported: !checkType(item.type)}"
-                    :href="`#item${index}`"
-                    :icon="!checkType(item.type) ? 'exclamation-triangle' : null"
-                    :key="index"
-                    :ref="`item${index}`"
-                    @click="highlight($event)"
-                    @focus="highlight($event, index)"
-                    @focusout="highlight($event)"
-                    v-for="(item, index) in dashboard.items"
-                >
-                    {{ itemLabel(item) }}
-                </v-button>
-            </template>
+            <v-button
+                :class="{unsupported: !checkType(item.type)}"
+                :href="`#item${index}`"
+                :icon="!checkType(item.type) ? 'exclamation-triangle' : null"
+                :key="index"
+                :ref="`item${index}`"
+                @click="highlight($event)"
+                @focus="highlight($event, index)"
+                @focusout="highlight($event)"
+                v-for="(item, index) in dashboard.items"
+                v-else-if="dashboard"
+            >
+                {{ itemLabel(item) }}
+            </v-button>
         </template>
     </v-sidebar>
 </template>
@@ -96,11 +103,7 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public loading = true;
 
-    public type!: string;
-
-    public created(): void {
-        this.type = this.params.type;
-    }
+    public type = "home";
 
     public mounted(): void {
         this.$parent.$on("dashboard-loaded", this.onDashboardLoaded);
@@ -108,6 +111,10 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
         if (this.$route.name === "dashboards-home") {
             this.getDashboards();
         }
+    }
+
+    public updated(): void {
+        this.type = this.params.type;
     }
 
     public beforeDestroy(): void {

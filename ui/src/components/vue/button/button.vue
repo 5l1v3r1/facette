@@ -11,7 +11,7 @@
             icon: !content && (!dropdown || icon.startsWith('caret-')),
             ['in-dropdown']: inDropdown,
         }"
-        @shortcut="shortcut && onShortcut()"
+        @shortcut="!disabled && shortcut && onShortcut()"
         v-shortcut="shortcut"
     >
         <component
@@ -274,6 +274,7 @@ export default class ButtonComponent extends Vue {
 
         .v-button-caret {
             margin-left: 0.5rem;
+            opacity: 0.75;
         }
 
         > * {

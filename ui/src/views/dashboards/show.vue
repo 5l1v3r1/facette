@@ -285,6 +285,15 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         this.updateRefresh();
     }
 
+    @Watch("$route.path")
+    public onRoutePath(): void {
+        Object.assign(this, {
+            dashboard: null,
+            dashboardsRefs: {},
+            loading: true,
+        });
+    }
+
     @Watch("$route.query", {immediate: true})
     public onRouteQuery(to: Dictionary<string>): void {
         const options = cloneDeep(defaultOptions);

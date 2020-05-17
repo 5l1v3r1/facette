@@ -6,7 +6,7 @@
         :aria-readonly="readonly"
         :class="{focus: focused, [type]: true}"
         @click="focus"
-        @shortcut="shortcut && focus(true)"
+        @shortcut="!disabled && shortcut && focus(true)"
         v-shortcut="shortcut"
     >
         <v-icon :icon="icon" @mousedown.native.prevent v-if="icon !== null"></v-icon>

@@ -95,8 +95,10 @@
                                 >
                             </template>
                         </v-button>
+
                         <template v-if="more">
                             <v-divider></v-divider>
+
                             <slot name="more"></slot>
                         </template>
                     </template>
