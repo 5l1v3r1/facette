@@ -96,17 +96,19 @@ export class CustomMixins extends Vue {
         );
     }
 
-    public handleError(handler?: () => void): (response: HttpResponse) => void {
+    public handleError(handler: (() => void) | null = null, commit = false): (response: HttpResponse) => void {
         return (response: HttpResponse) => {
-            let error: APIError = "unhandled";
+            if (commit) {
+                let error: APIError = "unhandled";
 
-            switch (response.status) {
-                case 404:
-                    error = "notFound";
-                    break;
+                switch (response.status) {
+                    case 404:
+                        error = "notFound";
+                        break;
+                }
+
+                this.$store.commit("error", error);
             }
-
-            this.$store.commit("error", error);
 
             this.$components.notify(
                 (response.data?.error
@@ -115,7 +117,7 @@ export class CustomMixins extends Vue {
                 "error",
             );
 
-            if (handler) {
+            if (handler !== null) {
                 handler();
             }
         };

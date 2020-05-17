@@ -78,7 +78,7 @@ export default class Info extends Mixins<CustomMixins>(CustomMixins) {
                 },
                 this.handleError(() => {
                     this.loading = false;
-                }),
+                }, true),
             );
     }
 }

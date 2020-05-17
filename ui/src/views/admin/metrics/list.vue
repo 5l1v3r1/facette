@@ -302,7 +302,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
                 },
                 this.handleError(() => {
                     this.loading = false;
-                }),
+                }, true),
             );
     }
 }

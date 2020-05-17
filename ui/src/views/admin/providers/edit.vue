@@ -390,7 +390,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 this.handleError(() => {
                     this.emitUpdate();
                     this.loading = false;
-                }),
+                }, true),
             );
     }
 

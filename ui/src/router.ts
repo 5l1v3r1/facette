@@ -49,6 +49,8 @@ router.beforeEach((to: Route, from: Route, next: any) => {
         store.commit("prevRoute", from);
     }
 
+    store.commit("error", null);
+
     next();
 });
 

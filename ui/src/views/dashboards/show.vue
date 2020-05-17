@@ -428,7 +428,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                         this.handleError(() => {
                             this.$parent.$emit("dashboard-loaded", null);
                             this.loading = false;
-                        }),
+                        }, true),
                     );
             }
         }
