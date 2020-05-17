@@ -292,7 +292,7 @@ func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		rw.Header().Set("Location", fmt.Sprintf("%s/providers/%s", api.Prefix, obj.GetMeta().ID))
+		rw.Header().Set("Location", fmt.Sprintf("%s/%s/%s", api.Prefix, section, obj.GetMeta().ID))
 		rw.WriteHeader(http.StatusCreated)
 	} else {
 		rw.WriteHeader(http.StatusNoContent)
