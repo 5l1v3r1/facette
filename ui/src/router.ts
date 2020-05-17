@@ -45,7 +45,7 @@ export default router;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 router.beforeEach((to: Route, from: Route, next: any) => {
-    if (from.name !== null && !isEqual(to, from)) {
+    if (from.name !== null && to.name !== from.name && !isEqual(to.params, from.params)) {
         store.commit("prevRoute", from);
     }
 
