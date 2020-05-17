@@ -15,6 +15,8 @@ Vue.use(Vuex);
 class State {
     public autoPropagate = true;
 
+    public basket: Array<DashboardItem> = [];
+
     public connectors: Array<string> = [];
 
     public data: unknown = null;
@@ -48,6 +50,10 @@ const store = new Vuex.Store({
     getters: {
         autoPropagate(state: State): boolean {
             return state.autoPropagate;
+        },
+
+        basket(state: State): Array<DashboardItem> {
+            return state.basket;
         },
 
         connectors(state: State): Array<string> {
@@ -103,6 +109,10 @@ const store = new Vuex.Store({
             state.autoPropagate = value;
         },
 
+        basket(state: State, value: Array<DashboardItem>): void {
+            state.basket = value;
+        },
+
         connectors(state: State, value: Array<string>): void {
             state.connectors = value;
         },
@@ -156,6 +166,7 @@ const store = new Vuex.Store({
             key: "facette",
             reducer: (state: State): object => ({
                 autoPropagate: state.autoPropagate,
+                basket: state.basket,
                 locale: state.locale,
                 prevRoute:
                     state.prevRoute !== null

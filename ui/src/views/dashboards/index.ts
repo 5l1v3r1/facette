@@ -41,4 +41,16 @@ export default [
             default: (route: Route) => defineParams(route, {type: "dashboards"}),
         },
     },
+    {
+        path: "/basket",
+        name: "basket-show",
+        components: {
+            default: show,
+            sidebar: sidebar,
+            toolbar: toolbar,
+        },
+        props: {
+            default: (route: Route) => defineParams(route, {type: "basket"}),
+        },
+    },
 ];

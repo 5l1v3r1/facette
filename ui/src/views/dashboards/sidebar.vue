@@ -90,7 +90,7 @@ import {itemTypes} from "./show.vue";
 
 const types: Array<SelectOption> = [
     {label: "labels.home", value: "dashboards", icon: "home"},
-    // {label: "labels.basket._", value: "basket", icon: "shopping-cart"},
+    {label: "labels.basket._", value: "basket", icon: "shopping-basket"},
 ];
 
 @Component
@@ -191,9 +191,9 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public onType(): void {
         switch (this.type) {
-            // case "basket":
-            //     this.$router.push({name: "basket-show"});
-            //     break;
+            case "basket":
+                this.$router.push({name: "basket-show"});
+                break;
 
             case "dashboards":
                 this.$router.push({name: "dashboards-home"});

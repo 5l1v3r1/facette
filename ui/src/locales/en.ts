@@ -68,6 +68,15 @@ export default {
     labels: {
         adminPanel: "Administration panel",
         auto: "Automatic",
+        basket: {
+            _: "Basket",
+            add: "Add to basket",
+            clear: "Clear basket",
+            preview: "Preview basket…",
+            refresh: "Refresh basket",
+            remove: "Remove from basket",
+            saveDashboard: "Save as dashboard…",
+        },
         cancel: "Cancel",
         catalog: "Catalog",
         charts: {
@@ -124,6 +133,7 @@ export default {
             edit: "Edit dashboard",
             filter: "Filter dashboards",
             goBack: "Go back to dashboard",
+            name: "Dashboard name",
             new: "New dashboard",
             refresh: "Refresh dashboard",
             reset: "Reset dashboard",
@@ -311,6 +321,9 @@ export default {
     },
 
     messages: {
+        basket: {
+            empty: "Basket is empty",
+        },
         charts: {
             delete:
                 "You are about to delete the “{name}” chart. Are you sure?|" +
@@ -322,6 +335,7 @@ export default {
         },
         confirmLeave: "All unsaved data will be lost. Are you sure?",
         dashboards: {
+            empty: "Dashboard is empty",
             none: "No dashboards defined",
             notFound: "Dashboard not found",
             saved: "Dashboard successfully saved",

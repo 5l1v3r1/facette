@@ -101,6 +101,24 @@
 
             <v-spacer></v-spacer>
 
+            <template v-if="params.type !== 'basket' && basket.length > 0">
+                <v-button dropdown-anchor="bottom-right" icon="shopping-basket" :icon-badge="basket.length">
+                    <template slot="dropdown">
+                        <template v-if="params.type !== 'basket'">
+                            <v-button icon="eye" :to="{name: 'basket-show'}">
+                                {{ $t("labels.basket.preview") }}
+                            </v-button>
+
+                            <v-divider></v-divider>
+                        </template>
+
+                        <v-button icon="broom" @click="clearBasket">{{ $t("labels.basket.clear") }}</v-button>
+                    </template>
+                </v-button>
+
+                <v-divider vertical></v-divider>
+            </template>
+
             <v-button
                 class="icon"
                 dropdown-anchor="bottom-right"
@@ -109,6 +127,23 @@
                 v-if="dashboard"
             >
                 <template slot="dropdown">
+                    <template v-if="params.type === 'basket'">
+                        <v-button
+                            icon="save"
+                            :disabled="basket.length === 0"
+                            :shortcut="['s', $t('labels.dashboards.save')]"
+                            @click="saveBasket()"
+                        >
+                            {{ $t("labels.basket.saveDashboard") }}
+                        </v-button>
+
+                        <v-divider></v-divider>
+
+                        <v-button icon="broom" :disabled="basket.length === 0" @click="clearBasket">
+                            {{ $t("labels.basket.clear") }}
+                        </v-button>
+                    </template>
+
                     <v-button
                         icon="pencil-alt"
                         :shortcut="['e', $t(`labels.${params.type}.edit`)]"
@@ -117,6 +152,7 @@
                             params: {id: dashboard.id},
                             hash: !dashboard.template ? '#layout' : undefined,
                         }"
+                        v-else
                     >
                         {{ $t(`labels.${params.type}.edit`) }}
                     </v-button>
@@ -149,6 +185,19 @@
                         v-model="dashboardRefs[`chart|${item.value.options.id}`]"
                         v-if="item.value.type === 'chart'"
                     >
+                        <template slot="more">
+                            <v-button
+                                icon="minus"
+                                @click="removeBasketItem(item.index)"
+                                v-if="params.type === 'basket'"
+                            >
+                                {{ $t("labels.basket.remove") }}
+                            </v-button>
+
+                            <v-button icon="shopping-basket" @click="addBasketItem(item.index)" v-else>
+                                {{ $t("labels.basket.add") }}
+                            </v-button>
+                        </template>
                     </v-chart>
                 </template>
             </v-grid>
@@ -164,6 +213,7 @@ import {Dictionary} from "vue-router/types/router";
 
 import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
 import GridComponent from "@/src/components/grid/grid.vue";
+import {mapReferences} from "@/src/helpers/dashboard";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
 
@@ -242,6 +292,30 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    public addBasketItem(index: number): void {
+        if (!this.dashboard?.items) {
+            return;
+        }
+
+        const basket: Array<DashboardItem> = this.basket;
+        const item: DashboardItem = this.dashboard.items[index];
+
+        const data = this.dashboard.options?.variables?.reduce((data: Record<string, unknown>, v: TemplateVariable) => {
+            if (!v.dynamic) {
+                data[v.name] = v.value;
+            }
+            return data;
+        }, {});
+
+        basket.push({
+            type: item.type,
+            layout: {x: 0, y: basket.length, w: 1, h: 1},
+            options: Object.assign({data}, item.options),
+        });
+
+        this.$store.commit("basket", basket);
+    }
+
     public get autoPropagate(): boolean {
         return this.$store.getters.autoPropagate;
     }
@@ -256,8 +330,108 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         this.$store.commit("autoPropagate", value);
     }
 
+    public get basket(): Array<DashboardItem> {
+        return this.$store.getters.basket;
+    }
+
     public get canResetTimeRange(): boolean {
         return !isEqual(this.options.timeRange, defaultTimeRange) || !this.timeRangeSynced;
+    }
+
+    public clearBasket(): void {
+        this.$store.commit("basket", []);
+        // TODO: verify sidebar status
+    }
+
+    public getDashboard(): void {
+        switch (this.params.type) {
+            case "basket": {
+                const charts: Array<string> = [];
+                const types: Array<DashboardItemType> = [];
+
+                this.$http
+                    .post(
+                        "/api/v1/bulk",
+                        this.basket.reduce((req: Array<BulkRequest>, item: DashboardItem) => {
+                            switch (item.type) {
+                                case "chart":
+                                    if (item.options && !charts.includes(item.options.id as string)) {
+                                        req.push({
+                                            endpoint: `/charts/${item.options.id}/resolve`,
+                                            method: "POST",
+                                            // TODO: handle data
+                                        });
+
+                                        charts.push(item.options.id as string);
+                                        types.push("chart");
+                                    }
+
+                                    break;
+                            }
+
+                            return req;
+                        }, []),
+                    )
+                    .then(response => response.json())
+                    .then(
+                        (response: APIResponse<Array<BulkResult>>) => {
+                            if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
+                                this.$components.notify(this.$t("messages.error.bulk") as string, "error");
+                            }
+
+                            this.dashboard = {
+                                id: "",
+                                name: "basket",
+                                layout: {
+                                    columns: 1,
+                                    rowHeight: 260,
+                                    rows: this.basket.length,
+                                },
+                                items: this.basket,
+                            };
+
+                            if (response.data) {
+                                this.dashboardRefs = mapReferences(
+                                    response.data.map((result: BulkResult, index: number) => ({
+                                        type: types[index],
+                                        value: result.response.data,
+                                    })),
+                                );
+                            }
+
+                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.dashboardRefs);
+                            this.loading = false;
+                        },
+                        this.handleError(() => {
+                            this.$parent.$emit("dashboard-loaded", null);
+                            this.loading = false;
+                        }),
+                    );
+
+                break;
+            }
+
+            default: {
+                this.$http
+                    .post(`/api/v1/dashboards/${this.params.id}/resolve`) // TODO: handle data
+                    .then(response => response.json())
+                    .then(
+                        (response: APIResponse<Dashboard>) => {
+                            this.dashboard = response.data as Dashboard;
+                            this.dashboardRefs = mapReferences(this.dashboard.references as Array<Reference>);
+
+                            delete this.dashboard.references;
+
+                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.dashboardRefs);
+                            this.loading = false;
+                        },
+                        this.handleError(() => {
+                            this.$parent.$emit("dashboard-loaded", null);
+                            this.loading = false;
+                        }),
+                    );
+            }
+        }
     }
 
     @Watch("options", {deep: true})
@@ -321,47 +495,56 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         this.$root.$emit("item-refresh", null);
     }
 
+    public removeBasketItem(index: number): void {
+        if (!this.dashboard?.layout) {
+            return;
+        }
+
+        const basket: Array<DashboardItem> = this.basket;
+        basket.splice(index, 1);
+
+        // Decrement following items Y position
+        for (let i: number = index; i < basket.length; i++) {
+            basket[i].layout.y--;
+        }
+
+        this.dashboard.layout.rows--;
+
+        this.$store.commit("basket", basket);
+    }
+
     public resetTimeRange(): void {
         this.setTimeRange(Object.assign({}, defaultTimeRange));
     }
 
-    public get timezoneUTC(): boolean {
-        return this.$store.getters.timezoneUTC;
-    }
+    public saveBasket(name: string | null = null): void {
+        if (name !== null) {
+            this.$http.post("/api/v1/dashboards", Object.assign({}, this.dashboard, {name})).then(() => {
+                this.clearBasket();
+                this.$router.push({name: "dashboards-show", params: {id: name}});
+            }, this.handleError());
 
-    private getDashboard(): void {
-        switch (this.params.type) {
-            default: {
-                this.$http
-                    .post(`/api/v1/dashboards/${this.params.id}/resolve`) // TODO: handle data
-                    .then(response => response.json())
-                    .then(
-                        (response: APIResponse<Dashboard>) => {
-                            this.dashboard = response.data as Dashboard;
-
-                            this.dashboardRefs =
-                                this.dashboard?.references?.reduce((refs: Record<string, unknown>, ref: Reference) => {
-                                    switch (ref.type) {
-                                        case "chart":
-                                            refs[`chart|${(ref.value as Chart).id}`] = ref.value;
-                                            break;
-                                    }
-
-                                    return refs;
-                                }, {}) ?? {};
-
-                            delete this.dashboard.references;
-
-                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.dashboardRefs);
-                            this.loading = false;
-                        },
-                        this.handleError(() => {
-                            this.$parent.$emit("dashboard-loaded", null);
-                            this.loading = false;
-                        }),
-                    );
-            }
+            return;
         }
+
+        this.$components.modal(
+            "prompt",
+            {
+                button: {
+                    label: this.$t("labels.dashboards.save"),
+                    primary: true,
+                },
+                input: {
+                    value: "",
+                },
+                message: this.$t("labels.dashboards.name"),
+            },
+            (value: string) => {
+                if (value) {
+                    this.saveBasket(value);
+                }
+            },
+        );
     }
 
     public setRefreshInterval(value: number | null = null): void {
@@ -422,6 +605,10 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                 }
             },
         );
+    }
+
+    public get timezoneUTC(): boolean {
+        return this.$store.getters.timezoneUTC;
     }
 
     private onHashChange(): void {
