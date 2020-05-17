@@ -1,6 +1,6 @@
 <template>
     <div class="v-chart" :class="{empty: !value || !series}">
-        <v-spinner v-if="loading"></v-spinner>
+        <v-spinner :size="16" :stroke-width="2" v-if="loading"></v-spinner>
 
         <v-message v-else-if="!value || !series">{{ $t("messages.data.none") }}</v-message>
 
@@ -111,19 +111,19 @@
                         class="backward"
                         icon="arrow-left"
                         :class="{active: this.sliders.backward}"
-                        @click="updateRange('backward')"
+                        @click.native="updateRange('backward')"
                     ></v-button>
                     <v-button
                         class="forward"
                         icon="arrow-right"
                         :class="{active: this.sliders.forward}"
-                        @click="updateRange('forward')"
+                        @click.native="updateRange('forward')"
                     ></v-button>
                 </div>
             </div>
         </div>
 
-        <div ref="chart" @mousemove="controls && onMouse($event)" v-show="series"></div>
+        <div ref="chart" @mousemove="controls && onMouse($event)" v-show="value"></div>
     </div>
 </template>
 
@@ -416,33 +416,33 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
             return;
         }
 
-        const from: dayjs.Dayjs = this.parseDate(this.data.from);
-        const to: dayjs.Dayjs = this.parseDate(this.data.to);
+        let from: dayjs.Dayjs = this.parseDate(this.data.from);
+        let to: dayjs.Dayjs = this.parseDate(this.data.to);
         let delta: number;
 
         switch (mode) {
             case "backward":
                 delta = to.diff(from, "second") * 0.25;
-                from.add(-delta, "second");
-                to.add(-delta, "second");
+                from = from.add(-delta, "second");
+                to = to.add(-delta, "second");
                 break;
 
             case "forward":
                 delta = to.diff(from, "second") * 0.25;
-                from.add(delta, "second");
-                to.add(delta, "second");
+                from = from.add(delta, "second");
+                to = to.add(delta, "second");
                 break;
 
             case "zoom-in":
                 delta = to.diff(from, "second") * 0.25;
-                from.add(delta, "second");
-                to.add(-delta, "second");
+                from = from.add(delta, "second");
+                to = to.add(-delta, "second");
                 break;
 
             case "zoom-out":
                 delta = to.diff(from, "second") * 0.5;
-                from.add(-delta, "second");
-                to.add(delta, "second");
+                from = from.add(-delta, "second");
+                to = to.add(delta, "second");
                 break;
         }
 
@@ -741,6 +741,13 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         background-color: inherit;
         height: 100%;
         width: 100%;
+    }
+
+    .v-spinner {
+        left: 0.5rem;
+        position: absolute;
+        top: 0.5rem;
+        z-index: 1;
     }
 
     .v-chart-controls {
