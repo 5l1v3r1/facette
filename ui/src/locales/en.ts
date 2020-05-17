@@ -130,6 +130,7 @@ export default {
         custom: "Custom…",
         dashboards: {
             _: "Dashboard|Dashboards",
+            delete: "Delete dashboard|Delete dashboards",
             edit: "Edit dashboard",
             filter: "Filter dashboards",
             goBack: "Go back to dashboard",
@@ -254,6 +255,8 @@ export default {
             _: "Series|Series",
             add: "Add series",
             alias: "Alias",
+            edit: "Edit series",
+            remove: "Remove series",
         },
         settings: {
             display: {
@@ -268,6 +271,7 @@ export default {
         templates: {
             _: "Template|Templates",
             edit: "Edit template",
+            instance: "Template instance",
             newFrom: "New from template",
             save: "Save template",
             select: "Select a template…",
@@ -285,11 +289,11 @@ export default {
             set: "Set time range",
             to: "To",
             units: {
-                days: ["Last {count} day", "Last {count} days"].join("|"),
-                hours: ["Last {count} hour", "Last {count} hours"].join("|"),
-                minutes: ["Last {count} minute", "Last {count} minutes"].join("|"),
-                months: ["Last {count} month", "Last {count} months"].join("|"),
-                years: ["Last {count} year", "Last {count} years"].join("|"),
+                days: "Last {count} day|Last {count} days",
+                hours: "Last {count} hour|Last {count} hours",
+                minutes: "Last {count} minute|Last {count} minutes",
+                months: "Last {count} month|Last {count} months",
+                years: "Last {count} year|Last {count} years",
             },
         },
         timezone: {
@@ -330,11 +334,16 @@ export default {
                 "You are about to delete {count} charts. Are you sure?",
             deleted: "Chart successfully deleted|Charts successfully deleted",
             none: "No charts defined",
+            notFound: "Chart not found",
             saved: "Chart successfully saved",
             selected: "{0} chart selected|{0} charts selected",
         },
         confirmLeave: "All unsaved data will be lost. Are you sure?",
         dashboards: {
+            delete:
+                "You are about to delete the “{name}” dashboard. Are you sure?|" +
+                "You are about to delete {count} dashboards. Are you sure?",
+            deleted: "Dashboard successfully deleted|Dashboards successfully deleted",
             empty: "Dashboard is empty",
             none: "No dashboards defined",
             notFound: "Dashboard not found",
@@ -386,6 +395,7 @@ export default {
             enabled: "Provider successfully enabled|Providers successfully enabled",
             loadFailed: "Cannot load provider support: {0}",
             none: "No providers defined",
+            notFound: "Provider not found",
             saved: "Provider successfully saved",
             selected: "{0} provider selected|{0} providers selected",
             test: {
