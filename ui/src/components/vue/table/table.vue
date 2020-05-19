@@ -117,7 +117,7 @@ export default class TableComponent extends Vue {
 
         if (e.shiftKey && this.selection.last !== null) {
             const items: TableSelection = Object.assign({}, this.selection.items);
-            const [start, end]: Array<number> = [this.selection.last, index].sort();
+            const [start, end]: Array<number> = [this.selection.last, index].sort((a, b) => a - b);
 
             for (let i: number = start; i <= end; i++) {
                 items[i] = this.selection.items[this.selection.last];
