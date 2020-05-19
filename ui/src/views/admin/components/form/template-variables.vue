@@ -55,6 +55,8 @@
 import cloneDeep from "lodash/cloneDeep";
 import {Component, Prop, Vue} from "vue-property-decorator";
 
+import {ModalTemplateVariableParams} from "@/src/views/admin/components/modal/template-variable.vue";
+
 @Component
 export default class TemplateVariablesComponent extends Vue {
     @Prop({required: true, type: Array})
@@ -75,7 +77,11 @@ export default class TemplateVariablesComponent extends Vue {
     public editVariable(index: number): void {
         this.$components.modal(
             "template-variable",
-            {available: this.available, edit: true, variable: cloneDeep(this.variables[index])},
+            {
+                available: this.available,
+                edit: true,
+                variable: cloneDeep(this.variables[index]),
+            } as ModalTemplateVariableParams,
             (value: TemplateVariable) => {
                 if (value) {
                     const definedIndex = this.defined.findIndex(variable => variable.name === value.name);

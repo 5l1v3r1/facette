@@ -18,7 +18,7 @@
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
 
-interface TimeRangeParams {
+export interface ModalTimeRangeParams {
     timeRange: TimeRange;
 }
 
@@ -29,7 +29,7 @@ export default class ModalTimeRangeComponent extends Vue {
         to: "",
     };
 
-    public onModalShow(params: TimeRangeParams): void {
+    public onModalShow(params: ModalTimeRangeParams): void {
         this.timeRange = params.timeRange;
     }
 }

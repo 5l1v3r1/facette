@@ -206,11 +206,13 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
+import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {hash} from "@/src/helpers/hash";
 import {beforeRoute} from "@/src/helpers/route";
 import {resolveOption} from "@/src/helpers/select";
 import {parseVariables, renderTemplate} from "@/src/helpers/template";
 import {CustomMixins} from "@/src/mixins";
+import {ModalChartSeriesParams} from "@/src/views/admin/components/modal/chart-series.vue";
 
 import {namePattern} from "..";
 
@@ -345,11 +347,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         const series = this.chart.series as Array<ChartSeries>;
 
-        this.$components.modal("chart-series", {series: {}}, (value: ChartSeries) => {
-            if (value) {
-                series.push(value);
-            }
-        });
+        this.$components.modal(
+            "chart-series",
+            {
+                series: {},
+            } as ModalChartSeriesParams,
+            (value: ChartSeries) => {
+                if (value) {
+                    series.push(value);
+                }
+            },
+        );
     }
 
     public deleteChart(apply = false): void {
@@ -381,7 +389,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                     danger: true,
                 },
                 message: this.$tc(`messages.${this.params.type}.delete`, 1, this.chart),
-            },
+            } as ModalConfirmParams,
             (value: boolean) => {
                 if (value) {
                     this.deleteChart(true);
@@ -406,11 +414,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         const series = this.chart.series as Array<ChartSeries>;
 
-        this.$components.modal("chart-series", {series: cloneDeep(series[index])}, (value: ChartSeries) => {
-            if (value) {
-                series.splice(index, 1, value);
-            }
-        });
+        this.$components.modal(
+            "chart-series",
+            {
+                series: cloneDeep(series[index]),
+            } as ModalChartSeriesParams,
+            (value: ChartSeries) => {
+                if (value) {
+                    series.splice(index, 1, value);
+                }
+            },
+        );
     }
 
     public getColor(index: number): string {
@@ -539,7 +553,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         danger: true,
                     },
                     message: this.$t("messages.confirmLeave"),
-                },
+                } as ModalConfirmParams,
                 (value: boolean) => {
                     if (value) {
                         this.reset(true);

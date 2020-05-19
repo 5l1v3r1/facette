@@ -102,11 +102,12 @@
 import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
+import TableComponent from "@/src/components/vue/table/table.vue";
 import {hash} from "@/src/helpers/hash";
 import {labelsToString, parseLabels} from "@/src/helpers/labels";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
-import TableComponent from "@/src/components/vue/table/table.vue";
+import {ModalChartPreviewParams} from "@/src/views/admin/components/modal/chart-preview.vue";
 
 interface Metric extends Labels {
     _hash: string;
@@ -247,7 +248,9 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public previewChart(metrics: Array<Metric>): void {
-        this.$components.modal("chart-preview", {exprs: metrics.map(metric => labelsToString(metric))});
+        this.$components.modal("chart-preview", {
+            exprs: metrics.map(metric => labelsToString(metric)),
+        } as ModalChartPreviewParams);
     }
 
     public setMatch(key: string, value: string): void {

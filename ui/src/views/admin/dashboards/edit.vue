@@ -129,8 +129,10 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
+import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
+import {ModalDashboardItemParams} from "@/src/views/admin/components/modal/dashboard-item.vue";
 
 import {namePattern} from "..";
 
@@ -212,7 +214,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         this.$components.modal(
             "dashboard-item",
-            {item: {layout: cloneDeep(layout)}, step: 1},
+            {
+                item: {layout: cloneDeep(layout)},
+                step: 1,
+            } as ModalDashboardItemParams,
             (value: DashboardItem) => {
                 if (value) {
                     items.push(value);
@@ -250,7 +255,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                     danger: true,
                 },
                 message: this.$tc(`messages.${this.params.type}.delete`, 1, this.dashboard),
-            },
+            } as ModalConfirmParams,
             (value: boolean) => {
                 if (value) {
                     this.deleteDashboard(true);
@@ -275,11 +280,18 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         const items = this.dashboard.items as Array<DashboardItem>;
 
-        this.$components.modal("dashboard-item", {item: cloneDeep(items[index]), step: 2}, (value: DashboardItem) => {
-            if (value) {
-                items.splice(index, 1, value);
-            }
-        });
+        this.$components.modal(
+            "dashboard-item",
+            {
+                item: cloneDeep(items[index]),
+                step: 2,
+            } as ModalDashboardItemParams,
+            (value: DashboardItem) => {
+                if (value) {
+                    items.splice(index, 1, value);
+                }
+            },
+        );
     }
 
     public get link(): boolean {
@@ -322,7 +334,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         danger: true,
                     },
                     message: this.$t("messages.confirmLeave"),
-                },
+                } as ModalConfirmParams,
                 (value: boolean) => {
                     if (value) {
                         this.reset(true);

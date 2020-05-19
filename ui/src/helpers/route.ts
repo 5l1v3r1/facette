@@ -7,6 +7,8 @@
 
 import {Route} from "vue-router";
 
+import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function beforeRoute(this: Vue, to: Route, from: Route, next: any): void {
     if (to.path === from.path || !this.$store.getters.routeGuarded) {
@@ -22,7 +24,7 @@ export function beforeRoute(this: Vue, to: Route, from: Route, next: any): void 
                 danger: true,
             },
             message: this.$t("messages.confirmLeave"),
-        },
+        } as ModalConfirmParams,
         (ok: boolean) => {
             if (ok) {
                 const fn: ((e: Event) => void) | null = this.$store.getters.routeGuardFn;

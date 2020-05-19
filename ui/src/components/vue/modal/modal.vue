@@ -9,7 +9,7 @@
         v-if="visible"
     >
         <div class="v-modal-content" @click.stop>
-            <slot v-bind="{close, params}"></slot>
+            <slot v-bind="{close}"></slot>
         </div>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-    <v-modal name="provider-filter" ref="modal">
+    <v-modal name="provider-filter">
         <v-form slot-scope="modal">
             <v-label>{{ $t("labels.filters.action._") }}</v-label>
             <v-select
@@ -7,23 +7,23 @@
                 :options="actions"
                 :placeholder="$t('labels.filters.action.select')"
                 v-autofocus
-                v-model="modal.params.action"
+                v-model="rule.action"
             ></v-select>
 
             <v-label>{{ $tc("labels.labels", 1) }}</v-label>
             <v-input
                 :help="$t('help.filters.label')"
                 :placeholder="$t('labels.placeholders.example', ['__name__'])"
-                v-model="modal.params.label"
+                v-model="rule.label"
             ></v-input>
 
             <v-label>{{ $t("labels.filters.pattern") }}</v-label>
-            <v-input :help="$t('help.filters.pattern')" v-model="modal.params.pattern"></v-input>
+            <v-input :help="$t('help.filters.pattern')" v-model="rule.pattern"></v-input>
 
-            <template v-if="modal.params.action === 'relabel'">
+            <template v-if="rule.action === 'relabel'">
                 <v-label>{{ $t("labels.filters.targets._") }}</v-label>
-                <v-flex class="targets" direction="column" :key="index" v-for="(target, index) in targets">
-                    <v-flex>
+                <v-flex class="targets" direction="column">
+                    <v-flex :key="index" v-for="(target, index) in targets">
                         <v-input
                             :delay="200"
                             :placeholder="$tc('labels.labels', 1)"
@@ -37,23 +37,19 @@
                     </v-flex>
                 </v-flex>
 
-                <v-button class="add" icon="plus" :disabled="'' in modal.params.targets" @click="addTarget">
+                <v-button class="add" icon="plus" :disabled="'' in rule.targets" @click="addTarget">
                     {{ $t("labels.filters.targets.add") }}
                 </v-button>
             </template>
 
-            <template v-else-if="modal.params.action === 'rewrite'">
+            <template v-else-if="rule.action === 'rewrite'">
                 <v-label>{{ $t("labels.filters.into") }}</v-label>
-                <v-input :help="$t('help.filters.into')" v-model="modal.params.into"></v-input>
+                <v-input :help="$t('help.filters.into')" v-model="rule.into"></v-input>
             </template>
 
             <template slot="bottom">
                 <v-button @click="modal.close(false)">{{ $t("labels.cancel") }}</v-button>
-                <v-button
-                    :disabled="!modal.params.action || !modal.params.label"
-                    primary
-                    @click="modal.close(modal.params)"
-                >
+                <v-button :disabled="!rule.action || !rule.label" primary @click="modal.close(rule)">
                     {{ $t("labels.ok") }}
                 </v-button>
             </template>
@@ -62,14 +58,14 @@
 </template>
 
 <script lang="ts">
+import cloneDeep from "lodash/cloneDeep";
+import merge from "lodash/merge";
 import {Component, Vue, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
-import ModalComponent from "@/src/components/vue/modal/modal.vue";
-
-interface FilterParams {
-    targets: Record<string, string>;
+export interface ModalProviderFilterParams {
+    rule: FilterRule;
 }
 
 interface Target {
@@ -77,11 +73,21 @@ interface Target {
     value: string;
 }
 
+const defaultRule: FilterRule = {
+    action: "discard",
+    label: "",
+    pattern: "",
+    into: "",
+    targets: {},
+};
+
 const Actions = ["discard", "relabel", "rewrite", "sieve"];
 
 @Component
 export default class ModalProviderFilterComponent extends Vue {
-    private targets: Array<Target> = [];
+    public rule: FilterRule = cloneDeep(defaultRule);
+
+    public targets: Array<Target> = [];
 
     public get actions(): Array<SelectOption> {
         return Actions.map(action => ({label: action, value: action}));
@@ -91,9 +97,12 @@ export default class ModalProviderFilterComponent extends Vue {
         this.targets.push({key: "", value: ""});
     }
 
-    public onModalShow(params: FilterParams): void {
-        if (params && params.targets) {
-            this.targets = Object.keys(params.targets).map(key => ({key, value: params.targets[key]}));
+    public onModalShow(params: ModalProviderFilterParams): void {
+        this.rule = merge({}, defaultRule, params.rule);
+
+        if (this.rule.targets) {
+            const targets = this.rule.targets;
+            this.targets = Object.keys(this.rule.targets).map(key => ({key, value: targets[key]}));
         } else {
             this.targets = [{key: "", value: ""}];
         }
@@ -101,12 +110,7 @@ export default class ModalProviderFilterComponent extends Vue {
 
     @Watch("targets", {deep: true})
     public onTargets(to: Array<Target>): void {
-        const params = (this.$refs.modal as ModalComponent).params as FilterParams;
-        if (!params) {
-            return;
-        }
-
-        params.targets = to.reduce((targets: Record<string, string>, target: Target) => {
+        this.rule.targets = to.reduce((targets: Record<string, string>, target: Target) => {
             targets[target.key] = target.value;
             return targets;
         }, {});

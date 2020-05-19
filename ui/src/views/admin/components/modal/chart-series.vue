@@ -20,7 +20,7 @@ import cloneDeep from "lodash/merge";
 import merge from "lodash/merge";
 import {Component, Vue} from "vue-property-decorator";
 
-interface SeriesParams {
+export interface ModalChartSeriesParams {
     series: ChartSeries;
 }
 
@@ -35,7 +35,7 @@ const defaultSeries: ChartSeries = {
 export default class ModalChartSeriesComponent extends Vue {
     public series: ChartSeries = cloneDeep(defaultSeries);
 
-    public onModalShow(params: SeriesParams): void {
+    public onModalShow(params: ModalChartSeriesParams): void {
         this.series = merge({}, defaultSeries, params.series);
     }
 }

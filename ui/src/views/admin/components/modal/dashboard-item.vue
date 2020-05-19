@@ -37,7 +37,7 @@ import merge from "lodash/merge";
 import {VueConstructor} from "vue";
 import {Component, Vue, Watch} from "vue-property-decorator";
 
-interface ItemParams {
+export interface ModalDashboardItemParams {
     step: number;
     item: DashboardItem;
 }
@@ -75,7 +75,7 @@ export default class ModalDashboardItemComponent extends Vue {
         this.step++;
     }
 
-    public onModalShow(params: ItemParams): void {
+    public onModalShow(params: ModalDashboardItemParams): void {
         if (params.step) {
             this.step = params.step;
         }

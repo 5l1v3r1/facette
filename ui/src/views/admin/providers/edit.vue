@@ -176,6 +176,8 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
+import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+import {ModalProviderFilterParams} from "@/src/views/admin/components/modal/provider-filter.vue";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
 
@@ -232,12 +234,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.$components.modal(
             "provider-filter",
             {
-                action: "",
-                label: "",
-                pattern: "",
-                into: "",
-                targets: {},
-            },
+                rule: {},
+            } as ModalProviderFilterParams,
             (value: FilterRule) => {
                 if (value && this.provider) {
                     if (!this.provider.filters) {
@@ -277,7 +275,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                     danger: true,
                 },
                 message: this.$tc(`messages.${this.params.type}.delete`, 1, this.provider),
-            },
+            } as ModalConfirmParams,
             (value: boolean) => {
                 if (value) {
                     this.deleteProvider(true);
@@ -298,11 +296,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         const filters: Array<FilterRule> = this.provider.filters;
 
-        this.$components.modal("provider-filter", cloneDeep(filters[index]), (value: FilterRule) => {
-            if (value) {
-                filters.splice(index, 1, value);
-            }
-        });
+        this.$components.modal(
+            "provider-filter",
+            {
+                rule: cloneDeep(filters[index]),
+            } as ModalProviderFilterParams,
+            (value: FilterRule) => {
+                if (value) {
+                    filters.splice(index, 1, value);
+                }
+            },
+        );
     }
 
     @Watch("provider.connector.type", {immediate: true})
@@ -353,7 +357,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         danger: true,
                     },
                     message: this.$t("messages.confirmLeave"),
-                },
+                } as ModalConfirmParams,
                 (value: boolean) => {
                     if (value) {
                         this.reset(true);

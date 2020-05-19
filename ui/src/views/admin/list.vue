@@ -267,6 +267,8 @@ import uniq from "lodash/uniq";
 import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
+import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
 import TableComponent from "@/src/components/vue/table/table.vue";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
@@ -351,7 +353,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
                     value: `${obj.name}-clone`,
                 },
                 message: this.$t(`labels.${this.params.type}.name`),
-            },
+            } as ModalPromptParams,
             (value: string) => {
                 if (value) {
                     this.cloneObject(obj, value);
@@ -403,7 +405,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
                     objects.length,
                     objects.length > 1 ? {count: objects.length} : objects[0],
                 ),
-            },
+            } as ModalConfirmParams,
             (value: boolean) => {
                 if (value) {
                     this.deleteObjects(objects, true);
@@ -578,7 +580,7 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
                     objects.length,
                     objects.length > 1 ? {count: objects.length} : objects[0],
                 ),
-            },
+            } as ModalConfirmParams,
             (value: boolean) => {
                 if (value) {
                     this.toggleProviders(objects, state, true);

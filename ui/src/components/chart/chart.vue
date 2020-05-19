@@ -133,12 +133,13 @@ import * as d3 from "d3";
 import dayjs from "dayjs";
 import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
+import isEqual from "lodash/isEqual";
 import ResizeObserver from "resize-observer-polyfill";
 import slugify from "slugify";
 import {Component, Mixins, Prop, Watch} from "vue-property-decorator";
 
 import {CustomMixins} from "@/src/mixins";
-import isEqual from "lodash/isEqual";
+import {ModalTimeRangeParams} from "@/src/views/dashboards/components/modal/time-range.vue";
 
 interface Range {
     unit: string;
@@ -399,7 +400,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                           from: "",
                           to: "",
                       },
-            },
+            } as ModalTimeRangeParams,
             (value: TimeRange) => {
                 if (value !== false) {
                     this.setTimeRange({

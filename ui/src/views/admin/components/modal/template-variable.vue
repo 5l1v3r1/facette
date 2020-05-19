@@ -61,7 +61,7 @@ import {Component, Vue} from "vue-property-decorator";
 
 import {SelectOption} from "@/types/components";
 
-interface TemplateParams {
+export interface ModalTemplateVariableParams {
     available: Array<TemplateVariable>;
     edit: boolean;
     variable: TemplateVariable;
@@ -95,7 +95,7 @@ export default class ModalTemplateVariableComponent extends Vue {
         return variable;
     }
 
-    public onModalShow(params: TemplateParams): void {
+    public onModalShow(params: ModalTemplateVariableParams): void {
         Object.assign(this, {
             available: params.available,
             edit: params.edit,

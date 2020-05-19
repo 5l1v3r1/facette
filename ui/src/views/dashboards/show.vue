@@ -214,9 +214,11 @@ import {Dictionary} from "vue-router/types/router";
 
 import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
 import GridComponent from "@/src/components/grid/grid.vue";
+import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
 import {mapReferences} from "@/src/helpers/dashboard";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
+import {ModalTimeRangeParams} from "@/src/views/dashboards/components/modal/time-range.vue";
 
 interface Options {
     timeRange: TimeRange;
@@ -538,14 +540,14 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             "prompt",
             {
                 button: {
-                    label: this.$t("labels.dashboards.save"),
+                    label: this.$t("labels.dashboards.save") as string,
                     primary: true,
                 },
                 input: {
                     value: "",
                 },
-                message: this.$t("labels.dashboards.name"),
-            },
+                message: this.$t("labels.dashboards.name") as string,
+            } as ModalPromptParams,
             (value: string) => {
                 if (value) {
                     this.saveBasket(value);
@@ -573,7 +575,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                     value: this.options.refresh,
                 },
                 message: this.$t("labels.refresh.interval"),
-            },
+            } as ModalPromptParams,
             (value: string | false) => {
                 if (value !== false) {
                     this.setRefreshInterval(parseInt(value, 10) || 0);
@@ -602,7 +604,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                           from: "",
                           to: "",
                       },
-            },
+            } as ModalTimeRangeParams,
             (value: TimeRange) => {
                 if (value !== false) {
                     this.setTimeRange({
