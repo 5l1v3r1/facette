@@ -65,7 +65,7 @@ router.onReady(() => {
                 }
             },
             (response: HttpResponse) => {
-                console.error(`cannot fetch options: ${response.statusText ?? "unknown error"}`);
+                throw Error(`cannot fetch options: ${response.statusText ?? "unknown error"}`);
             },
         );
 });

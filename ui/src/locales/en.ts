@@ -56,7 +56,7 @@ export default {
             url: "URL to the upstream {0} service.",
         },
         refresh: {
-            interval: "Time interval for automatic refresh in seconds. Use `0` to disable.",
+            interval: "Time interval for automatic refresh in seconds. Use either empty or `0` to disable.",
         },
         series: {
             alias:

@@ -141,7 +141,7 @@ export default class ModalProviderFilterComponent extends Vue {
         }
 
         .targets {
-            ::v-deep .v-flex.row {
+            .v-flex.row + .v-flex.row {
                 margin-top: 0.35rem;
             }
 

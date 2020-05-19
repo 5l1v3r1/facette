@@ -1,8 +1,6 @@
 <template>
     <v-content>
-        <v-toolbar clip="content">
-            toolbar
-        </v-toolbar>
+        <v-toolbar clip="content"></v-toolbar>
 
         <h1>{{ $t("labels.home") }}</h1>
     </v-content>

@@ -20,8 +20,8 @@
   }
 
   &[aria-invalid] {
-    border-color: var(--input-invalid-color);
-    color: var(--input-invalid-color);
+    border-color: var(--input-invalid-color) !important;
+    color: var(--input-invalid-color) !important;
 
     .v-icon {
       color: inherit;
