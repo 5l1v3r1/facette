@@ -91,6 +91,7 @@ export default {
             },
             create: "Create chart",
             delete: "Delete chart|Delete charts",
+            edit: "Edit chart",
             export: {
                 _: "Export",
                 imagePNG: "Save as PNG…",
@@ -100,6 +101,7 @@ export default {
             name: "Chart name",
             new: "New chart",
             filter: "Filter charts",
+            goBack: "Go back to chart",
             refresh: "Refresh chart",
             reset: "Reset chart",
             save: "Save chart",

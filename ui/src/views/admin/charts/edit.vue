@@ -52,13 +52,13 @@
                         :key="index"
                         :label="variable.name"
                         :options="dynamicOptions[variable.name] || []"
-                        v-model="resolveData[variable.name]"
+                        v-model="data[variable.name]"
                         v-for="(variable, index) in dynamicVariables"
                     >
                     </v-select>
                 </v-form>
 
-                <v-chart tooltip v-model="chartModel"></v-chart>
+                <v-chart tooltip v-model="resolvedChart"></v-chart>
             </div>
 
             <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
@@ -207,10 +207,11 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+import {parseChartVariables, renderChart} from "@/src/helpers/chart";
+import {resolveVariables} from "@/src/helpers/dashboard";
 import {hash} from "@/src/helpers/hash";
 import {beforeRoute} from "@/src/helpers/route";
 import {resolveOption} from "@/src/helpers/select";
-import {parseVariables, renderTemplate} from "@/src/helpers/template";
 import {CustomMixins} from "@/src/mixins";
 import {ModalChartSeriesParams} from "@/src/views/admin/components/modal/chart-series.vue";
 
@@ -270,30 +271,6 @@ const types: Array<SelectOption> = [
     {label: "labels.charts.type.line", value: "line"},
 ];
 
-function parseChartVariables(chart: Chart): Array<TemplateVariable> {
-    let data = "";
-
-    if (chart.options?.axes?.y?.left?.label) {
-        data += `\xff${chart.options.axes.y.left.label}`;
-    }
-
-    if (chart.options?.axes?.y?.right?.label) {
-        data += `\xff${chart.options.axes.y.right.label}`;
-    }
-
-    if (chart.options?.title) {
-        data += `\xff${chart.options.title}`;
-    }
-
-    if (chart.series) {
-        chart.series.forEach(series => {
-            data += `\xff${series.expr}`;
-        });
-    }
-
-    return parseVariables(data).map(name => ({name, dynamic: false}));
-}
-
 @Component({
     beforeRouteLeave: beforeRoute,
     beforeRouteUpdate: beforeRoute,
@@ -303,17 +280,15 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public chartModel: Chart | null = null;
 
-    public dynamicData: DynamicData = {};
+    public data: Record<string, string> = {};
 
-    public dynamicOptions: Record<string, Array<SelectOption>> = {};
+    public dynamicData: Record<string, Array<string>> = {};
 
     public loading = true;
 
     public linked: Chart | null = null;
 
     public namePattern = namePattern;
-
-    public resolveData: Record<string, string> = {};
 
     public saving = false;
 
@@ -398,6 +373,13 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    public get dynamicOptions(): Record<string, Array<SelectOption>> {
+        return Object.keys(this.dynamicData).reduce((options: Record<string, Array<SelectOption>>, name: string) => {
+            options[name] = this.dynamicData[name].map(value => ({label: value, value}));
+            return options;
+        }, {});
+    }
+
     public get dynamicVariables(): Array<TemplateVariable> {
         return this.chart?.options?.variables?.filter(variable => variable.dynamic) ?? [];
     }
@@ -442,60 +424,11 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             return;
         }
 
-        const req: Array<BulkRequest> = [];
-        const variables: Array<string> = [];
+        this.dynamicData = await resolveVariables(this, to);
 
-        const data = to.reduce((data: Record<string, string>, variable: TemplateVariable) => {
-            if (variable.dynamic) {
-                const hashValue = hash(variable);
-
-                if (this.dynamicData[variable.name]?.hash === hashValue) {
-                    data[variable.name] = this.dynamicData[variable.name].entries[0];
-                } else {
-                    this.dynamicData[variable.name] = {hash: hashValue, entries: []};
-
-                    req.push({
-                        endpoint: `/labels/${variable.label}/values`,
-                        method: "GET",
-                        params: variable.filter ? {match: variable.filter} : undefined,
-                    });
-
-                    variables.push(variable.name);
-                }
-            } else {
-                data[variable.name] = variable.value as string;
-            }
-
-            return data;
-        }, {});
-
-        if (req.length > 0) {
-            await this.$http
-                .post("/api/v1/bulk", req)
-                .then(response => response.json())
-                .then((response: APIResponse<Array<BulkResult>>) => {
-                    if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
-                        this.$components.notify(this.$t("messages.error.bulk") as string, "error");
-                        return;
-                    }
-
-                    response.data?.forEach((result: BulkResult, index: number) => {
-                        const values = result.response.data as Array<string>;
-
-                        if (values.length > 0) {
-                            data[variables[index]] = values[0];
-                        }
-
-                        this.dynamicData[variables[index]].entries = values;
-                    });
-
-                    this.updateDynamicOptions();
-                });
-        } else {
-            this.updateDynamicOptions();
-        }
-
-        this.resolveData = data;
+        Object.keys(this.dynamicData).forEach(label => {
+            this.$set(this.data, label, this.dynamicData[label]?.[0]);
+        });
     }
 
     @Watch("params.id")
@@ -504,25 +437,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             this.section = defaultSection;
             this.reset(true);
         }
-    }
-
-    @Watch("resolveData", {deep: true})
-    public onResolveData(to: Record<string, string>): void {
-        if (this.linked === null) {
-            return;
-        }
-
-        const chart = cloneDeep(this.linked);
-
-        if (chart.options?.title) {
-            chart.options.title = renderTemplate(chart.options.title, to);
-        }
-
-        chart.series?.forEach(series => {
-            series.expr = renderTemplate(series.expr, to);
-        });
-
-        this.chartModel = chart;
     }
 
     @Watch("$route.hash", {immediate: true})
@@ -621,6 +535,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             );
     }
 
+    public get resolvedChart(): Chart | null {
+        return this.linked ? renderChart(this.linked, this.data) : null;
+    }
+
     public save(go: boolean): void {
         if (this.chart === null) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
@@ -717,16 +635,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 }),
             );
     }
-
-    private updateDynamicOptions(): void {
-        this.dynamicOptions = Object.keys(this.dynamicData).reduce(
-            (options: Record<string, Array<SelectOption>>, name: string) => {
-                options[name] = this.dynamicData[name].entries.map(value => ({label: value, value}));
-                return options;
-            },
-            {},
-        );
-    }
 }
 </script>
 
@@ -754,6 +662,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 background-color: var(--toolbar-background);
                 border-color: transparent;
                 width: auto;
+
+                & + .v-select {
+                    margin-left: 1rem;
+                }
             }
         }
 

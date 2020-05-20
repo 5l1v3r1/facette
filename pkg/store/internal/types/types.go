@@ -132,7 +132,7 @@ func ListFromAPI(v interface{}) (ObjectList, error) {
 
 // Resolver is a back-end storage resolver interface.
 type Resolver interface {
-	Resolve(data map[string]string, store StoreFuncs) error
+	Resolve(store StoreFuncs) error
 }
 
 // StoreFuncs are back-end storage functions.

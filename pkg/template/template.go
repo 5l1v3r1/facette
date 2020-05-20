@@ -80,23 +80,6 @@ func (t *Template) Parse(text string) error {
 	return nil
 }
 
-// Render returns a rendered version of the template given data.
-func (t *Template) Render(data map[string]string) string {
-	var out string
-
-	for _, node := range t.nodes {
-		switch v := node.(type) {
-		case *TextNode:
-			out += v.Text
-
-		case *VariableNode:
-			out += data[v.Name]
-		}
-	}
-
-	return out
-}
-
 // Variables returns the list of parsed variable names.
 func (t *Template) Variables() []string {
 	keys := set.New()
@@ -218,19 +201,6 @@ func (t *Template) unread() {
 	if err == nil && t.last.Line != 0 {
 		t.pos = t.last
 	}
-}
-
-// Render parses text as template data and returns its rendered version
-// given data.
-func Render(text string, data map[string]string) (string, error) {
-	tmpl := New()
-
-	err := tmpl.Parse(text)
-	if err != nil {
-		return text, err
-	}
-
-	return tmpl.Render(data), nil
 }
 
 type position struct {

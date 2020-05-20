@@ -206,6 +206,11 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     private getDashboards(): void {
+        if (this.params.type === "basket") {
+            this.loading = false;
+            return;
+        }
+
         this.$http
             .get("/api/v1/dashboards", {params: {parent: this.dashboard?.id}})
             .then(response => response.json())

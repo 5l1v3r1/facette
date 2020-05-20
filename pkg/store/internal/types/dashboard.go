@@ -14,7 +14,6 @@ import (
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/set"
-	"facette.io/facette/pkg/template"
 )
 
 // Dashboard is a back-end storage dashboard object.
@@ -83,7 +82,7 @@ func (d Dashboard) Copy(dst api.Object) error {
 
 // Resolve resolves the back-end storage dashboard from the linked object given
 // data.
-func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
+func (d *Dashboard) Resolve(store StoreFuncs) error {
 	if d.Template {
 		return nil
 	}
@@ -92,8 +91,6 @@ func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
 		proxy *Dashboard
 		err   error
 	)
-
-	curData := make(map[string]string)
 
 	if d.Link.Valid {
 		tmpl := &api.Dashboard{ObjectMeta: api.ObjectMeta{ID: d.Link.String}}
@@ -114,26 +111,8 @@ func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
 		if err != nil {
 			return err
 		}
-
-		for _, variable := range d.Options.Variables {
-			if !variable.Dynamic {
-				curData[variable.Name] = variable.Value
-			}
-		}
 	} else {
 		proxy = d
-	}
-
-	if data != nil {
-		err = mergo.Merge(&curData, data, mergo.WithOverride)
-		if err != nil {
-			return err
-		}
-	}
-
-	proxy.Options.Title, err = template.Render(proxy.Options.Title, curData)
-	if err != nil {
-		return err
 	}
 
 	// Loop through dashboard items are fetch each known referenced element. If
@@ -156,14 +135,13 @@ func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
 	}
 
 	if refs["chart"] != nil {
-		err = resolveChartReferences(data, proxy, store, set.StringSlice(refs["chart"])...)
+		err = resolveChartReferences(proxy, store, set.StringSlice(refs["chart"])...)
 		if err != nil {
 			return err
 		}
 	}
 
 	proxy.ObjectMeta = d.ObjectMeta
-	proxy.Options.Variables = nil
 	proxy.Link = d.Link
 	proxy.Template = false
 
@@ -172,7 +150,7 @@ func (d *Dashboard) Resolve(data map[string]string, store StoreFuncs) error {
 	return nil
 }
 
-func resolveChartReferences(data map[string]string, dashboard *Dashboard, store StoreFuncs, ids ...string) error {
+func resolveChartReferences(dashboard *Dashboard, store StoreFuncs, ids ...string) error {
 	var charts api.ChartList
 
 	list, _, err := store.List(&charts, &api.ListOptions{Filter: api.ListFilter{"id": ids}})
@@ -181,7 +159,7 @@ func resolveChartReferences(data map[string]string, dashboard *Dashboard, store 
 	}
 
 	for _, obj := range list.Objects() {
-		err = obj.(Resolver).Resolve(data, store)
+		err = obj.(Resolver).Resolve(store)
 		if err != nil {
 			return err
 		}

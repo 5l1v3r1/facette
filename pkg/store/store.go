@@ -102,7 +102,7 @@ func (s *Store) Delete(obj api.Object) error {
 }
 
 // Get returns an object from the back-end storage.
-func (s *Store) Get(obj api.Object, resolve bool, data map[string]string) error {
+func (s *Store) Get(obj api.Object, resolve bool) error {
 	v, err := s.get(obj)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (s *Store) Get(obj api.Object, resolve bool, data map[string]string) error 
 		return fmt.Errorf("expected types.Resolver but got %T", v)
 	}
 
-	err = resolver.Resolve(data, types.StoreFuncs{Get: s.get, List: s.list})
+	err = resolver.Resolve(types.StoreFuncs{Get: s.get, List: s.list})
 	if err != nil {
 		return err
 	}

@@ -544,7 +544,7 @@ func (p ProviderList) Len() int {
 	return len(p)
 }
 
-// Reference is an value reference.
+// Reference is a value reference.
 type Reference struct {
 	Type  string      `json:"type"`
 	Value interface{} `json:"value"`

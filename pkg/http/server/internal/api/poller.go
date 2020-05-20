@@ -23,7 +23,7 @@ func (h handler) PollProvider(rw http.ResponseWriter, r *http.Request) {
 	if httprouter.ContextParam(r, "id") != nil {
 		provider := &api.Provider{ObjectMeta: metaFromRequest(r)}
 
-		err := h.store.Get(provider, false, nil)
+		err := h.store.Get(provider, false)
 		if err != nil {
 			h.WriteError(rw, err)
 			return

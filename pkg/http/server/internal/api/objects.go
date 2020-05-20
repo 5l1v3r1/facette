@@ -78,7 +78,7 @@ func (h handler) GetObject(rw http.ResponseWriter, r *http.Request) {
 		panic("unknown section")
 	}
 
-	err := h.store.Get(obj, false, nil)
+	err := h.store.Get(obj, false)
 	if err != nil {
 		h.WriteError(rw, err)
 		return
@@ -108,7 +108,7 @@ func (h handler) GetObjectVars(rw http.ResponseWriter, r *http.Request) {
 		panic("unknown section")
 	}
 
-	err := h.store.Get(tmpl, false, nil)
+	err := h.store.Get(tmpl, false)
 	if err != nil {
 		h.WriteError(rw, err)
 		return
@@ -178,20 +178,7 @@ func (h handler) ResolveObject(rw http.ResponseWriter, r *http.Request) {
 		panic("unknown section")
 	}
 
-	var (
-		data map[string]string
-		err  error
-	)
-
-	if r.ContentLength > 0 {
-		err = httpjson.Unmarshal(r, &data)
-		if err != nil {
-			h.WriteError(rw, err)
-			return
-		}
-	}
-
-	err = h.store.Get(tmpl, true, data)
+	err := h.store.Get(tmpl, true)
 	if err != nil {
 		h.WriteError(rw, err)
 		return
@@ -226,7 +213,7 @@ func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 		// back-end storage.
 		obj.SetMeta(metaFromRequest(r))
 
-		err = h.store.Get(obj, false, nil)
+		err = h.store.Get(obj, false)
 		if err != nil {
 			h.WriteError(rw, err)
 			return
@@ -238,7 +225,7 @@ func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 			// current state and reset metadata to create a whole new object.
 			obj.SetMeta(api.ObjectMeta{ID: copy})
 
-			err = h.store.Get(obj, false, nil)
+			err = h.store.Get(obj, false)
 			if err != nil {
 				h.WriteError(rw, err)
 				return

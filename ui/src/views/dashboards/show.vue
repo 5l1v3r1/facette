@@ -169,6 +169,18 @@
                 {{ $t(`messages.${this.params.type}.empty`) }}
             </v-message>
 
+            <v-form v-if="dynamicVariables.length > 0">
+                <v-select
+                    :key="index"
+                    :label="variable.name"
+                    :options="dynamicOptions[variable.name] || []"
+                    @input="emitDashboardLoaded"
+                    v-model="options.data[variable.name]"
+                    v-for="(variable, index) in dynamicVariables"
+                >
+                </v-select>
+            </v-form>
+
             <v-grid
                 readonly
                 ref="grid"
@@ -183,7 +195,7 @@
                         tooltip
                         :legend="item.value.options.legend"
                         :range="Object.assign({}, options.timeRange)"
-                        v-model="dashboardRefs[`chart|${item.value.options.id}`]"
+                        v-model="resolvedRefs[`chart|${item.value.options.id}`]"
                         v-if="item.value.type === 'chart'"
                     >
                         <template slot="more">
@@ -212,20 +224,25 @@ import isEqual from "lodash/isEqual";
 import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
+import {SelectOption} from "@/types/components";
+
 import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
 import GridComponent from "@/src/components/grid/grid.vue";
 import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
-import {mapReferences} from "@/src/helpers/dashboard";
+import {renderChart} from "@/src/helpers/chart";
+import {mapReferences, resolveVariables} from "@/src/helpers/dashboard";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
 import {ModalTimeRangeParams} from "@/src/views/dashboards/components/modal/time-range.vue";
 
 interface Options {
+    data: Record<string, string>;
     timeRange: TimeRange;
     refresh: number;
 }
 
 const defaultOptions = {
+    data: {},
     timeRange: defaultTimeRange,
     refresh: 0,
 };
@@ -253,13 +270,15 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public dashboardRefs: Record<string, unknown> = {};
 
+    public dynamicData: Record<string, Array<string>> = {};
+
     public highlightIndex: number | null = null;
 
     public intervals: Array<number> = intervals;
 
     public loading = true;
 
-    public options = cloneDeep(defaultOptions);
+    public options: Options = cloneDeep(defaultOptions);
 
     public ranges = ranges;
 
@@ -303,17 +322,10 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         const basket: Array<DashboardItem> = this.basket;
         const item: DashboardItem = this.dashboard.items[index];
 
-        const data = this.dashboard.options?.variables?.reduce((data: Record<string, unknown>, v: TemplateVariable) => {
-            if (!v.dynamic) {
-                data[v.name] = v.value;
-            }
-            return data;
-        }, {});
-
         basket.push({
             type: item.type,
             layout: {x: 0, y: basket.length, w: 1, h: 1},
-            options: Object.assign({data}, item.options),
+            options: Object.assign({}, item.options),
         });
 
         this.$store.commit("basket", basket);
@@ -345,6 +357,45 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
         this.$store.commit("basket", []);
     }
 
+    public get dynamicOptions(): Record<string, Array<SelectOption>> {
+        return Object.keys(this.dynamicData).reduce((options: Record<string, Array<SelectOption>>, name: string) => {
+            options[name] = this.dynamicData[name].map(value => ({label: value, value}));
+            return options;
+        }, {});
+    }
+
+    public get dynamicVariables(): Array<TemplateVariable> {
+        const names: Array<string> = [];
+
+        let variables =
+            this.dashboard?.options?.variables?.filter(variable => {
+                names.push(variable.name);
+                return variable.dynamic;
+            }) ?? [];
+
+        Object.keys(this.dashboardRefs).forEach(key => {
+            if (key.startsWith("chart|")) {
+                const vars = (this.dashboardRefs[key] as Chart).options?.variables?.filter(variable => {
+                    const keep = !names.includes(variable.name);
+                    if (keep) {
+                        names.push(variable.name);
+                    }
+                    return keep;
+                });
+                if (vars) {
+                    variables = variables.concat(vars);
+                }
+            }
+        });
+
+        return variables;
+    }
+
+    public emitDashboardLoaded(): void {
+        // Emit loaded event to trigger sidebar update
+        this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
+    }
+
     public getDashboard(): void {
         switch (this.params.type) {
             case "basket": {
@@ -361,7 +412,6 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                                         req.push({
                                             endpoint: `/charts/${item.options.id}/resolve`,
                                             method: "POST",
-                                            // TODO: handle data
                                         });
 
                                         charts.push(item.options.id as string);
@@ -376,7 +426,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                     )
                     .then(response => response.json())
                     .then(
-                        (response: APIResponse<Array<BulkResult>>) => {
+                        async (response: APIResponse<Array<BulkResult>>) => {
                             if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
                                 this.$components.notify(this.$t("messages.error.bulk") as string, "error");
                             }
@@ -399,9 +449,19 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                                         value: result.response.data,
                                     })),
                                 );
+
+                                if (this.dynamicVariables.length > 0) {
+                                    this.dynamicData = await resolveVariables(this, this.dynamicVariables);
+
+                                    Object.keys(this.dynamicData).forEach(label => {
+                                        if (!this.options.data[label]) {
+                                            this.$set(this.options.data, label, this.dynamicData[label]?.[0]);
+                                        }
+                                    });
+                                }
                             }
 
-                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.dashboardRefs);
+                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
                             this.loading = false;
                         },
                         this.handleError(() => {
@@ -413,18 +473,86 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                 break;
             }
 
-            default: {
+            case "charts": {
                 this.$http
-                    .post(`/api/v1/dashboards/${this.params.id}/resolve`) // TODO: handle data
+                    .post(`/api/v1/charts/${this.params.id}/resolve`)
                     .then(response => response.json())
                     .then(
-                        (response: APIResponse<Dashboard>) => {
+                        async (response: APIResponse<Chart>) => {
+                            const chart = response.data as Chart;
+
+                            this.dashboard = {
+                                id: chart.id,
+                                name: chart.name,
+                                options: {
+                                    variables: chart.options?.variables,
+                                },
+                                layout: {
+                                    columns: 1,
+                                    rowHeight: 260,
+                                    rows: 1,
+                                },
+                                items: [
+                                    {
+                                        type: "chart",
+                                        layout: {
+                                            x: 0,
+                                            y: 0,
+                                            w: 1,
+                                            h: 1,
+                                        },
+                                        options: {
+                                            id: chart.id,
+                                        },
+                                    },
+                                ],
+                            };
+
+                            if (this.dashboard?.options?.variables) {
+                                this.dynamicData = await resolveVariables(this, this.dashboard.options.variables);
+
+                                Object.keys(this.dynamicData).forEach(label => {
+                                    if (!this.options.data[label]) {
+                                        this.$set(this.options.data, label, this.dynamicData[label]?.[0]);
+                                    }
+                                });
+                            }
+
+                            this.dashboardRefs = {[`chart|${chart.id}`]: chart};
+
+                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
+                            this.loading = false;
+                        },
+                        this.handleError(() => {
+                            this.$parent.$emit("dashboard-loaded", null);
+                            this.loading = false;
+                        }, true),
+                    );
+                break;
+            }
+
+            default: {
+                this.$http
+                    .post(`/api/v1/dashboards/${this.params.id}/resolve`)
+                    .then(response => response.json())
+                    .then(
+                        async (response: APIResponse<Dashboard>) => {
                             this.dashboard = response.data as Dashboard;
                             this.dashboardRefs = mapReferences(this.dashboard.references as Array<Reference>);
 
                             delete this.dashboard.references;
 
-                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.dashboardRefs);
+                            if (this.dynamicVariables.length > 0) {
+                                this.dynamicData = await resolveVariables(this, this.dynamicVariables);
+
+                                Object.keys(this.dynamicData).forEach(label => {
+                                    if (!this.options.data[label]) {
+                                        this.$set(this.options.data, label, this.dynamicData[label]?.[0]);
+                                    }
+                                });
+                            }
+
+                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
                             this.loading = false;
                         },
                         this.handleError(() => {
@@ -454,6 +582,12 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
         if (to.refresh > 0) {
             q.refresh = to.refresh.toString();
+        }
+
+        if (to.data) {
+            Object.keys(to.data).forEach(label => {
+                q[`var-${label}`] = encodeURIComponent(to.data[label]);
+            });
         }
 
         updateRouteQuery(this.$route, q);
@@ -488,6 +622,13 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             update = true;
         }
 
+        this.options.data = Object.keys(to).reduce((data: Record<string, string>, key: string) => {
+            if (key.startsWith("var-")) {
+                data[key.substr(4)] = to[key];
+            }
+            return data;
+        }, {});
+
         if (update) {
             this.setTimeRange(timeRange);
         }
@@ -496,7 +637,6 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             this.setRefreshInterval(parseInt(to.refresh, 10) || 0);
         }
 
-        // this.options = options;
         this.getDashboard();
     }
 
@@ -524,6 +664,15 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public resetTimeRange(): void {
         this.setTimeRange(Object.assign({}, defaultTimeRange));
+    }
+
+    public get resolvedRefs(): Record<string, unknown> {
+        return Object.keys(this.dashboardRefs).reduce((refs: Record<string, unknown>, key: string) => {
+            if (key.startsWith("chart|")) {
+                refs[key] = renderChart(this.dashboardRefs[key] as Chart, this.options.data);
+            }
+            return refs;
+        }, {});
     }
 
     public saveBasket(name: string | null = null): void {
@@ -719,6 +868,20 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                     margin: 0 0 0 0.65rem;
                     padding: 0 0.25rem;
                 }
+            }
+        }
+    }
+
+    .v-form {
+        margin-bottom: 1rem;
+
+        .v-select {
+            background-color: var(--toolbar-background);
+            border-color: transparent;
+            width: auto;
+
+            & + .v-select {
+                margin-left: 1rem;
             }
         }
     }

@@ -53,4 +53,16 @@ export default [
             default: (route: Route) => defineParams(route, {type: "basket"}),
         },
     },
+    {
+        path: "/charts/:id",
+        name: "charts-show",
+        components: {
+            default: show,
+            sidebar: sidebar,
+            toolbar: toolbar,
+        },
+        props: {
+            default: (route: Route) => defineParams(route, {type: "charts"}),
+        },
+    },
 ];
