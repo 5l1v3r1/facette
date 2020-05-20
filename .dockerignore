@@ -1,0 +1,3 @@
+*/bin*
+*/dist*
+*/pkg/http/server/internal/assets/generated*

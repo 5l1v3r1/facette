@@ -5,17 +5,27 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+const merge = require("lodash/merge");
 const path = require("path");
 
 module.exports = {
     configureWebpack: config => {
+        merge(config, {
+            performance: {
+                hints: false,
+            },
+            resolve: {
+                alias: {
+                    "@": __dirname,
+                },
+            },
+        });
+
         if (process.env.NODE_ENV === "production") {
             Object.assign(config.optimization.minimizer[0].options.terserOptions, {
                 keep_fnames: true,
             });
         }
-
-        Object.assign(config.resolve.alias, {"@": __dirname});
     },
     devServer: {
         overlay: false,

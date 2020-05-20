@@ -7,7 +7,7 @@ BUILD_DATE := $(shell date +"%F %T")
 
 GO ?= go
 
-GO_BUILD_LDFLAGS := \
+GO_BUILD_LDFLAGS += \
 	-X 'facette.io/facette/pkg/internal/version.Version=$(VERSION)' \
 	-X 'facette.io/facette/pkg/internal/version.Branch=$(BRANCH)' \
 	-X 'facette.io/facette/pkg/internal/version.Revision=$(REVISION)' \
@@ -33,17 +33,22 @@ clean: clean-bin
 
 clean-bin:
 	@echo "==> Cleaning source tree"
-	@rm -rf bin/
+	@rm -rf bin/ dist/
 
 build: build-bin
 
+ifeq ($(filter dev,$(TAGS)),)
+build-bin: build-ui generate
+else
 build-bin: generate
+endif
 	@echo "==> Building binaries"
+	@install -d -m 0755 bin/
 	@$(GO) build $(GO_BUILD_ARGS) -o bin/ -v ./cmd/...
 
-build-ui:
-	@echo "==> Build UI assets..."
-	@(cd ui/; npm run build)
+build-ui: ui/node_modules
+	@echo "==> Building UI assets..."
+	@(cd ui/; FORCE_COLOR=0 npm run build)
 
 test: test-bin
 
@@ -72,3 +77,7 @@ generate:
 license:
 	@echo "==> Adding license headers"
 	@addlicense $(ADDLICENSE_ARGS)
+
+ui/node_modules:
+	@echo "==> Installing Node.js modules..."
+	@(cd ui/; FORCE_COLOR=0 npm install)
