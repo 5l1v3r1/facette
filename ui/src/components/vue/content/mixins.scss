@@ -1,0 +1,25 @@
+@mixin content {
+    h1,
+    h2,
+    h3 {
+        font-weight: normal;
+    }
+
+    h1:first-of-type {
+        margin-top: 0;
+    }
+
+    code {
+        background-color: var(--background);
+        border-radius: 0.2rem;
+        font-family: "Roboto Mono", monospace;
+        font-size: 0.8rem;
+        margin: 0.1rem;
+        padding: 0 0.2rem;
+    }
+
+    ol,
+    ul {
+      padding: 0 0 0 1.25rem;
+    }
+}

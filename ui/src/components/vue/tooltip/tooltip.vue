@@ -1,13 +1,7 @@
 <template>
-    <div class="v-tooltip" :class="{[anchor]: anchor}" v-if="value">
-        <template v-if="typeof value.value === 'object'">
-            <span class="v-tooltip-message" v-if="value.value.message">{{ value.value.message }}</span>
-            <span class="v-tooltip-shortcut" v-if="value.value.shortcut"
-                >({{ shortcutLabel(value.value.shortcut) }})</span
-            >
-        </template>
-
-        <span class="v-tooltip-message" v-else>{{ value.value }}</span>
+    <div class="v-tooltip" :class="{[anchor]: anchor}" @mouseenter="onMouse" @mouseleave="onMouse" v-if="state">
+        <v-markdown>{{ state.message }}</v-markdown>
+        <span class="v-tooltip-shortcut" v-if="state.shortcut">({{ shortcutLabel(state.shortcut) }})</span>
     </div>
 </template>
 
@@ -23,6 +17,8 @@ export default class TooltipComponent extends Vue {
     @Prop({required: true, validator: (v): boolean => typeof v === "object" || v === null})
     public value!: TooltipState | null;
 
+    private locked: TooltipState | null = null;
+
     public shortcutLabel: (keys: Array<string>) => string = shortcutLabel;
 
     public get anchor(): string | null {
@@ -31,7 +27,9 @@ export default class TooltipComponent extends Vue {
 
     @Watch("value")
     public onChange(to: TooltipState | null): void {
-        if (to === null) {
+        if (this.locked) {
+            return;
+        } else if (to === null) {
             Object.assign((this.$el as HTMLElement).style, {visibility: null});
             return;
         }
@@ -81,23 +79,32 @@ export default class TooltipComponent extends Vue {
             });
         });
     }
+
+    public get state(): TooltipState | null {
+        return this.locked || this.value;
+    }
+
+    public onMouse(e: MouseEvent): void {
+        this.locked = e.type === "mouseenter" ? this.value : null;
+    }
 }
 </script>
 
 <style lang="scss" scoped>
+@import "../content/mixins";
+
 .v-tooltip {
     background-color: var(--tooltip-background);
     border-radius: 0.2rem;
     box-shadow: 0 0.2rem 0.5rem var(--tooltip-shadow);
+    cursor: default;
     left: 0;
     max-width: 25vw;
     overflow-wrap: break-word;
-    padding: 0.35rem 0.65rem;
-    pointer-events: none;
+    padding: 0.5rem 0.75rem;
     position: absolute;
     top: 0;
     visibility: hidden;
-    white-space: pre-wrap;
     will-change: left, top, transform;
     z-index: 700;
 
@@ -121,8 +128,24 @@ export default class TooltipComponent extends Vue {
         opacity: 0.5;
     }
 
-    .v-tooltip-message + .v-tooltip-shortcut {
-        margin-left: 0.5rem;
+    :first-child {
+        margin-top: 0;
+    }
+
+    :last-child {
+        margin-bottom: 0;
+    }
+
+    ::v-deep {
+        @include content;
+
+        ul {
+            margin: 0;
+        }
+
+        p + ul {
+            transform: translateY(-0.25rem);
+        }
     }
 }
 </style>

@@ -64,5 +64,6 @@ declare type ToolbarState = Record<string, "horizontal" | "vertical" | null>;
 declare interface TooltipState {
     anchor: "bottom" | "left" | "right" | "top";
     rect: ClientRect | DOMRect;
-    value: string;
+    message: string;
+    shortcut: string | null;
 }

@@ -34,13 +34,14 @@ export default {
         filters: {
             action:
                 "Action to be performed by the filter:\n" +
-                "* discard: drops matching metrics\n" +
-                "* relabel: relabels matching metrics\n" +
-                "* rewrite: rewrites label of matching metrics\n" +
-                "* sieve: keeps only matching metrics\n",
+                "* `discard`: drops matching metrics\n" +
+                "* `relabel`: relabels matching metrics\n" +
+                "* `rewrite`: rewrites label of matching metrics\n" +
+                "* `sieve:` keeps only matching metrics\n",
             into: "Replacement value to apply on the value associated with the filter label.",
             label: "Label on which the filter will be applied.",
-            pattern: "Pattern to apply on the value associated with the filter label.",
+            pattern:
+                "Pattern to apply on the value associated with the filter label. Must follow the [RE2 syntax]({0}).",
         },
         providers: {
             name: "Name of the provider. @:help.common.name",
@@ -50,7 +51,7 @@ export default {
             },
             rrdtool: {
                 path: "Base directory from which to search for files.",
-                pattern: "Pattern to apply to found files paths. Must follow the RE2 syntax.",
+                pattern: "Pattern to apply to found files paths. Must follow the [RE2 syntax]({0}).",
                 daemon: "rrdcached daemon socket address.",
             },
             url: "URL to the upstream {0} service.",

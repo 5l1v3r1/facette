@@ -29,6 +29,8 @@ export default class ContentComponent extends Vue {
 </script>
 
 <style lang="scss" scoped>
+@import "mixins";
+
 .v-content {
     min-height: 100vh;
     padding: 2rem;
@@ -72,15 +74,7 @@ export default class ContentComponent extends Vue {
     }
 
     ::v-deep {
-        h1,
-        h2,
-        h3 {
-            font-weight: normal;
-        }
-
-        h1:first-of-type {
-            margin-top: 0;
-        }
+        @include content;
     }
 }
 </style>

@@ -11,7 +11,7 @@
         <v-label>{{ $t("labels.providers.rrdtool.pattern") }}</v-label>
         <v-input
             required
-            :help="$t('help.providers.rrdtool.pattern')"
+            :help="$t('help.providers.rrdtool.pattern', ['https://github.com/google/re2/wiki/Syntax'])"
             :placeholder="$t('labels.placeholders.example', ['(?P<instance>[^/]+)/(?P<__name__>.+)\\.rrd'])"
             v-model="settings.pattern"
         ></v-input>

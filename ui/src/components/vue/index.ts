@@ -25,6 +25,7 @@ import FormComponent from "./form/form.vue";
 import IconComponent from "./icon/icon.vue";
 import InputComponent from "./input/input.vue";
 import LabelComponent from "./label/label.vue";
+import MarkdownComponent from "./markdown/markdown.vue";
 import MessageComponent from "./message/message.vue";
 import ModalComponent from "./modal/modal.vue";
 import NotifierComponent from "./notifier/notifier.vue";
@@ -60,6 +61,7 @@ const components: Record<string, VueConstructor> = {
     IconComponent,
     InputComponent,
     LabelComponent,
+    MarkdownComponent,
     MessageComponent,
     ModalComponent,
     NotifierComponent,

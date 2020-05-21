@@ -32,13 +32,31 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
 
     switch (e.type) {
         case "mouseenter": {
+            let message = "";
+            let shortcut: string | null = null;
+
+            switch (typeof wt._binding.value) {
+                case "string":
+                    message = wt._binding.value;
+                    break;
+
+                case "object":
+                    message = wt._binding.value.message;
+                    shortcut = wt._binding.value.shortcut?.[0] ?? null;
+                    break;
+
+                default:
+                    return;
+            }
+
             const modifiers: Array<string> = Object.keys(wt._binding.modifiers);
 
             timeout = setTimeout(() => {
                 wt._components.set("tooltip", {
                     anchor: modifiers.length > 0 ? modifiers[modifiers.length - 1] : "bottom",
                     rect: this.getBoundingClientRect(),
-                    value: wt._binding.value,
+                    message,
+                    shortcut,
                 } as TooltipState);
             }, 750);
 
@@ -46,7 +64,9 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
         }
 
         case "mouseleave": {
-            wt._components.set("tooltip", null);
+            timeout = setTimeout(() => {
+                wt._components.set("tooltip", null);
+            }, 250);
         }
     }
 }
