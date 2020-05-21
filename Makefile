@@ -72,7 +72,7 @@ lint-ui:
 
 generate:
 	@echo "==> Running code generation"
-	@$(GO) generate ./...
+	@$(GO) generate -tags "$(TAGS)" ./...
 
 license:
 	@echo "==> Adding license headers"
