@@ -96,9 +96,11 @@ func (c *Chart) Resolve(store StoreFuncs) error {
 			return fmt.Errorf("expected *Chart but got %T", v)
 		}
 
-		err = mergo.Merge(&proxy.Options, c.Options, mergo.WithOverride)
-		if err != nil {
-			return err
+		if c.Options != nil {
+			err = mergo.Merge(proxy.Options, c.Options, mergo.WithOverride)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		proxy = c

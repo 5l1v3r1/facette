@@ -107,9 +107,11 @@ func (d *Dashboard) Resolve(store StoreFuncs) error {
 			return fmt.Errorf("expected *Dashboard but got %T", v)
 		}
 
-		err = mergo.Merge(&proxy.Options, d.Options, mergo.WithOverride)
-		if err != nil {
-			return err
+		if d.Options != nil {
+			err = mergo.Merge(proxy.Options, d.Options, mergo.WithOverride)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		proxy = d
