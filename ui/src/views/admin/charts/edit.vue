@@ -536,7 +536,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public get resolvedChart(): Chart | null {
-        return this.linked ? renderChart(this.linked, this.data) : null;
+        return this.linked ? renderChart(this.linked, this.data) : this.chart;
     }
 
     public save(go: boolean): void {

@@ -354,6 +354,11 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public clearBasket(): void {
+        if (this.dashboard !== null) {
+            this.$set(this.dashboard, "items", []);
+            this.dashboardRefs = {};
+        }
+
         this.$store.commit("basket", []);
     }
 

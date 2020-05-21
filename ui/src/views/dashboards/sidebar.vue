@@ -57,7 +57,7 @@
                     (!dashboard || !dashboard.items || dashboard.items.length === 0)
                 "
             >
-                {{ $t(`messages.${params.type}.empty`) }}
+                {{ $t(`messages.${params.type}.${error === "notFound" ? "notFound" : "empty"}`) }}
             </v-button>
 
             <v-button

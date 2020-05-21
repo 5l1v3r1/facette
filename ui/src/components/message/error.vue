@@ -54,7 +54,7 @@ export default class MessageErrorComponent extends Mixins<CustomMixins>(CustomMi
     .v-icon {
         color: var(--dark-gray);
         font-size: 4rem;
-        margin-bottom: 1rem;
+        margin: 0 0 1rem;
     }
 
     .v-button {
