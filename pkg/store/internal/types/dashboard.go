@@ -20,19 +20,19 @@ import (
 // nolint:lll
 type Dashboard struct {
 	ObjectMeta
-	Options    DashboardOptions `gorm:"type:text"`
-	Items      DashboardItems   `gorm:"type:text"`
-	Layout     GridLayout       `gorm:"type:text"`
-	Parent     sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
-	Link       sql.NullString   `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
-	Template   bool             `gorm:"not null"`
-	References []api.Reference  `gorm:"-"`
+	Options    *DashboardOptions `gorm:"type:text"`
+	Layout     GridLayout        `gorm:"type:text"`
+	Items      DashboardItems    `gorm:"type:text"`
+	Parent     sql.NullString    `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
+	Link       sql.NullString    `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
+	Template   bool              `gorm:"not null"`
+	References []api.Reference   `gorm:"-"`
 }
 
 func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
 	return &Dashboard{
 		ObjectMeta: ObjectMetaFromAPI(dashboard.ObjectMeta),
-		Options:    DashboardOptions(dashboard.Options),
+		Options:    (*DashboardOptions)(dashboard.Options),
 		Items:      DashboardItems(dashboard.Items),
 		Layout:     GridLayout(dashboard.Layout),
 		Parent:     sql.NullString{String: dashboard.Parent, Valid: dashboard.Parent != ""},
@@ -52,7 +52,7 @@ func (d *Dashboard) BeforeSave(scope *gorm.Scope) error {
 	// Cleanup extraneous options
 	switch {
 	case d.Link.String != "": // linked: only keep variables
-		d.Options = DashboardOptions{Variables: d.Options.Variables}
+		d.Options = &DashboardOptions{Variables: d.Options.Variables}
 
 	case d.Template: // template: discard any defined variables
 		d.Options.Variables = nil
@@ -70,7 +70,7 @@ func (d Dashboard) Copy(dst api.Object) error {
 
 	*dashboard = api.Dashboard{
 		ObjectMeta: d.ObjectMeta.ToAPI(),
-		Options:    api.DashboardOptions(d.Options),
+		Options:    (*api.DashboardOptions)(d.Options),
 		Items:      api.DashboardItems(d.Items),
 		Layout:     api.GridLayout(d.Layout),
 		Template:   d.Template,

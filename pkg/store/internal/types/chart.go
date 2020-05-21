@@ -19,7 +19,7 @@ import (
 // nolint:lll
 type Chart struct {
 	ObjectMeta
-	Options  ChartOptions   `gorm:"type:text"`
+	Options  *ChartOptions  `gorm:"type:text"`
 	Series   SeriesList     `gorm:"type:text"`
 	Link     sql.NullString `gorm:"type:varchar(36); DEFAULT NULL REFERENCES charts (id) ON DELETE CASCADE ON UPDATE CASCADE"`
 	Template bool           `gorm:"not null"`
@@ -28,7 +28,7 @@ type Chart struct {
 func chartFromAPI(chart *api.Chart) *Chart {
 	return &Chart{
 		ObjectMeta: ObjectMetaFromAPI(chart.ObjectMeta),
-		Options:    ChartOptions(chart.Options),
+		Options:    (*ChartOptions)(chart.Options),
 		Series:     SeriesList(chart.Series),
 		Link:       sql.NullString{String: chart.Link, Valid: chart.Link != ""},
 		Template:   chart.Template,
@@ -45,7 +45,7 @@ func (c *Chart) BeforeSave(scope *gorm.Scope) error {
 	// Cleanup extraneous options
 	switch {
 	case c.Link.String != "": // linked: only keep variables
-		c.Options = ChartOptions{Variables: c.Options.Variables}
+		c.Options = &ChartOptions{Variables: c.Options.Variables}
 
 	case c.Template: // template: discard any defined variables
 		c.Options.Variables = nil
@@ -63,7 +63,7 @@ func (c Chart) Copy(dst api.Object) error {
 
 	*chart = api.Chart{
 		ObjectMeta: c.ObjectMeta.ToAPI(),
-		Options:    api.ChartOptions(c.Options),
+		Options:    (*api.ChartOptions)(c.Options),
 		Series:     api.SeriesList(c.Series),
 		Link:       c.Link.String,
 		Template:   c.Template,

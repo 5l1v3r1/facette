@@ -5,6 +5,14 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+export function cleanupDashboard(dashboard: Dashboard): Dashboard {
+    if (!dashboard.options?.title) {
+        delete dashboard.options?.title;
+    }
+
+    return dashboard;
+}
+
 export function mapReferences(refs: Array<Reference>): Record<string, unknown> {
     return (
         refs.reduce((out: Record<string, unknown>, ref: Reference) => {

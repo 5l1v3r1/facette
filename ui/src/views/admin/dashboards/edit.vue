@@ -132,6 +132,7 @@ import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {conflictCustomValidity} from "@/src/helpers/api";
+import {cleanupDashboard} from "@/src/helpers/dashboard";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
 import {ModalDashboardItemParams} from "@/src/views/admin/components/modal/dashboard-item.vue";
@@ -418,7 +419,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.$http({
             url: `/api/v1/dashboards${this.edit ? `/${this.params.id}` : ""}`,
             method: this.edit ? "PUT" : "POST",
-            body: dashboard,
+            body: cleanupDashboard(dashboard),
         }).then(
             () => {
                 this.unguard();

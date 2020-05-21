@@ -9,14 +9,28 @@ import cloneDeep from "lodash/cloneDeep";
 
 import {parseVariables, renderTemplate} from "@/src/helpers/template";
 
+export function cleanupChart(chart: Chart): Chart {
+    if (!chart.options?.axes?.y?.left?.unit?.type) {
+        delete chart.options?.axes?.y?.left?.unit;
+    }
+
+    if (!chart.options?.axes?.y?.right?.unit?.type) {
+        delete chart.options?.axes?.y?.right?.unit;
+    }
+
+    if (!chart.options?.title) {
+        delete chart.options?.title;
+    }
+
+    return chart;
+}
+
 export function parseChartVariables(chart: Chart): Array<TemplateVariable> {
     let data = "";
 
-    if (chart.series) {
-        chart.series.forEach(series => {
-            data += `\xff${series.expr}`;
-        });
-    }
+    chart.series?.forEach(series => {
+        data += `\xff${series.expr}`;
+    });
 
     if (chart.options?.axes?.y?.left?.label) {
         data += `\xff${chart.options.axes.y.left.label}`;

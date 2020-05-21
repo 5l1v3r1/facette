@@ -76,14 +76,19 @@ func (m ObjectMeta) Validate() error {
 // Chart is a chart API object.
 type Chart struct {
 	ObjectMeta `json:",inline"`
-	Options    ChartOptions `json:"options,omitempty"`
-	Series     SeriesList   `json:"series,omitempty"`
-	Link       string       `json:"link,omitempty"`
-	Template   bool         `json:"template"`
+	Options    *ChartOptions `json:"options,omitempty"`
+	Series     SeriesList    `json:"series,omitempty"`
+	Link       string        `json:"link,omitempty"`
+	Template   bool          `json:"template"`
 }
 
 // Excerpt returns an excerpted version of the chart API object.
 func (c Chart) Excerpt() interface{} {
+	options := map[string]interface{}{}
+	if c.Options.Title != "" {
+		options["title"] = c.Options.Title
+	}
+
 	return struct {
 		ObjectMeta `json:",inline"`
 		Options    map[string]interface{} `json:"options,omitempty"`
@@ -91,11 +96,9 @@ func (c Chart) Excerpt() interface{} {
 		Template   bool                   `json:"enabled"`
 	}{
 		ObjectMeta: c.ObjectMeta,
-		Options: map[string]interface{}{
-			"title": c.Options.Title,
-		},
-		Link:     c.Link,
-		Template: c.Template,
+		Options:    options,
+		Link:       c.Link,
+		Template:   c.Template,
 	}
 }
 
@@ -165,7 +168,7 @@ func (c Chart) Variables() ([]string, error) {
 // ChartOptions are chart options.
 // +store:generate=type
 type ChartOptions struct {
-	Axes      ChartAxes          `json:"axes,omitempty"`
+	Axes      *ChartAxes         `json:"axes,omitempty"`
 	Title     string             `json:"title,omitempty"`
 	Type      ChartType          `json:"type,omitempty"`
 	Variables []TemplateVariable `json:"variables,omitempty"`
@@ -173,8 +176,8 @@ type ChartOptions struct {
 
 // ChartAxes are chart axes options.
 type ChartAxes struct {
-	X ChartXAxis `json:"x,omitempty"`
-	Y ChartYAxes `json:"y,omitempty"`
+	X *ChartXAxis `json:"x,omitempty"`
+	Y *ChartYAxes `json:"y,omitempty"`
 }
 
 // ChartXAxis are chart X axis options.
@@ -184,9 +187,9 @@ type ChartXAxis struct {
 
 // ChartYAxes are chart Y axes options.
 type ChartYAxes struct {
-	Center bool       `json:"center,omitempty"`
-	Left   ChartYAxis `json:"left,omitempty"`
-	Right  ChartYAxis `json:"right,omitempty"`
+	Center bool        `json:"center,omitempty"`
+	Left   *ChartYAxis `json:"left,omitempty"`
+	Right  *ChartYAxis `json:"right,omitempty"`
 }
 
 // ChartYAxis are chart Y axis options.
@@ -197,7 +200,7 @@ type ChartYAxis struct {
 	Max       *float64   `json:"max,omitempty"`
 	Min       *float64   `json:"min,omitempty"`
 	Stack     StackMode  `json:"stack,omitempty"`
-	Unit      Unit       `json:"unit,omitempty"`
+	Unit      *Unit      `json:"unit,omitempty"`
 }
 
 // Constant is a chart series constant.
@@ -283,8 +286,8 @@ type SeriesList []Series
 
 // Series is a chart series.
 type Series struct {
-	Expr    string        `json:"expr"`
-	Options SeriesOptions `json:"options,omitempty"`
+	Expr    string         `json:"expr"`
+	Options *SeriesOptions `json:"options,omitempty"`
 }
 
 // SeriesOptions are chart series options.
@@ -315,17 +318,22 @@ func (c ChartList) Len() int {
 // Dashboard is a dashboard API object.
 type Dashboard struct {
 	ObjectMeta `json:",inline"`
-	Options    DashboardOptions `json:"options,omitempty"`
-	Layout     GridLayout       `json:"layout,omitempty"`
-	Items      DashboardItems   `json:"items,omitempty"`
-	Parent     string           `json:"parent,omitempty"`
-	Link       string           `json:"link,omitempty"`
-	Template   bool             `json:"template"`
-	References []Reference      `json:"references,omitempty"`
+	Options    *DashboardOptions `json:"options,omitempty"`
+	Layout     GridLayout        `json:"layout,omitempty"`
+	Items      DashboardItems    `json:"items,omitempty"`
+	Parent     string            `json:"parent,omitempty"`
+	Link       string            `json:"link,omitempty"`
+	Template   bool              `json:"template"`
+	References []Reference       `json:"references,omitempty"`
 }
 
 // Excerpt returns an excerpted version of the dashboard API object.
 func (d Dashboard) Excerpt() interface{} {
+	options := map[string]interface{}{}
+	if d.Options.Title != "" {
+		options["title"] = d.Options.Title
+	}
+
 	return struct {
 		ObjectMeta `json:",inline"`
 		Options    map[string]interface{} `json:"options,omitempty"`
@@ -333,11 +341,9 @@ func (d Dashboard) Excerpt() interface{} {
 		Template   bool                   `json:"enabled"`
 	}{
 		ObjectMeta: d.ObjectMeta,
-		Options: map[string]interface{}{
-			"title": d.Options.Title,
-		},
-		Link:     d.Link,
-		Template: d.Template,
+		Options:    options,
+		Link:       d.Link,
+		Template:   d.Template,
 	}
 }
 

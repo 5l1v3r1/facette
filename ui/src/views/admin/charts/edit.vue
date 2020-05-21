@@ -209,7 +209,7 @@ import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {conflictCustomValidity} from "@/src/helpers/api";
-import {parseChartVariables, renderChart} from "@/src/helpers/chart";
+import {cleanupChart, parseChartVariables, renderChart} from "@/src/helpers/chart";
 import {resolveVariables} from "@/src/helpers/dashboard";
 import {hash} from "@/src/helpers/hash";
 import {beforeRoute} from "@/src/helpers/route";
@@ -562,7 +562,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.$http({
             url: `/api/v1/charts${this.edit ? `/${this.params.id}` : ""}`,
             method: this.edit ? "PUT" : "POST",
-            body: chart,
+            body: cleanupChart(chart),
         }).then(
             () => {
                 this.unguard();
