@@ -63,6 +63,7 @@
                 <v-input
                     ref="name"
                     required
+                    :custom-validity="conflictCustomValidity"
                     :help="$t('help.providers.name')"
                     :pattern="namePattern"
                     v-autofocus.select
@@ -177,9 +178,10 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
-import {ModalProviderFilterParams} from "@/src/views/admin/components/modal/provider-filter.vue";
+import {conflictCustomValidity} from "@/src/helpers/api";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
+import {ModalProviderFilterParams} from "@/src/views/admin/components/modal/provider-filter.vue";
 
 import {namePattern} from "..";
 
@@ -206,6 +208,8 @@ const providers: Array<SelectOption> = [
     beforeRouteUpdate: beforeRoute,
 })
 export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
+    public conflictCustomValidity!: (value: string) => Promise<string>;
+
     public form: VueConstructor | null = null;
 
     public formFailed = false;
@@ -225,6 +229,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public testing = false;
 
     public validity = false;
+
+    public created(): void {
+        this.conflictCustomValidity = conflictCustomValidity(this, "providers");
+    }
 
     public mounted(): void {
         this.reset(true);

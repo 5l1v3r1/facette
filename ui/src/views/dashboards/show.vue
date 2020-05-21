@@ -229,6 +229,7 @@ import {SelectOption} from "@/types/components";
 import {dateFormatDisplay, dateFormatRFC3339, defaultTimeRange, ranges} from "@/src/components/chart/chart.vue";
 import GridComponent from "@/src/components/grid/grid.vue";
 import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
+import {conflictCustomValidity} from "@/src/helpers/api";
 import {renderChart} from "@/src/helpers/chart";
 import {mapReferences, resolveVariables} from "@/src/helpers/dashboard";
 import {CustomMixins} from "@/src/mixins";
@@ -698,6 +699,8 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                     primary: true,
                 },
                 input: {
+                    customValidity: conflictCustomValidity(this, "dashboards"),
+                    required: true,
                     value: "",
                 },
                 message: this.$t("labels.dashboards.name") as string,

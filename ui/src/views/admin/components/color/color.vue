@@ -82,15 +82,6 @@ export default class ColorComponent extends Vue {
     public open(): void {
         this.opened = true;
     }
-
-    // public reset(e: KeyboardEvent): void {
-    //     if (this.opened) {
-    //         this.$emit("input", "");
-    //         this.opened = false;
-    //         e.preventDefault();
-    //         e.stopPropagation();
-    //     }
-    // }
 }
 </script>
 

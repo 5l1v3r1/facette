@@ -102,7 +102,13 @@ export default class SelectComponent extends Vue {
 
     private filteredOptions: Array<SelectOption> = [];
 
+    private form: HTMLFormElement | null = null;
+
     private selected = -1;
+
+    public mounted(): void {
+        this.form = (this.$el as HTMLElement).closest("form");
+    }
 
     public get currentOptions(): Array<SelectOption> {
         return (this.filter ? this.filteredOptions : this.options) ?? [];
@@ -229,10 +235,17 @@ export default class SelectComponent extends Vue {
 
         this.selected = index;
         this.opened = false;
+
         this.$emit("input", value);
+
+        if (this.form !== null) {
+            this.$components.$emit("form-input", this.form);
+        }
+
         if (this.required) {
             this.invalid = !value;
         }
+
         this.$nextTick(() => {
             this.focus();
         });

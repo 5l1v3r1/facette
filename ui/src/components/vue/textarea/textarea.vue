@@ -56,6 +56,8 @@ export default class TextAreaComponent extends Vue {
 
     public focused = false;
 
+    private form: HTMLFormElement | null = null;
+
     private textarea!: HTMLTextAreaElement;
 
     private pristine = true;
@@ -64,6 +66,7 @@ export default class TextAreaComponent extends Vue {
 
     public mounted(): void {
         this.textarea = this.$refs.textarea as HTMLTextAreaElement;
+        this.form = this.textarea.closest("form");
 
         if (this.delay > 0) {
             this.updateDebounce = debounce(() => {
@@ -78,6 +81,10 @@ export default class TextAreaComponent extends Vue {
         }
 
         this.$emit("input", value);
+
+        if (this.form !== null) {
+            this.$components.$emit("form-input", this.form);
+        }
     }
 
     public focus(select = false): void {

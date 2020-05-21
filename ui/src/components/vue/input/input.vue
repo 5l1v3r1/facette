@@ -49,7 +49,7 @@ import {shortcutLabel} from "../shortcut";
 @Component
 export default class InputComponent extends Vue {
     @Prop({default: null, type: Function})
-    public customValidity!: (value: string) => Promise<string>;
+    public customValidity!: ((value: string) => Promise<string>) | null;
 
     @Prop({default: 0, type: Number})
     public delay!: number;
@@ -91,6 +91,8 @@ export default class InputComponent extends Vue {
 
     public validity = "";
 
+    private form: HTMLFormElement | null = null;
+
     private input!: HTMLInputElement;
 
     private pristine = true;
@@ -99,6 +101,7 @@ export default class InputComponent extends Vue {
 
     public mounted(): void {
         this.input = this.$refs.input as HTMLInputElement;
+        this.form = this.input.closest("form");
 
         if (this.delay > 0) {
             this.updateDebounce = debounce(() => {
@@ -123,10 +126,14 @@ export default class InputComponent extends Vue {
 
         this.$emit("input", "");
         this.$emit("clear");
+
+        if (this.form !== null) {
+            this.$components.$emit("form-input", this.form);
+        }
     }
 
     private async emit(value: string): Promise<void> {
-        if (this.customValidity) {
+        if (this.customValidity !== null) {
             this.validity = await this.customValidity(value);
             this.input.setCustomValidity(this.validity);
         }
@@ -136,6 +143,10 @@ export default class InputComponent extends Vue {
         }
 
         this.$emit("input", value);
+
+        if (this.form !== null) {
+            this.$components.$emit("form-input", this.form);
+        }
     }
 
     public focus(select = false): void {

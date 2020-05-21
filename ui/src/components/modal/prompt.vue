@@ -1,8 +1,10 @@
 <template>
     <v-modal name="prompt">
-        <v-form slot-scope="modal">
+        <v-form @validity="onValidity" slot-scope="modal">
             <v-label>{{ message }}</v-label>
             <v-input
+                :custom-validity="input.customValidity"
+                :delay="input.customValidity ? 200 : 0"
                 :help="input.help"
                 :required="input.required"
                 :type="input.type"
@@ -12,7 +14,12 @@
 
             <template slot="bottom">
                 <v-button @click="modal.close(false)">{{ $t("labels.cancel") }}</v-button>
-                <v-button :danger="button.danger" :primary="button.primary" @click="modal.close(input.value)">
+                <v-button
+                    :danger="button.danger"
+                    :disabled="input.customValidity && !validity"
+                    :primary="button.primary"
+                    @click="modal.close(input.value)"
+                >
                     {{ button.label || $t("labels.ok") }}
                 </v-button>
             </template>
@@ -32,6 +39,7 @@ export interface ModalPromptParams {
         primary?: boolean;
     };
     input?: {
+        customValidity?: ((value: string) => Promise<string>) | null;
         help?: string | null;
         required?: boolean;
         type?: string;
@@ -47,6 +55,7 @@ const defaultParams: ModalPromptParams = {
         primary: false,
     },
     input: {
+        customValidity: null,
         help: null,
         required: false,
         type: "text",
@@ -71,6 +80,10 @@ export default class ModalPromptComponent extends Vue {
             input: merge({}, defaultParams.input, params.input),
             message: params.message,
         });
+    }
+
+    public onValidity(to: boolean): void {
+        this.validity = to;
     }
 }
 </script>

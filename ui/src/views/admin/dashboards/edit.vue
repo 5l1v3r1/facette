@@ -53,6 +53,7 @@
                 <v-input
                     ref="name"
                     required
+                    :custom-validity="conflictCustomValidity"
                     :delay="200"
                     :pattern="namePattern"
                     v-autofocus.select
@@ -130,6 +131,7 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+import {conflictCustomValidity} from "@/src/helpers/api";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
 import {ModalDashboardItemParams} from "@/src/views/admin/components/modal/dashboard-item.vue";
@@ -166,6 +168,8 @@ const defaultSection = "general";
     beforeRouteUpdate: beforeRoute,
 })
 export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
+    public conflictCustomValidity!: (value: string) => Promise<string>;
+
     public dashboard: Dashboard | null = null;
 
     public dashboardModel: Dashboard | null = null;
@@ -193,6 +197,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public variables: Array<TemplateVariable> = [];
 
     private unwatchDashboard: (() => void) | null = null;
+
+    public created(): void {
+        this.conflictCustomValidity = conflictCustomValidity(this, "dashboards");
+    }
 
     public mounted(): void {
         this.reset(true);

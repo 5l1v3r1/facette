@@ -267,6 +267,7 @@ import uniq from "lodash/uniq";
 import {Component, Mixins, Watch} from "vue-property-decorator";
 import {Dictionary} from "vue-router/types/router";
 
+import {conflictCustomValidity} from "@/src/helpers/api";
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
 import TableComponent from "@/src/components/vue/table/table.vue";
@@ -350,6 +351,8 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
                     primary: true,
                 },
                 input: {
+                    customValidity: conflictCustomValidity(this, this.params.type),
+                    required: true,
                     value: `${obj.name}-clone`,
                 },
                 message: this.$t(`labels.${this.params.type}.name`),

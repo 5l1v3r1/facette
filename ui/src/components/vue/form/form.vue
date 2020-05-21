@@ -1,5 +1,5 @@
 <template>
-    <form class="v-form" novalidate @input="onChange" @submit.prevent>
+    <form class="v-form" novalidate @submit.prevent>
         <slot></slot>
 
         <div class="v-form-bottom" v-if="bottom">
@@ -17,15 +17,26 @@ export default class FormComponent extends Vue {
 
     public mounted(): void {
         this.checkSlots();
-        this.$nextTick(this.onChange);
+
+        this.$nextTick(() => {
+            this.$emit("validity", (this.$el as HTMLFormElement).checkValidity());
+        });
+
+        this.$components.$on("form-input", this.onFormInput);
     }
 
     public updated(): void {
         this.checkSlots();
     }
 
-    public onChange(): void {
-        this.$emit("validity", (this.$el as HTMLFormElement).checkValidity());
+    public beforeDetroy(): void {
+        this.$components.$off("form-input", this.onFormInput);
+    }
+
+    public onFormInput(el: HTMLFormElement): void {
+        if (el === this.$el) {
+            this.$emit("validity", el.checkValidity());
+        }
     }
 
     private checkSlots(): void {

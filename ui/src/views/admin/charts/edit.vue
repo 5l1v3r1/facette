@@ -68,6 +68,7 @@
                 <v-input
                     ref="name"
                     required
+                    :custom-validity="conflictCustomValidity"
                     :delay="200"
                     :pattern="namePattern"
                     v-autofocus.select
@@ -207,6 +208,7 @@ import {Component, Mixins, Watch} from "vue-property-decorator";
 import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
+import {conflictCustomValidity} from "@/src/helpers/api";
 import {parseChartVariables, renderChart} from "@/src/helpers/chart";
 import {resolveVariables} from "@/src/helpers/dashboard";
 import {hash} from "@/src/helpers/hash";
@@ -280,6 +282,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public chartModel: Chart | null = null;
 
+    public conflictCustomValidity!: (value: string) => Promise<string>;
+
     public data: Record<string, string> = {};
 
     public dynamicData: Record<string, Array<string>> = {};
@@ -303,6 +307,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public variables: Array<TemplateVariable> = [];
 
     private unwatchChart: (() => void) | null = null;
+
+    public created(): void {
+        this.conflictCustomValidity = conflictCustomValidity(this, "charts");
+    }
 
     public mounted(): void {
         this.reset(true);

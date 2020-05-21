@@ -331,6 +331,7 @@ export default {
             empty: "Basket is empty",
         },
         charts: {
+            conflict: "A chart with the same name already exists.",
             delete:
                 "You are about to delete the “{name}” chart. Are you sure?|" +
                 "You are about to delete {count} charts. Are you sure?",
@@ -342,6 +343,7 @@ export default {
         },
         confirmLeave: "All unsaved data will be lost. Are you sure?",
         dashboards: {
+            conflict: "A dashboard with the same name already exists.",
             delete:
                 "You are about to delete the “{name}” dashboard. Are you sure?|" +
                 "You are about to delete {count} dashboards. Are you sure?",
@@ -383,6 +385,7 @@ export default {
         notAvailable: "Not available",
         notDefined: "Not defined",
         providers: {
+            conflict: "A provider with the same name already exists.",
             delete:
                 "You are about to delete the “{name}” provider. Are you sure?|" +
                 "You are about to delete {count} providers. Are you sure?",
