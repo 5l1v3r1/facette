@@ -76,7 +76,7 @@ export default class ModalComponent extends Vue {
 
             case "Tab": {
                 const focusable: NodeListOf<Element> = this.$el.querySelectorAll(
-                    'input, [tabindex]:not([tabindex="-1"])',
+                    'input, textarea, [tabindex]:not([tabindex="-1"])',
                 );
                 let index: number | null = null;
 
