@@ -4,14 +4,14 @@
 
         <div class="reveal" :class="{visible: axis.show}">
             <v-label>{{ $tc("labels.labels", 1) }}</v-label>
-            <v-input :delay="200" :help="$t('help.charts.axes.label')" v-model="axis.label"></v-input>
+            <v-input :delay="500" :help="$t('help.charts.axes.label')" v-model="axis.label"></v-input>
 
             <v-flex>
                 <v-flex direction="column">
                     <v-label>{{ $t("labels.charts.axes.min") }}</v-label>
                     <v-input
                         type="number"
-                        :delay="200"
+                        :delay="500"
                         :help="$t('help.charts.axes.min')"
                         v-model.number="axis.min"
                     ></v-input>
@@ -21,7 +21,7 @@
                     <v-label>{{ $t("labels.charts.axes.max") }}</v-label>
                     <v-input
                         type="number"
-                        :delay="200"
+                        :delay="500"
                         :help="$t('help.charts.axes.max')"
                         v-model.number="axis.max"
                     ></v-input>

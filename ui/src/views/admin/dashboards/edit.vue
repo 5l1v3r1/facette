@@ -54,7 +54,7 @@
                     ref="name"
                     required
                     :custom-validity="conflictCustomValidity"
-                    :delay="200"
+                    :delay="500"
                     :pattern="namePattern"
                     v-autofocus.select
                     v-model="dashboard.name"
@@ -86,7 +86,7 @@
                 <template v-else>
                     <v-label>{{ $t("labels.title") }}</v-label>
                     <v-input
-                        :delay="200"
+                        :delay="500"
                         :help="$t('help.dashboards.title')"
                         v-model="dashboard.options.title"
                     ></v-input>

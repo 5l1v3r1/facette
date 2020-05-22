@@ -69,7 +69,7 @@
                     ref="name"
                     required
                     :custom-validity="conflictCustomValidity"
-                    :delay="200"
+                    :delay="500"
                     :pattern="namePattern"
                     v-autofocus.select
                     v-model="chart.name"
@@ -100,7 +100,7 @@
 
                 <template v-else>
                     <v-label>{{ $t("labels.title") }}</v-label>
-                    <v-input :delay="200" :help="$t('help.charts.title')" v-model="chart.options.title"></v-input>
+                    <v-input :delay="500" :help="$t('help.charts.title')" v-model="chart.options.title"></v-input>
 
                     <v-flex class="half" direction="column">
                         <v-label>{{ $t("labels.charts.type._") }}</v-label>

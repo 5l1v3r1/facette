@@ -28,7 +28,7 @@
 
         <v-input
             ref="input"
-            :delay="200"
+            :delay="500"
             :placeholder="placeholder"
             @focus="onFocus"
             @focusout="onFocus"

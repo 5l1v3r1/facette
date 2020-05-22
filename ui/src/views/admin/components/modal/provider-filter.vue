@@ -28,13 +28,13 @@
                 <v-flex class="targets" direction="column">
                     <v-flex :key="index" v-for="(target, index) in targets">
                         <v-input
-                            :delay="200"
+                            :delay="500"
                             :placeholder="$tc('labels.labels', 1)"
                             :ref="index === targets.length - 1 ? 'label' : ''"
                             v-model="target.key"
                         ></v-input>
 
-                        <v-input :delay="200" v-model="target.value"></v-input>
+                        <v-input :delay="500" v-model="target.value"></v-input>
 
                         <v-button icon="times" @click="removeTarget(index)"></v-button>
                     </v-flex>
