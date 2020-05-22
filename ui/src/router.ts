@@ -70,7 +70,7 @@ router.onReady(() => {
         );
 });
 
-export function defineParams(route: Route, params: object): void {
+export function defineParams(route: Route, params: Dictionary<string>): void {
     Object.assign(route.params, params);
 }
 

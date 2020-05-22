@@ -174,7 +174,7 @@ const store = new Vuex.Store({
     plugins: [
         VuexPersistedState({
             key: "facette",
-            reducer: (state: State): object => ({
+            reducer: (state: State): Record<string, unknown> => ({
                 autoPropagate: state.autoPropagate,
                 basket: state.basket,
                 locale: state.locale,
