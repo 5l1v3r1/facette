@@ -5,23 +5,16 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import display from "./display.vue";
+import settings from "./settings.vue";
 import sidebar from "./sidebar.vue";
 import toolbar from "./toolbar.vue";
 
 export default [
     {
         path: "/settings",
-        name: "settings-root",
-        redirect: {
-            name: "settings-display",
-        },
-    },
-    {
-        path: "/settings/display",
-        name: "settings-display",
+        name: "settings",
         components: {
-            default: display,
+            default: settings,
             sidebar: sidebar,
             toolbar: toolbar,
         },

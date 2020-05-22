@@ -5,7 +5,14 @@
         </v-toolbar>
 
         <v-label>{{ $t("labels.settings.personal") }}</v-label>
-        <v-button icon="desktop" :to="{name: 'settings-display'}">{{ $t("labels.settings.display._") }}</v-button>
+
+        <v-button icon="desktop" :to="{name: 'settings', hash: '#display'}">
+            {{ $t("labels.display") }}
+        </v-button>
+
+        <v-button icon="keyboard" :to="{name: 'settings', hash: '#keyboard'}">
+            {{ $t("labels.keyboard._") }}
+        </v-button>
     </v-sidebar>
 </template>
 

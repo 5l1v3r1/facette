@@ -7,6 +7,7 @@
 
 import isArray from "lodash/isArray";
 import {nanoid} from "nanoid";
+import {VNode} from "vue";
 import {DirectiveBinding} from "vue/types/options";
 
 import {codeMap, macSymbols, platform} from "./vars";
@@ -89,7 +90,9 @@ function unbind(el: HTMLElement): void {
     }
 }
 
-function bind(el: HTMLElement, binding: DirectiveBinding): void {
+function bind(el: HTMLElement, binding: DirectiveBinding, vnode: VNode): void {
+    const enabled = (vnode.context as Vue).$components.state.shortcuts;
+
     // Unbind any previous bound shortcut
     unbind(el);
 
@@ -98,7 +101,7 @@ function bind(el: HTMLElement, binding: DirectiveBinding): void {
     }
 
     // Start listening for shortcuts (i.e. listener not already registered)
-    if (!registered) {
+    if (enabled && !registered) {
         document.addEventListener("keydown", handle, true);
         registered = true;
     }

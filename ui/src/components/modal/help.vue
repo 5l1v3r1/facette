@@ -4,16 +4,24 @@
             <h1>{{ $t("labels.help") }}</h1>
 
             <v-tab-bar v-model="tab">
-                <v-tab value="keyboard">{{ $t("labels.keyboardShortcuts") }}</v-tab>
+                <v-tab value="keyboard">{{ $t("labels.keyboard.shortcuts._") }}</v-tab>
                 <v-tab value="documentation">{{ $t("labels.documentation") }}</v-tab>
             </v-tab-bar>
 
-            <table v-if="tab === 'keyboard'">
-                <tr :key="index" v-for="(shortcut, index) in shortcuts">
-                    <th>{{ shortcut.label }}</th>
-                    <td>{{ shortcut.help }}</td>
-                </tr>
-            </table>
+            <template v-if="tab === 'keyboard'">
+                <v-spinner :size="24" v-if="loading"></v-spinner>
+
+                <table v-else>
+                    <tr :key="index" v-for="(shortcut, index) in shortcuts">
+                        <th>{{ shortcut.label }}</th>
+                        <td>{{ shortcut.help }}</td>
+                    </tr>
+                </table>
+
+                <v-message type="info" v-if="!shortcutsEnabled">
+                    {{ $t("messages.keyboard.shortcutsDisabled") }}
+                </v-message>
+            </template>
 
             <template v-else-if="tab === 'documentation'">
                 <p>{{ $t("messages.documentation") }}</p>
@@ -31,29 +39,39 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Watch} from "vue-property-decorator";
+import {Component, Vue} from "vue-property-decorator";
 
 import {ShortcutRecord} from "@/types/components";
 
+function sortableShortcut(input: string): string {
+    return input.split(" ").reverse().join("");
+}
+
 @Component
 export default class ModalHelpComponent extends Vue {
+    public loading = false;
+
     public shortcuts: Array<ShortcutRecord> = [];
 
     public tab = "keyboard";
 
-    public mounted(): void {
+    public onModalShow(): void {
+        this.loading = true;
         this.update();
     }
 
-    @Watch("$route.path")
-    public onRoutePath(): void {
-        this.$nextTick(() => {
-            this.update();
-        });
+    public get shortcutsEnabled(): boolean {
+        return this.$components.state.shortcuts;
     }
 
     private update(): void {
-        this.shortcuts = this.$components.shortcuts();
+        const shortcuts = this.$components.shortcuts();
+        shortcuts.sort((a, b) => sortableShortcut(a.label).localeCompare(sortableShortcut(b.label)));
+
+        Object.assign(this, {
+            loading: false,
+            shortcuts,
+        });
     }
 }
 </script>
@@ -81,6 +99,10 @@ export default class ModalHelpComponent extends Vue {
             color: var(--light-gray);
             font-weight: normal;
         }
+    }
+
+    .v-spinner {
+        margin: 0 0.5rem;
     }
 }
 </style>

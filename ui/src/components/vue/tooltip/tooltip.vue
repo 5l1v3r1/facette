@@ -1,7 +1,11 @@
 <template>
     <div class="v-tooltip" :class="{[anchor]: anchor}" @mouseenter="onMouse" @mouseleave="onMouse" v-if="state">
         <v-markdown>{{ state.message }}</v-markdown>
-        <span class="v-tooltip-shortcut" v-if="state.shortcut">({{ shortcutLabel(state.shortcut) }})</span>
+
+        <span class="v-tooltip-shortcut" v-if="shortcutsEnabled && state.shortcut">
+            <v-icon icon="keyboard"></v-icon>
+            {{ shortcutLabel(state.shortcut) }}
+        </span>
     </div>
 </template>
 
@@ -87,6 +91,10 @@ export default class TooltipComponent extends Vue {
     public onMouse(e: MouseEvent): void {
         this.locked = e.type === "mouseenter" ? this.value : null;
     }
+
+    public get shortcutsEnabled(): boolean {
+        return this.$components.state.shortcuts;
+    }
 }
 </script>
 
@@ -98,6 +106,7 @@ export default class TooltipComponent extends Vue {
     border-radius: 0.2rem;
     box-shadow: 0 0.2rem 0.5rem var(--tooltip-shadow);
     cursor: default;
+    display: flex;
     left: 0;
     max-width: 25vw;
     overflow-wrap: break-word;
@@ -134,6 +143,18 @@ export default class TooltipComponent extends Vue {
 
     :last-child {
         margin-bottom: 0;
+    }
+
+    .v-tooltip-shortcut {
+        align-items: center;
+        display: flex;
+        font-size: 0.8rem;
+        margin-left: 1.25rem;
+        opacity: 0.425;
+
+        .v-icon {
+            margin-right: 0.5rem;
+        }
     }
 
     ::v-deep {

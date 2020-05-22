@@ -90,6 +90,7 @@ const directives: Record<string, DirectiveOptions> = {
 @Component
 class Components extends Vue {
     private data: ComponentsState = {
+        shortcuts: true,
         sidebar: {
             active: false,
             mode: "static",

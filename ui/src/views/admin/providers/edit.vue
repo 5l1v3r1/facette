@@ -224,7 +224,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public saving = false;
 
-    public section: string = defaultSection;
+    public section = defaultSection;
 
     public testing = false;
 

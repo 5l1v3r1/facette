@@ -38,7 +38,9 @@
                 <div class="v-button-badge" v-if="badge">{{ badge }}</div>
             </span>
 
-            <div class="v-button-shortcut" v-if="shortcut && inDropdown">{{ shortcutLabel(shortcut) }}</div>
+            <div class="v-button-shortcut" v-if="shortcutsEnabled && shortcut && inDropdown">
+                {{ shortcutLabel(shortcut) }}
+            </div>
 
             <v-icon
                 class="v-button-caret"
@@ -188,6 +190,10 @@ export default class ButtonComponent extends Vue {
         }
     }
 
+    public get shortcutsEnabled(): boolean {
+        return this.$components.state.shortcuts;
+    }
+
     public get tag(): string {
         return this.to ? "router-link" : "a";
     }
@@ -218,7 +224,7 @@ export default class ButtonComponent extends Vue {
         pointer-events: none;
 
         > .v-button-content > * {
-            opacity: 0.35;
+            opacity: 0.425;
         }
     }
 
@@ -268,8 +274,9 @@ export default class ButtonComponent extends Vue {
         }
 
         .v-button-shortcut {
+            font-size: 0.8rem;
             margin-left: 2rem;
-            opacity: 0.5;
+            opacity: 0.425;
         }
 
         .v-button-caret {

@@ -36,6 +36,8 @@ class State {
 
     public routeGuardFn: ((e: Event) => void) | null = null;
 
+    public shortcuts = true;
+
     public sidebar = true;
 
     public theme = "dark";
@@ -86,6 +88,10 @@ const store = new Vuex.Store({
 
         routeGuardFn(state: State): ((e: Event) => void) | null {
             return state.routeGuardFn;
+        },
+
+        shortcuts(state: State): boolean {
+            return state.shortcuts;
         },
 
         sidebar(state: State): boolean {
@@ -145,6 +151,10 @@ const store = new Vuex.Store({
             state.routeGuardFn = value;
         },
 
+        shortcuts(state: State, value: boolean): void {
+            state.shortcuts = value;
+        },
+
         sidebar(state: State, value: boolean): void {
             state.sidebar = value;
         },
@@ -175,6 +185,7 @@ const store = new Vuex.Store({
                               params: state.prevRoute.params,
                           }
                         : null,
+                shortcuts: state.shortcuts,
                 sidebar: state.sidebar,
                 theme: state.theme,
                 timezoneUTC: state.timezoneUTC,

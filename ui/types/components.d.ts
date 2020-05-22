@@ -28,6 +28,7 @@ declare interface ComponentsOptions {
 }
 
 declare interface ComponentsState {
+    shortcuts: boolean;
     sidebar: SidebarState;
     title: string;
     toolbars: ToolbarState;

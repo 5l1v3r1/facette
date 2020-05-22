@@ -43,6 +43,12 @@ export default {
             pattern:
                 "Pattern to apply on the value associated with the filter label. Must follow the [RE2 syntax]({0}).",
         },
+        keyboard: {
+            shortcuts:
+                "Save time navigating in Facette by using keyboard shortcuts.\n\n" +
+                "**Note:** Learn more about available shortcuts by visiting the contextual [help section]({0}) while " +
+                "browsing Facette.",
+        },
         providers: {
             name: "Name of the provider. @:help.common.name",
             pollInterval: "Provider metrics automatic polling interval. Disabled if empty.",
@@ -147,6 +153,7 @@ export default {
             },
         },
         delete: "Delete",
+        display: "Display",
         displayHelp: "Display this help",
         documentation: "Documentation",
         edit: "Edit",
@@ -199,7 +206,13 @@ export default {
             remove: "Remove item",
             unsupported: "Unsupported item",
         },
-        keyboardShortcuts: "Keyboard shortcuts",
+        keyboard: {
+            _: "Keyboard",
+            shortcuts: {
+                _: "Keyboard shortcuts",
+                enable: "Enable keyboard shortcuts",
+            },
+        },
         labels: "Label|Labels",
         language: {
             _: "Language",
@@ -262,11 +275,9 @@ export default {
             remove: "Remove series",
         },
         settings: {
-            display: {
-                _: "Display",
-                alt: "Display settings",
-            },
+            display: "Display settings",
             personal: "Personal settings",
+            reset: "Reset settings",
             save: "Save settings",
         },
         show: "Show",
@@ -375,6 +386,9 @@ export default {
         items: {
             none: "No items found",
         },
+        keyboard: {
+            shortcutsDisabled: "Keyboard shortcuts are disabled",
+        },
         labels: {
             emptyDiscarded: "Labels having empty values will be discarded",
         },
@@ -413,6 +427,7 @@ export default {
             none: "No series defined",
         },
         settings: {
+            reload: "Saving settings will trigger a page reload to apply changes",
             saved: "Settings successfully saved",
         },
         templates: {

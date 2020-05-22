@@ -18,6 +18,10 @@ export default class AppComponent extends Vue {
     @Prop({default: "dark", type: String})
     public theme!: string;
 
+    public created(): void {
+        this.$components.set("shortcuts", this.$store.getters.shortcuts);
+    }
+
     public get style(): AppTheme {
         const theme = themes[this.theme];
         if (!theme) {

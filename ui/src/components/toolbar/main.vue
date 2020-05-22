@@ -39,7 +39,7 @@
                 <v-button
                     icon="sliders-h"
                     :shortcut="['alt+,', $t('labels.goto.settings')]"
-                    :to="{name: 'settings-root'}"
+                    :to="{name: 'settings', hash: '#display'}"
                 >
                     {{ $t("labels.goto.settingsAlt") }}
                 </v-button>
