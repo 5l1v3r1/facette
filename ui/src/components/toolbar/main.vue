@@ -7,9 +7,9 @@
             @click="toggleSidebar"
         ></v-button>
 
-        <router-link class="logo" :to="{name: 'root'}">
+        <v-button class="logo" :to="{name: 'root'}">
             <img alt="Facette" src="../../assets/facette.svg" />
-        </router-link>
+        </v-button>
 
         <v-spacer></v-spacer>
 
@@ -89,13 +89,17 @@ export default class ToolbarMainComponent extends Mixins<CustomMixins>(CustomMix
 
 <style lang="scss" scoped>
 .v-toolbar {
-    .logo {
-        align-items: center;
-        display: flex;
-        height: 2.2rem;
+    .v-button:first-child {
+        margin-right: 0.15rem;
+    }
 
+    .logo {
         img {
             max-height: 1.5rem;
+        }
+
+        ::v-deep .v-button-content {
+            padding: 0 0.25rem;
         }
     }
 }

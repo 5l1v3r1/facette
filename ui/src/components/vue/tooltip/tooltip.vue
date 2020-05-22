@@ -118,23 +118,19 @@ export default class TooltipComponent extends Vue {
     z-index: 700;
 
     &.bottom {
-        transform: translateY(0.5rem);
+        transform: translateY(0.35rem);
     }
 
     &.left {
-        transform: translateX(-0.5rem);
+        transform: translateX(-0.35rem);
     }
 
     &.right {
-        transform: translateX(0.5rem);
+        transform: translateX(0.35rem);
     }
 
     &.top {
-        transform: translateY(-0.5rem);
-    }
-
-    .v-tooltip-shortcut {
-        opacity: 0.5;
+        transform: translateY(-0.35rem);
     }
 
     :first-child {

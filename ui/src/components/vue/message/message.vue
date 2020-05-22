@@ -48,6 +48,7 @@ export default class MessageComponent extends Vue {
     align-items: center;
     border-radius: 0.2rem;
     display: flex;
+    margin: 1rem 0;
     padding: 1rem;
 
     &.inline {

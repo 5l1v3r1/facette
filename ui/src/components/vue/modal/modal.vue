@@ -42,7 +42,7 @@ export default class ModalComponent extends Vue {
         this.$components.$off("modal-open", this.open);
     }
 
-    public close(value: unknown): void {
+    public close(value: unknown = null): void {
         if (this.handler) {
             this.handler(value);
         }
