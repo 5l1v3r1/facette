@@ -117,7 +117,7 @@ export default class TooltipComponent extends Vue {
     max-width: 25vw;
     overflow-wrap: break-word;
     padding: 0.5rem 0.75rem;
-    position: absolute;
+    position: fixed;
     top: 0;
     visibility: hidden;
     will-change: left, top, transform;

@@ -661,7 +661,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         padding: 1rem;
         position: sticky;
         top: calc(var(--toolbar-size) * 2);
-        z-index: 1;
+        z-index: 400;
 
         .v-form {
             margin-bottom: 1rem;

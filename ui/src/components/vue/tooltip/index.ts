@@ -34,6 +34,12 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
 
     switch (e.type) {
         case "mouseenter": {
+            // Skip tooltip if element is active (useful for dropdown menus)
+            if ((e.target as HTMLElement).classList.contains("active")) {
+                wt._components.set("tooltip", null);
+                return;
+            }
+
             let message = "";
             let shortcut: string | null = null;
 

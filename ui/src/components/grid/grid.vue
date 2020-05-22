@@ -596,24 +596,26 @@ export default class GridComponent extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     private reorder(): void {
-        if (this.matrix === null) {
-            return;
-        }
+        this.$nextTick(() => {
+            if (this.matrix === null) {
+                return;
+            }
 
-        const value: Array<unknown> = [];
-        const found: Array<number> = [];
+            const value: Array<unknown> = [];
+            const found: Array<number> = [];
 
-        for (let y = 0; y < this.layout.rows; y++) {
-            for (let x = 0; x < this.layout.columns; x++) {
-                const index = this.matrix?.[y]?.[x] ?? null;
-                if (index !== null && !found.includes(index)) {
-                    value.push(this.value[index]);
-                    found.push(index);
+            for (let y = 0; y < this.layout.rows; y++) {
+                for (let x = 0; x < this.layout.columns; x++) {
+                    const index = this.matrix?.[y]?.[x] ?? null;
+                    if (index !== null && !found.includes(index)) {
+                        value.push(this.value[index]);
+                        found.push(index);
+                    }
                 }
             }
-        }
 
-        this.$emit("input", value);
+            this.$emit("input", value);
+        });
     }
 
     @Watch("modifiers", {deep: true})
