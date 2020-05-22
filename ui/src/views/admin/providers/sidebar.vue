@@ -16,7 +16,12 @@
         <template v-else>
             <v-label>{{ $tc("labels.providers._", 1) }}</v-label>
 
-            <v-button exact :to="{name: 'admin-providers-edit', params: {id: params.id}}">
+            <v-button
+                exact
+                :badge="visited.general && !validity.general ? '!' : null"
+                :class="{invalid: visited.general && !validity.general}"
+                :to="{name: 'admin-providers-edit', params: {id: params.id}}"
+            >
                 {{ $t("labels.general") }}
             </v-button>
 
@@ -32,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Mixins} from "vue-property-decorator";
+import {Component, Mixins, Watch} from "vue-property-decorator";
 
 import {CustomMixins} from "@/src/mixins";
 
@@ -42,12 +47,18 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public loading = true;
 
+    public validity: Record<string, boolean> = {};
+
+    public visited: Record<string, boolean> = {};
+
     public mounted(): void {
         this.$parent.$on("provider-updated", this.onProviderUpdated);
+        this.$parent.$on("provider-validity", this.onProviderValidity);
     }
 
     public beforeDestroy(): void {
         this.$parent.$off("provider-updated", this.onProviderUpdated);
+        this.$parent.$off("provider-validity", this.onProviderValidity);
     }
 
     public onProviderUpdated(filters: number | null): void {
@@ -56,17 +67,22 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
         }
         this.filters = filters;
     }
+
+    public onProviderValidity(validity: Record<string, boolean>): void {
+        this.validity = validity;
+    }
+
+    @Watch("$route.hash")
+    public onRouteHash(to: string, from: string): void {
+        this.visited[from.substr(1) || "general"] = true;
+    }
 }
 </script>
 
 <style lang="scss" scoped>
-.v-sidebar {
-    .v-toolbar .v-button {
-        flex-grow: 1;
+@import "../mixins";
 
-        ::v-deep .v-button-content {
-            justify-content: flex-start;
-        }
-    }
+.v-sidebar {
+    @include sidebar;
 }
 </style>

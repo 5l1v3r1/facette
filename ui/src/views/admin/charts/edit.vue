@@ -63,7 +63,7 @@
 
             <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
 
-            <v-form class="third" @validity="onValidity" v-show="section === 'general'">
+            <v-form class="third" @validity="onFormValidity" v-show="section === 'general'">
                 <v-label>{{ $t("labels.name") }}</v-label>
                 <v-input
                     ref="name"
@@ -302,14 +302,14 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public templates: Array<SelectOption> = [];
 
-    public validity = false;
+    public formValidity = false;
 
     public variables: Array<TemplateVariable> = [];
 
     private unwatchChart: (() => void) | null = null;
 
     public created(): void {
-        this.conflictCustomValidity = conflictCustomValidity(this, "charts");
+        this.conflictCustomValidity = conflictCustomValidity(this, "charts", this.params.id);
     }
 
     public mounted(): void {
@@ -426,17 +426,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         return this.params.id === "link" || Boolean(this.chart?.link);
     }
 
-    @Watch("chart.options.variables", {deep: true})
-    public async onVariables(to: Array<TemplateVariable>): Promise<void> {
-        if (this.linked === null) {
-            return;
+    public onFormValidity(to: boolean): void {
+        if (this.section === defaultSection) {
+            this.formValidity = to;
         }
-
-        this.dynamicData = await resolveVariables(this, to);
-
-        Object.keys(this.dynamicData).forEach(label => {
-            this.$set(this.data, label, this.dynamicData[label]?.[0]);
-        });
     }
 
     @Watch("params.id")
@@ -452,8 +445,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.section = to ? to.substr(1) : defaultSection;
     }
 
-    public onValidity(to: boolean): void {
-        this.validity = to;
+    @Watch("chart.options.variables", {deep: true})
+    public async onVariables(to: Array<TemplateVariable>): Promise<void> {
+        if (this.linked === null) {
+            return;
+        }
+
+        this.dynamicData = await resolveVariables(this, to);
+
+        Object.keys(this.dynamicData).forEach(label => {
+            this.$set(this.data, label, this.dynamicData[label]?.[0]);
+        });
     }
 
     public removeSeries(index: number): void {
@@ -490,7 +492,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             this.unwatchChart();
         }
 
-        this.validity = false;
+        this.formValidity = false;
 
         if (!this.edit) {
             let chart: Chart;
@@ -582,6 +584,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public get types(): Array<SelectOption> {
         return types.map((option: SelectOption) => resolveOption(this, option));
+    }
+
+    public get validity(): boolean {
+        const validity: Record<string, boolean> = {
+            general: this.formValidity,
+            series: (this.chart?.series?.length ?? 0) > 0 || Boolean(this.chart?.link),
+        };
+
+        this.$parent.$emit("chart-validity", validity);
+
+        return !Object.values(validity).includes(false);
     }
 
     private emitUpdate(): void {

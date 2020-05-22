@@ -41,6 +41,7 @@
 </template>
 
 <script lang="ts">
+import {Cancelable} from "lodash";
 import debounce from "lodash/debounce";
 import {Component, Prop, Vue} from "vue-property-decorator";
 
@@ -132,13 +133,13 @@ export default class InputComponent extends Vue {
         }
     }
 
-    private async emit(value: string): Promise<void> {
+    private async emit(value: string, preserve = false): Promise<void> {
         if (this.customValidity !== null) {
             this.validity = await this.customValidity(value);
             this.input.setCustomValidity(this.validity);
         }
 
-        if (this.pristine) {
+        if (!preserve && this.pristine) {
             this.pristine = false;
         }
 
@@ -158,7 +159,16 @@ export default class InputComponent extends Vue {
         }
     }
 
-    public onFocus(e: FocusEvent): void {
+    public async onFocus(e: FocusEvent): Promise<void> {
+        // If focusing and debounced update configured, cancel any debounce and
+        // wait for value to be emitted/validated before proceeding. It avoids
+        // losing value when focusing out before debounce call and revalidates
+        // input when focusing.
+        if (this.updateDebounce !== null) {
+            (this.updateDebounce as (() => void) & Cancelable).cancel();
+            await this.emit(this.input.value, e.type === "focus");
+        }
+
         this.focused = e.type === "focus";
         this.$emit(e.type, e);
 

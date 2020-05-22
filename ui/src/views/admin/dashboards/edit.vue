@@ -177,6 +177,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public dashboardRefs: Record<string, unknown> = {};
 
+    public formValidity = false;
+
     public loading = true;
 
     public linked: Dashboard | null = null;
@@ -193,14 +195,12 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public templates: Array<SelectOption> = [];
 
-    public validity = false;
-
     public variables: Array<TemplateVariable> = [];
 
     private unwatchDashboard: (() => void) | null = null;
 
     public created(): void {
-        this.conflictCustomValidity = conflictCustomValidity(this, "dashboards");
+        this.conflictCustomValidity = conflictCustomValidity(this, "dashboards", this.params.id);
     }
 
     public mounted(): void {
@@ -321,7 +321,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public onValidity(to: boolean): void {
-        this.validity = to;
+        this.formValidity = to;
     }
 
     public removeItem(index: number): void {
@@ -358,7 +358,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             this.unwatchDashboard();
         }
 
-        this.validity = false;
+        this.formValidity = false;
         this.dashboardRefs = {};
 
         if (!this.edit) {
@@ -435,6 +435,17 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 this.saving = false;
             }),
         );
+    }
+
+    public get validity(): boolean {
+        const validity: Record<string, boolean> = {
+            general: this.formValidity,
+            layout: (this.dashboard?.items?.length ?? 0) > 0 || Boolean(this.dashboard?.link),
+        };
+
+        this.$parent.$emit("dashboard-validity", validity);
+
+        return !Object.values(validity).includes(false);
     }
 
     private emitUpdate(): void {

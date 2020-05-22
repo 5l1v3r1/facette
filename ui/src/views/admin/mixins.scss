@@ -153,3 +153,20 @@
         }
     }
 }
+
+@mixin sidebar {
+    .v-button.invalid ::v-deep > .v-button-content {
+        .v-button-badge {
+            background-color: var(--button-danger-background);
+            color: var(--color);
+        }
+    }
+
+    .v-toolbar .v-button {
+        flex-grow: 1;
+
+        ::v-deep .v-button-content {
+            justify-content: flex-start;
+        }
+    }
+}

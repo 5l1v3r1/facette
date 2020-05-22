@@ -21,16 +21,14 @@
 
   &[aria-invalid] {
     border-color: var(--input-invalid-color) !important;
-    color: var(--input-invalid-color) !important;
 
     .v-icon {
-      color: inherit;
+      color: var(--input-invalid-color);
     }
   }
 
   &.focus {
     border-color: var(--input-focus-color);
-    color: var(--color);
   }
 
   .v-icon {

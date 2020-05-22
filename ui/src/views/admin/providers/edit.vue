@@ -214,6 +214,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public formFailed = false;
 
+    public formValidity = false;
+
     public loading = true;
 
     public namePattern = namePattern;
@@ -228,10 +230,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
     public testing = false;
 
-    public validity = false;
-
     public created(): void {
-        this.conflictCustomValidity = conflictCustomValidity(this, "providers");
+        this.conflictCustomValidity = conflictCustomValidity(this, "providers", this.params.id);
     }
 
     public mounted(): void {
@@ -345,7 +345,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public onValidity(to: boolean): void {
-        this.validity = to;
+        this.formValidity = to;
     }
 
     public removeFilter(index: number): void {
@@ -376,7 +376,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             return;
         }
 
-        this.validity = false;
+        this.formValidity = false;
 
         if (!this.edit) {
             this.provider = cloneDeep(defaultProvider);
@@ -465,6 +465,16 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                     this.testing = false;
                 }),
             );
+    }
+
+    public get validity(): boolean {
+        const validity: Record<string, boolean> = {
+            general: this.formValidity,
+        };
+
+        this.$parent.$emit("provider-validity", validity);
+
+        return !Object.values(validity).includes(false);
     }
 
     private emitUpdate(): void {
