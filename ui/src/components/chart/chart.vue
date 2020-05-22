@@ -123,7 +123,7 @@
             </div>
         </div>
 
-        <div ref="chart" @mousemove="controls && onMouse($event)" v-show="value"></div>
+        <div ref="chart" @mousemove="controls && onMouse($event)" v-show="value && series"></div>
     </div>
 </template>
 

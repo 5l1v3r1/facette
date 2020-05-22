@@ -90,7 +90,7 @@
 
                         <v-button
                             icon="pencil-alt"
-                            :to="{name: 'admin-charts-edit', params: {id: chart.link}}"
+                            :to="{name: 'admin-charts-edit', params: {id: String(chart.link)}}"
                             :style="{visibility: chart.link ? 'visible' : 'hidden'}"
                         >
                             {{ $t("labels.templates.edit") }}

@@ -265,7 +265,7 @@ export default class ButtonComponent extends Vue {
             height: 0.9rem;
             line-height: 0.9rem;
             margin-left: 0.75rem;
-            padding: 0 0.25rem;
+            padding: 0 0.35rem;
         }
 
         .v-button-shortcut {

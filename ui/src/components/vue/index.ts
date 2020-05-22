@@ -7,7 +7,6 @@
 
 import get from "lodash/get";
 import kebabCase from "lodash/kebabCase";
-import set from "lodash/set";
 import {DirectiveOptions, VueConstructor} from "vue";
 import {Component, Vue} from "vue-property-decorator";
 
