@@ -14,7 +14,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.goto.parent')]"
                 :to="{name: 'dashboards-show', params: {id: dashboard.parent}}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-else-if="dashboard && dashboard.parent"
             >
                 {{ $t("labels.goto.parent") }}
@@ -25,7 +25,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.goto.home')]"
                 :to="{name: 'dashboards-home'}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-else
             >
                 {{ $t("labels.goto.home") }}

@@ -1,6 +1,12 @@
 <template>
-    <div class="v-tooltip" :class="{[anchor]: anchor}" @mouseenter="onMouse" @mouseleave="onMouse" v-if="state">
-        <v-markdown>{{ state.message }}</v-markdown>
+    <div
+        class="v-tooltip"
+        :class="{[anchor]: anchor, nowrap: !state.wrap}"
+        @mouseenter="onMouse"
+        @mouseleave="onMouse"
+        v-if="state"
+    >
+        <v-markdown v-if="state.message">{{ state.message }}</v-markdown>
 
         <span class="v-tooltip-shortcut" v-if="shortcutsEnabled && state.shortcut">
             <v-icon icon="keyboard"></v-icon>
@@ -25,8 +31,8 @@ export default class TooltipComponent extends Vue {
 
     public shortcutLabel: (keys: Array<string>) => string = shortcutLabel;
 
-    public get anchor(): string | null {
-        return this.value !== null ? this.value.anchor : "bottom";
+    public get anchor(): string {
+        return this.state?.anchor ?? "bottom";
     }
 
     @Watch("value")
@@ -117,6 +123,10 @@ export default class TooltipComponent extends Vue {
     will-change: left, top, transform;
     z-index: 700;
 
+    &.nowrap {
+        white-space: nowrap;
+    }
+
     &.bottom {
         transform: translateY(0.35rem);
     }
@@ -145,12 +155,15 @@ export default class TooltipComponent extends Vue {
         align-items: center;
         display: flex;
         font-size: 0.8rem;
-        margin-left: 1.25rem;
         opacity: 0.425;
 
         .v-icon {
             margin-right: 0.5rem;
         }
+    }
+
+    .v-markdown + .v-tooltip-shortcut {
+        margin-left: 1.25rem;
     }
 
     ::v-deep {

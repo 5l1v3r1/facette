@@ -8,7 +8,7 @@
                 icon="sync"
                 :icon-badge="!erred && options.refresh ? formatValue(options.refresh, {type: 'duration'}, 0) : null"
                 :disabled="loading || erred"
-                :tooltip="$t(`labels.${params.type}.refresh`)"
+                v-tooltip="$t(`labels.${params.type}.refresh`)"
             >
                 <template slot="dropdown">
                     <template v-if="options.refresh && modifiers.alt">
@@ -48,7 +48,7 @@
                 </template>
             </v-button>
 
-            <v-button icon="calendar-alt" :disabled="loading || erred" :tooltip="$t('labels.timeRange.set')">
+            <v-button icon="calendar-alt" :disabled="loading || erred" v-tooltip="$t('labels.timeRange.set')">
                 <v-flex class="timerange" v-if="timeRangeSynced">
                     <span>{{ $t("labels.timeRange.from") }}</span>
                     {{ absoluteRange ? formatDate(options.timeRange.from, undefined, false) : options.timeRange.from }}
@@ -123,7 +123,7 @@
                 class="icon"
                 dropdown-anchor="bottom-right"
                 icon="angle-down"
-                :tooltip="$t('labels.moreActions')"
+                v-tooltip="$t('labels.moreActions')"
                 v-if="dashboard"
             >
                 <template slot="dropdown">

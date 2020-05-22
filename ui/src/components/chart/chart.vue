@@ -15,7 +15,7 @@
                 <v-button
                     icon="calendar-alt"
                     :disabled="loading || erred"
-                    :tooltip="$t('labels.timeRange.set')"
+                    v-tooltip="$t('labels.timeRange.set')"
                     v-if="!autoPropagate"
                 >
                     <template slot="dropdown">
@@ -77,7 +77,7 @@
                     class="icon"
                     dropdown-anchor="bottom-right"
                     icon="angle-down"
-                    :tooltip="$t('labels.moreActions')"
+                    v-tooltip.nowrap="$t('labels.moreActions')"
                 >
                     <template slot="dropdown">
                         <v-button dropdown-anchor="right" icon="file-download">

@@ -5,7 +5,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.dashboards.goBack')]"
                 :to="prevRoute"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-if="prevRoute.name === 'dashboards-show'"
             >
                 {{ $t("labels.dashboards.goBack") }}
@@ -15,7 +15,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $tc('labels.goto.dashboards', 2)]"
                 :to="{name: 'admin-dashboards-list'}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-else
             >
                 {{ $tc("labels.goto.dashboards", 2) }}

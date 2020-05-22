@@ -110,7 +110,8 @@ class Components extends Vue {
 
     public set(key: string, payload: unknown): void {
         const data = get(this.data, key);
-        set(
+
+        this.$set(
             this.data,
             key,
             data instanceof Object && payload instanceof Object ? Object.assign({}, data, payload) : payload,

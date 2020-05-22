@@ -5,7 +5,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.charts.goBack')]"
                 :to="prevRoute"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-if="prevRoute.name === 'charts-show'"
             >
                 {{ $t("labels.charts.goBack") }}
@@ -15,7 +15,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $tc('labels.goto.charts', 2)]"
                 :to="{name: 'admin-charts-list'}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
                 v-else
             >
                 {{ $tc("labels.goto.charts", 2) }}

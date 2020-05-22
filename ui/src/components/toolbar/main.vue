@@ -3,7 +3,7 @@
         <v-button
             icon="bars"
             :shortcut="['t', $t('labels.toggleSidebar')]"
-            :tooltip="$t('labels.toggleSidebar')"
+            v-tooltip="$t('labels.toggleSidebar')"
             @click="toggleSidebar"
         ></v-button>
 
@@ -13,7 +13,12 @@
 
         <v-spacer></v-spacer>
 
-        <v-button class="icon" dropdown-anchor="bottom-right" icon="ellipsis-v" :tooltip="$t('labels.openMenu')">
+        <v-button
+            class="icon"
+            dropdown-anchor="bottom-right"
+            icon="ellipsis-v"
+            v-tooltip.nowrap="$t('labels.openMenu')"
+        >
             <template slot="dropdown">
                 <v-button
                     icon="cog"
@@ -22,7 +27,9 @@
                 >
                     {{ $t("labels.adminPanel") }}
                 </v-button>
+
                 <v-divider></v-divider>
+
                 <template v-if="fullscreenSupport">
                     <v-button
                         :icon="fullscreen ? 'compress' : 'expand'"
@@ -31,11 +38,14 @@
                     >
                         {{ $t(`labels.fullscreen.${fullscreen ? "leave" : "enter"}`) }}
                     </v-button>
+
                     <v-divider></v-divider>
                 </template>
+
                 <v-button icon="info-circle" :shortcut="['?', $t('labels.displayHelp')]" @click="displayHelp">
                     {{ $t("labels.help") }}
                 </v-button>
+
                 <v-button
                     icon="sliders-h"
                     :shortcut="['alt+,', $t('labels.goto.settings')]"

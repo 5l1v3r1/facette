@@ -5,7 +5,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.goto.home')]"
                 :to="{name: 'root'}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
             >
                 {{ $t("labels.goto.home") }}
             </v-button>

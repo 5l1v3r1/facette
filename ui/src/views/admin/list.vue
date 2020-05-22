@@ -6,9 +6,9 @@
         <v-toolbar clip="content">
             <v-button
                 icon="sync"
-                :tooltip="$t('labels.refresh.list')"
                 :shortcut="['r', $t('labels.refresh.list')]"
                 @click="getObjects"
+                v-tooltip="{message: $t('labels.refresh.list'), shortcut: 'r'}"
             ></v-button>
 
             <v-divider vertical></v-divider>
@@ -17,7 +17,7 @@
                 icon="plus"
                 :shortcut="['n', $t(`labels.${params.type}.new`)]"
                 :to="{name: 'admin-providers-edit', params: {id: 'new'}}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'n'}"
                 v-if="params.type === 'providers'"
             >
                 {{ $t("labels.providers.new") }}
@@ -82,8 +82,8 @@
                 icon="trash"
                 :disabled="selection.length === 0"
                 :shortcut="['d', $t('labels.delete')]"
-                :tooltip="''"
                 @click="deleteObjects(Object.values(selection.objects))"
+                v-tooltip="{shortcut: 'd'}"
             >
                 {{ $t("labels.delete") }}
             </v-button>
@@ -114,7 +114,11 @@
 
             <v-message class="selection" icon="clipboard-check" type="info" v-if="selection.length > 0">
                 {{ $tc(`messages.${params.type}.selected`, selection.length, [selection.length]) }}
-                <v-button icon="times-circle" :tooltip="$t('labels.clearSelection')" @click="clearSelection"></v-button>
+                <v-button
+                    icon="times-circle"
+                    @click="clearSelection"
+                    v-tooltip="$t('labels.clearSelection')"
+                ></v-button>
             </v-message>
 
             <v-tab-bar v-model="options.kind" v-if="templatable">

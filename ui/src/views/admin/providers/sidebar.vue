@@ -5,7 +5,7 @@
                 icon="arrow-left"
                 :shortcut="['alt+up', $t('labels.goto.providers')]"
                 :to="{name: 'admin-providers-list'}"
-                :tooltip="''"
+                v-tooltip="{shortcut: 'alt+up'}"
             >
                 {{ $t("labels.goto.providers") }}
             </v-button>

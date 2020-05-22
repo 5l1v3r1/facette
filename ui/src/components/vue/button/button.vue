@@ -3,7 +3,6 @@
         class="v-button"
         role="button"
         :aria-disabled="disabled"
-        :aria-label="tooltip"
         :class="{
             active,
             danger,
@@ -28,7 +27,6 @@
             @keydown.enter="onClick"
             @mouseenter="dropdown && inDropdown && onMouse($event)"
             @mouseleave="dropdown && inDropdown && onMouse($event)"
-            v-tooltip="!active && tooltip !== null ? {message: tooltip, shortcut} : null"
         >
             <v-icon :badge="iconBadge" :icon="icon" :spin="iconSpin" v-if="icon !== null"></v-icon>
 
@@ -107,9 +105,6 @@ export default class ButtonComponent extends Vue {
 
     @Prop({default: null, type: Object})
     public to!: Route | null;
-
-    @Prop({default: null, type: String})
-    public tooltip!: string;
 
     public active = false;
 

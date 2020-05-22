@@ -5,9 +5,9 @@
         <v-toolbar clip="content">
             <v-button
                 icon="sync"
-                :tooltip="$t('labels.refresh.list')"
                 :shortcut="['r', $t('labels.refresh.list')]"
                 @click="getMetrics"
+                v-tooltip="{message: $t('labels.refresh.list'), shortcut: 'r'}"
             ></v-button>
 
             <v-divider vertical></v-divider>
@@ -56,7 +56,11 @@
 
             <v-message class="selection" icon="clipboard-check" type="info" v-if="selection.length > 0">
                 {{ $tc("messages.metrics.selected", selection.length, [selection.length]) }}
-                <v-button icon="times-circle" :tooltip="$t('labels.clearSelection')" @click="clearSelection"></v-button>
+                <v-button
+                    icon="times-circle"
+                    @click="clearSelection"
+                    v-tooltip="$t('labels.clearSelection')"
+                ></v-button>
             </v-message>
 
             <v-message type="info" v-if="metrics.length === 0">{{ $t("messages.metrics.none") }}</v-message>

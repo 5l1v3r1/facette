@@ -15,6 +15,8 @@ interface ElementWithTooltip {
     _components: Components;
 }
 
+const anchors = ["bottom", "left", "right", "top"];
+
 let timeout: number | null = null;
 
 function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
@@ -41,7 +43,7 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
                     break;
 
                 case "object":
-                    message = wt._binding.value.message;
+                    message = wt._binding.value.message ?? null;
                     shortcut = wt._binding.value.shortcut?.[0] ?? null;
                     break;
 
@@ -53,10 +55,11 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
 
             timeout = setTimeout(() => {
                 wt._components.set("tooltip", {
-                    anchor: modifiers.length > 0 ? modifiers[modifiers.length - 1] : "bottom",
+                    anchor: modifiers.filter(mod => anchors.includes(mod))?.[0] ?? "bottom",
                     rect: this.getBoundingClientRect(),
                     message,
                     shortcut,
+                    wrap: !modifiers.includes("nowrap"),
                 } as TooltipState);
             }, 750);
 
