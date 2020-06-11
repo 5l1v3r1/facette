@@ -87,7 +87,7 @@ export default class SidebarComponent extends Vue {
     }
 
     > .v-label {
-        color: var(--gray);
+        color: var(--light-gray);
         letter-spacing: 0.1rem;
         margin: 0.75rem 0 0.25rem;
         padding: 0 1.5rem;

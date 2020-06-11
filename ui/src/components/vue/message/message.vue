@@ -77,7 +77,7 @@ export default class MessageComponent extends Vue {
 
     .v-icon {
         font-size: 1.1rem;
-        margin-right: 0.75rem;
+        margin-right: 0.65rem;
     }
 }
 </style>

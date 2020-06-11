@@ -42,9 +42,10 @@
             <h1>{{ $t("labels.keyboard.shortcuts._") }}</h1>
 
             <v-form>
-                <v-markdown @click.native="onHelpClick">
-                    {{ $t("help.keyboard.shortcuts", ["#keyboard"]) }}
-                </v-markdown>
+                <v-markdown
+                    :source="$t('help.keyboard.shortcuts', ['#keyboard'])"
+                    @click.native="onHelpClick"
+                ></v-markdown>
 
                 <v-checkbox toggle v-model="settings.shortcuts">
                     {{ $t("labels.keyboard.shortcuts.enable") }}

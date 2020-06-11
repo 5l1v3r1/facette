@@ -1,11 +1,11 @@
 <template>
-    <div class="v-markdown" v-html="rendered"></div>
+    <div class="v-markdown" v-html="html"></div>
 </template>
 
 <script lang="ts">
 import DOMPurify from "dompurify";
 import marked from "marked";
-import {Component, Vue} from "vue-property-decorator";
+import {Component, Prop, Vue} from "vue-property-decorator";
 
 DOMPurify.addHook("afterSanitizeAttributes", node => {
     if (node.tagName === "A") {
@@ -21,13 +21,11 @@ DOMPurify.addHook("afterSanitizeAttributes", node => {
 
 @Component
 export default class MarkdownComponent extends Vue {
-    public get rendered(): string {
-        let text: string = this.$slots.default?.[0].text?.trim() ?? "";
-        if (text) {
-            text = DOMPurify.sanitize(marked(text));
-        }
+    @Prop({required: true, type: String})
+    public source!: string;
 
-        return text;
+    public get html(): string {
+        return DOMPurify.sanitize(marked(this.source.trim()));
     }
 }
 </script>

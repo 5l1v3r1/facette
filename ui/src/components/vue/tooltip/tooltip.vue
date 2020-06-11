@@ -6,7 +6,7 @@
         @mouseleave="onMouse"
         v-if="state"
     >
-        <v-markdown v-if="state.message">{{ state.message }}</v-markdown>
+        <v-markdown :source="state.message" v-if="state.message"></v-markdown>
 
         <span class="v-tooltip-shortcut" v-if="shortcutsEnabled && state.shortcut">
             <v-icon icon="keyboard"></v-icon>
@@ -27,9 +27,9 @@ export default class TooltipComponent extends Vue {
     @Prop({required: true, validator: (v): boolean => typeof v === "object" || v === null})
     public value!: TooltipState | null;
 
-    private locked: TooltipState | null = null;
-
     public shortcutLabel: (keys: Array<string>) => string = shortcutLabel;
+
+    private locked: TooltipState | null = null;
 
     public get anchor(): string {
         return this.state?.anchor ?? "bottom";
@@ -37,10 +37,10 @@ export default class TooltipComponent extends Vue {
 
     @Watch("value")
     public onChange(to: TooltipState | null): void {
-        if (this.locked) {
-            return;
-        } else if (to === null) {
-            Object.assign((this.$el as HTMLElement).style, {visibility: null});
+        if (to === null) {
+            if (this.locked === null) {
+                Object.assign((this.$el as HTMLElement).style, {visibility: null});
+            }
             return;
         }
 

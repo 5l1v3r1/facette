@@ -33,9 +33,19 @@ function toggle(this: HTMLElement, e: MouseEvent | null = null): void {
     }
 
     switch (e.type) {
+        case "click": {
+            // Remove tooltip if element became active (useful for dropdown
+            // menus)
+            if ((e.target as HTMLElement).closest(".v-button.active") !== null) {
+                wt._components.set("tooltip", null);
+            }
+
+            break;
+        }
+
         case "mouseenter": {
             // Skip tooltip if element is active (useful for dropdown menus)
-            if ((e.target as HTMLElement).classList.contains("active")) {
+            if ((e.target as HTMLElement).closest(".v-button.active") !== null) {
                 wt._components.set("tooltip", null);
                 return;
             }
@@ -91,6 +101,7 @@ function bind(el: HTMLElement, binding: DirectiveBinding, vnode: VNode): void {
         wt._binding = binding;
         wt._components = (vnode.context as Vue).$components;
 
+        el.addEventListener("click", toggle.bind(el));
         el.addEventListener("mouseenter", toggle.bind(el));
         el.addEventListener("mouseleave", toggle.bind(el));
     }
@@ -103,6 +114,7 @@ function unbind(el: HTMLElement): void {
         toggle.bind(el)(null);
     }
 
+    el.removeEventListener("click", toggle);
     el.removeEventListener("mouseenter", toggle);
     el.removeEventListener("mouseleave", toggle);
 }
