@@ -23,7 +23,7 @@ export function labelsToString(labels: Labels): string {
     delete ls._hash;
 
     if (ls) {
-        s += `{${Object.keys(ls).map((key: string) => `${key}=${JSON.stringify(ls[key])}`)}}`;
+        s += `{${Object.keys(ls).map(key => `${key}=${JSON.stringify(ls[key])}`)}}`;
     }
 
     return s;

@@ -9,7 +9,7 @@ import kebabCase from "lodash/kebabCase";
 import Vue, {VueConstructor} from "vue";
 
 export function registerComponents(components: Record<string, VueConstructor>): void {
-    Object.keys(components).forEach((key: string) =>
+    Object.keys(components).forEach(key =>
         Vue.component(`v-${kebabCase(key.replace(/Component$/, ""))}`, components[key]),
     );
 }

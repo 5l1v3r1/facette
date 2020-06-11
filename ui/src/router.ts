@@ -9,7 +9,7 @@ import isEqual from "lodash/isEqual";
 import Vue from "vue";
 import {HttpResponse} from "vue-resource/types/vue_resource";
 import VueRouter, {Route, RouteConfig} from "vue-router";
-import {Dictionary} from "vue-router/types/router";
+import {Dictionary, NavigationGuardNext} from "vue-router/types/router";
 
 Vue.use(VueRouter);
 
@@ -43,8 +43,7 @@ const router = new VueRouter({
 
 export default router;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-router.beforeEach((to: Route, from: Route, next: any) => {
+router.beforeEach((to: Route, from: Route, next: NavigationGuardNext<Vue>) => {
     if (from.name !== null && to.name !== from.name && !isEqual(to.params, from.params)) {
         store.commit("prevRoute", from);
     }
@@ -79,7 +78,7 @@ export function updateRouteQuery(route: Route, q: Dictionary<string>, push = fal
 
     if (Object.keys(q).length > 0) {
         url += `?${Object.keys(q)
-            .map((k: string) => `${k}=${q[k]}`)
+            .map(k => `${k}=${q[k]}`)
             .join("&")}`;
     }
 

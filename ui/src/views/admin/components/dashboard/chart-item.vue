@@ -55,7 +55,7 @@ export default class ChartItemComponent extends Vue {
             .then(
                 (response: APIResponse<Array<Chart>>) => {
                     if (response.data) {
-                        this.charts = response.data.map((chart: Chart) => ({label: chart.name, value: chart.id}));
+                        this.charts = response.data.map(chart => ({label: chart.name, value: chart.id}));
                     }
                     this.loading = false;
                 },

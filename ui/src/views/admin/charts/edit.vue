@@ -583,7 +583,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public get types(): Array<SelectOption> {
-        return types.map((option: SelectOption) => resolveOption(this, option));
+        return types.map(option => resolveOption(this, option));
     }
 
     public get validity(): boolean {
@@ -612,7 +612,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             .then(response => response.json())
             .then((response: APIResponse<Array<Chart>>) => {
                 if (response.data) {
-                    this.templates = response.data.map((chart: Chart) => ({label: chart.name, value: chart.id}));
+                    this.templates = response.data.map(chart => ({label: chart.name, value: chart.id}));
                 }
             });
     }

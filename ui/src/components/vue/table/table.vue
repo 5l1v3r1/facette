@@ -90,7 +90,7 @@ export default class TableComponent extends Vue {
             return;
         }
 
-        const selection: Array<unknown> = this.value.filter((_: unknown, index: number) => this.selection.items[index]);
+        const selection: Array<unknown> = this.value.filter((_, index) => this.selection.items[index]);
         this.selection.all = selection.length > 0 && selection.length === this.value.length;
         this.$emit("selection", selection);
     }

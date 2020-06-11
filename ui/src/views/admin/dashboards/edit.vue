@@ -463,7 +463,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             .then(response => response.json())
             .then((response: APIResponse<Array<Dashboard>>) => {
                 if (response.data) {
-                    this.templates = response.data.map((dashboard: Dashboard) => ({
+                    this.templates = response.data.map(dashboard => ({
                         label: dashboard.name,
                         value: dashboard.id,
                     }));
@@ -521,7 +521,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                         return;
                     }
 
-                    response.data?.forEach((result: BulkResult, index: number) => {
+                    response.data?.forEach((result, index) => {
                         switch (types[index]) {
                             case "chart": {
                                 const chart = result.response.data as Chart;

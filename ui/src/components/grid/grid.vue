@@ -386,7 +386,7 @@ export default class GridComponent extends Mixins<CustomMixins>(CustomMixins) {
             Array(this.layout.columns).fill(null),
         );
 
-        this.value.forEach((item: unknown, index: number) => {
+        this.value.forEach((item, index) => {
             const layout: GridItemLayout = (item as ItemWithLayout).layout;
             for (let y = layout.y; y < layout.y + layout.h; y++) {
                 for (let x = layout.x; x < layout.x + layout.w; x++) {

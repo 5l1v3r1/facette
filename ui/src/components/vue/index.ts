@@ -151,11 +151,9 @@ export default function Install(vue: typeof Vue, options?: ComponentsOptions): v
         $components: comp,
     });
 
-    Object.keys(components).forEach((key: string) =>
+    Object.keys(components).forEach(key =>
         vue.component(`v-${kebabCase(key.replace(/Component$/, ""))}`, components[key]),
     );
 
-    Object.keys(directives).forEach((key: string) =>
-        vue.directive(kebabCase(key.replace(/Directive$/, "")), directives[key]),
-    );
+    Object.keys(directives).forEach(key => vue.directive(kebabCase(key.replace(/Directive$/, "")), directives[key]));
 }

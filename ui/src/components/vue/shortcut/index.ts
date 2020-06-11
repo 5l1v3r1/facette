@@ -121,7 +121,7 @@ function bind(el: HTMLElement, binding: DirectiveBinding, vnode: VNode): void {
     const keys: Array<string> = [...origKeys];
     const modifiers: Record<string, boolean> = {};
 
-    ["alt", "control", "meta", "shift"].forEach((key: string) => {
+    ["alt", "control", "meta", "shift"].forEach(key => {
         const index = keys.indexOf(key);
         modifiers[key] = index !== -1;
         if (modifiers[key]) {
@@ -156,7 +156,7 @@ export function shortcutLabel(value: string | Array<string>): string {
     }
 
     return splitValue(value)
-        .map((key: string) => {
+        .map(key => {
             switch (platform) {
                 case "mac":
                     if (macSymbols[key]) {

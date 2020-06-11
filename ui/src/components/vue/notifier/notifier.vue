@@ -103,7 +103,7 @@ export default class NotifierComponent extends Vue {
         const mesg: Notification = {text, type, icon};
 
         const index = this.queue
-            .map((n: Notification) => Object.values(n).join("\x1e"))
+            .map(notification => Object.values(notification).join("\x1e"))
             .indexOf(Object.values(mesg).join("\x1e"));
 
         if (index !== -1) {

@@ -5,12 +5,11 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {Route} from "vue-router";
+import {NavigationGuardNext, Route} from "vue-router";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function beforeRoute(this: Vue, to: Route, from: Route, next: any): void {
+export function beforeRoute(this: Vue, to: Route, from: Route, next: NavigationGuardNext<Vue>): void {
     if (to.path === from.path || !this.$store.getters.routeGuarded) {
         next();
         return;

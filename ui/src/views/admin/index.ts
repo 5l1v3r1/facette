@@ -42,7 +42,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "dashboards"}),
+            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
         },
     },
     {
@@ -54,7 +54,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "dashboards"}),
+            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
         },
     },
     {
@@ -66,7 +66,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "charts"}),
+            default: (route: Route): void => defineParams(route, {type: "charts"}),
         },
     },
     {
@@ -78,7 +78,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "charts"}),
+            default: (route: Route): void => defineParams(route, {type: "charts"}),
         },
     },
     {
@@ -99,7 +99,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "providers"}),
+            default: (route: Route): void => defineParams(route, {type: "providers"}),
         },
     },
     {
@@ -111,7 +111,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "providers"}),
+            default: (route: Route): void => defineParams(route, {type: "providers"}),
         },
     },
     {

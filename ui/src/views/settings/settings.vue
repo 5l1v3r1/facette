@@ -102,7 +102,7 @@ export default class Display extends Mixins<CustomMixins>(CustomMixins) {
     public get locales(): Array<SelectOption> {
         return Object.keys(this.$i18n.messages)
             .sort()
-            .map((name: string) => ({label: this.$t("name", name) as string, value: name}));
+            .map(name => ({label: this.$t("name", name) as string, value: name}));
     }
 
     public onHelpClick(e: MouseEvent): void {
@@ -165,11 +165,11 @@ export default class Display extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public get themes(): Array<SelectOption> {
-        return Object.keys(themes).map((key: string) => ({label: themes[key].name, value: key}));
+        return Object.keys(themes).map(key => ({label: themes[key].name, value: key}));
     }
 
     public get timezones(): Array<SelectOption> {
-        return timezones.map((option: SelectOption) => resolveOption(this, option));
+        return timezones.map(option => resolveOption(this, option));
     }
 }
 </script>

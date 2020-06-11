@@ -145,9 +145,7 @@ export default class SelectComponent extends Vue {
         }
 
         this.filteredOptions =
-            to && this.options
-                ? this.options.filter((option: SelectOption) => option.label.toLowerCase().indexOf(to) !== -1)
-                : [];
+            to && this.options ? this.options.filter(option => option.label.toLowerCase().indexOf(to) !== -1) : [];
 
         if (this.active > this.filteredOptions.length - 1) {
             this.active = 0;
@@ -209,9 +207,7 @@ export default class SelectComponent extends Vue {
     }
 
     public open(): void {
-        const active = this.options
-            ? this.options.findIndex((option: SelectOption) => option.value === this.value)
-            : -1;
+        const active = this.options ? this.options.findIndex(option => option.value === this.value) : -1;
 
         this.active = active !== -1 ? active : 0;
         this.opened = true;

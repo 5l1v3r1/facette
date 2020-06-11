@@ -450,7 +450,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
                             if (response.data) {
                                 this.dashboardRefs = mapReferences(
-                                    response.data.map((result: BulkResult, index: number) => ({
+                                    response.data.map((result, index) => ({
                                         type: types[index],
                                         value: result.response.data,
                                     })),

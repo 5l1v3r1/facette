@@ -282,7 +282,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                         if (index === 0) {
                             out += `name,${keys.join(",")}\n`;
                         }
-                        return `${out}"${series.name}",${keys.map((k: string) => series.summary[k]).join(",")}\n`;
+                        return `${out}"${series.name}",${keys.map(k => series.summary[k]).join(",")}\n`;
                     }, "");
 
                     data = `data:text/csv;charset=utf-8,${encodeURIComponent(summary)}`;
@@ -489,10 +489,10 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                   }, [])
                 : [];
 
-            series = this.data.series.map((series: Series, index: number) => {
+            series = this.data.series.map((series, index) => {
                 const bs: BoulaSeries = {
                     name: series.name,
-                    points: series.points.map((p: Point) => ({0: p[0] * 1000, 1: p[1]})),
+                    points: series.points.map(p => ({0: p[0] * 1000, 1: p[1]})),
                 };
 
                 if (disabledSeries.includes(series.name)) {
@@ -502,7 +502,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 const options: ChartSeriesOptions | undefined = this.value.series
                     ? this.value.series[index]?.options
                     : undefined;
-                if (options && options.color) {
+
+                if (options?.color) {
                     bs.color = options.color;
                 }
 
@@ -564,7 +565,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     if (this.chart) {
                         const defaultColors = this.chart.config.colors as Array<string>;
                         this.chartColors = this.chart.config.series.map(
-                            (s: BoulaSeries, index: number) => s.color || defaultColors[index % defaultColors.length],
+                            (s, index) => s.color || defaultColors[index % defaultColors.length],
                         );
                     }
                 },

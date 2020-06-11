@@ -87,7 +87,7 @@ export class CustomMixins extends Vue {
         this.unguard();
 
         this.unwatchGuard = this.$watch(
-            () => expOrFn.map((s: string) => (this as Record<string, unknown>)[s]),
+            () => expOrFn.map(s => (this as Record<string, unknown>)[s]),
             () => {
                 this.guard(true);
                 this.guardUnwatch();
@@ -97,7 +97,7 @@ export class CustomMixins extends Vue {
     }
 
     public handleError(handler: (() => void) | null = null, commit = false): (response: HttpResponse) => void {
-        return (response: HttpResponse) => {
+        return (response: HttpResponse): void => {
             if (commit) {
                 let error: APIError = "unhandled";
 

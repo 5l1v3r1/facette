@@ -41,7 +41,7 @@ class Template {
 
     public render(data: Record<string, string>): string {
         return this.nodes
-            .map((node: TemplateNode) => {
+            .map(node => {
                 switch (node.type) {
                     case "text":
                         return node.value;

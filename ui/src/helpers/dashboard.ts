@@ -58,7 +58,7 @@ export async function resolveVariables(
                     return;
                 }
 
-                response.data?.forEach((result: BulkResult, index: number) => {
+                response.data?.forEach((result, index) => {
                     data[labels[index]] = result.response.data as Array<string>;
                 });
             });

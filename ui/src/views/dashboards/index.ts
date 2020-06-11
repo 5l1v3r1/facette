@@ -26,7 +26,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "dashboards"}),
+            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
         },
     },
     {
@@ -38,7 +38,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "dashboards"}),
+            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
         },
     },
     {
@@ -50,7 +50,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "basket"}),
+            default: (route: Route): void => defineParams(route, {type: "basket"}),
         },
     },
     {
@@ -62,7 +62,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route) => defineParams(route, {type: "charts"}),
+            default: (route: Route): void => defineParams(route, {type: "charts"}),
         },
     },
 ];

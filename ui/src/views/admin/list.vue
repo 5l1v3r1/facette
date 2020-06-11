@@ -620,9 +620,9 @@ export default class List extends Mixins<CustomMixins>(CustomMixins) {
             let parts: Array<string> = this.options.filter.split(" ");
 
             if (this.params.type === "providers") {
-                parts = parts.filter((part: string) => !part.startsWith("enabled:"));
+                parts = parts.filter(part => !part.startsWith("enabled:"));
 
-                const enabled: string | undefined = parts.filter((part: string) => part.startsWith("enabled:"))[0];
+                const enabled: string | undefined = parts.filter(part => part.startsWith("enabled:"))[0];
                 if (enabled) {
                     params.enabled = `${enabled.substr(8)}`;
                 }
