@@ -54,7 +54,7 @@
                 <span class="count" v-if="total">{{ total }}</span>
             </h1>
 
-            <v-message class="selection" icon="clipboard-check" type="info" v-if="selection.length > 0">
+            <v-message class="selection" icon="clipboard-list" type="info" v-if="selection.length > 0">
                 {{ $tc("messages.metrics.selected", selection.length, [selection.length]) }}
                 <v-button
                     icon="times-circle"

@@ -161,7 +161,9 @@
                     <v-toolbar>
                         <v-button icon="plus" @click="addFilter">{{ $t("labels.filters.add") }}</v-button>
                         <v-spacer></v-spacer>
-                        <v-message icon="info-circle" type="note">{{ $t("messages.labels.emptyDiscarded") }}</v-message>
+                        <v-message icon="question-circle" type="note">
+                            {{ $t("messages.labels.emptyDiscarded") }}
+                        </v-message>
                     </v-toolbar>
                 </v-form>
             </template>

@@ -46,6 +46,13 @@
             }
         }
 
+        > .v-checkbox,
+        > .v-label,
+        .v-flex > .v-checkbox,
+        .v-flex > .v-label {
+            margin-top: 0.75rem;
+        }
+
         .v-input,
         .v-select {
             width: 100%;
@@ -59,11 +66,6 @@
         > .v-flex + h2,
         > .v-flex + .v-flex > h2 {
             margin-top: 2rem;
-        }
-
-        > .v-checkbox,
-        > .v-label {
-            margin-top: 0.75rem;
         }
     }
 
@@ -109,6 +111,10 @@
                     outline: none;
                     text-decoration: underline;
                 }
+            }
+
+            .more {
+                text-align: right;
             }
 
             .reveal {

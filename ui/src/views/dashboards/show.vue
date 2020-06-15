@@ -123,7 +123,7 @@
                 class="icon"
                 dropdown-anchor="bottom-right"
                 icon="angle-down"
-                v-tooltip="$t('labels.moreActions')"
+                v-tooltip.nowrap="$t('labels.moreActions')"
                 v-if="dashboard"
             >
                 <template slot="dropdown">
