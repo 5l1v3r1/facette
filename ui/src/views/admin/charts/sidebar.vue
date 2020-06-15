@@ -48,7 +48,15 @@
                     </v-button>
 
                     <v-button exact :to="{name: 'admin-charts-edit', params: {id: params.id}, hash: '#axes'}">
-                        {{ $t("labels.charts.axes._") }}
+                        {{ $tc("labels.charts.axes._", 2) }}
+                    </v-button>
+
+                    <v-button
+                        exact
+                        :badge="markers || null"
+                        :to="{name: 'admin-charts-edit', params: {id: params.id}, hash: '#markers'}"
+                    >
+                        {{ $tc("labels.markers._", 2) }}
                     </v-button>
                 </template>
 
@@ -76,6 +84,8 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public loading = true;
 
+    public markers: number | null = null;
+
     public series: number | null = null;
 
     public validity: Record<string, boolean> = {};
@@ -98,11 +108,16 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
         return this.params.id !== "link" && this.params.id !== "new";
     }
 
-    public onChartUpdated(link: boolean, series: number | null, variables: number | null): void {
+    public onChartUpdated(
+        link: boolean,
+        markers: number | null,
+        series: number | null,
+        variables: number | null,
+    ): void {
         if (this.loading) {
             this.loading = false;
         }
-        Object.assign(this, {link, series, variables});
+        Object.assign(this, {link, markers, series, variables});
     }
 
     public onChartValidity(validity: Record<string, boolean>): void {

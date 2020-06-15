@@ -7,7 +7,7 @@
 
             <input
                 ref="input"
-                :placeholder="$t('labels.auto')"
+                :placeholder="$t('labels.default')"
                 :value="value"
                 @focus="onFocus"
                 @focusout="onFocus"
@@ -90,8 +90,6 @@ export default class ColorComponent extends Vue {
 
 .v-color {
     @include input;
-
-    min-width: auto;
 
     .v-color-placeholder {
         align-items: center;

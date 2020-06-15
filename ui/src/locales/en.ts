@@ -74,7 +74,6 @@ export default {
 
     labels: {
         adminPanel: "Administration panel",
-        auto: "Automatic",
         basket: {
             _: "Basket",
             add: "Add to basket",
@@ -89,9 +88,12 @@ export default {
         charts: {
             _: "Chart|Charts",
             axes: {
-                _: "Axes",
+                _: "Axis|Axes",
+                left: "Left",
                 max: "Max",
                 min: "Min",
+                right: "Right",
+                select: "Select an axis…",
                 x: "X",
                 yLeft: "Left Y",
                 yRight: "Right Y",
@@ -152,6 +154,7 @@ export default {
                 chart: "Chart",
             },
         },
+        default: "Default",
         delete: "Delete",
         display: "Display",
         displayHelp: "Display this help",
@@ -222,6 +225,12 @@ export default {
         layout: "Layout",
         leavePage: "Leave page",
         library: "Library",
+        markers: {
+            _: "Marker|Markers",
+            add: "Add marker",
+            edit: "Edit marker",
+            remove: "Remove marker",
+        },
         metrics: {
             _: "Metric|Metrics",
             filter: "Filter metrics",
@@ -393,6 +402,9 @@ export default {
             emptyDiscarded: "Labels having empty values will be discarded",
         },
         lastModified: "Last modified on {0}",
+        markers: {
+            none: "No markers defined",
+        },
         metrics: {
             none: "No metrics found",
             selected: "{0} metric selected|{0} metrics selected",
@@ -424,6 +436,7 @@ export default {
             },
         },
         series: {
+            emptyAxis: "No series have been associated with this axis",
             none: "No series defined",
         },
         settings: {

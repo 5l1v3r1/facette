@@ -11,6 +11,7 @@ import ColorComponent from "./color/color.vue";
 import FormChartYaxisComponent from "./form/chart-yaxis.vue";
 import FormTemplateVariablesComponent from "./form/template-variables.vue";
 import LabelsComponent from "./labels/labels.vue";
+import ModalChartMarkerComponent from "./modal/chart-marker.vue";
 import ModalChartPreviewComponent from "./modal/chart-preview.vue";
 import ModalChartSeriesComponent from "./modal/chart-series.vue";
 import ModalDashboardItemComponent from "./modal/dashboard-item.vue";
@@ -22,6 +23,7 @@ registerComponents({
     FormChartYaxisComponent,
     FormTemplateVariablesComponent,
     LabelsComponent,
+    ModalChartMarkerComponent,
     ModalChartPreviewComponent,
     ModalChartSeriesComponent,
     ModalDashboardItemComponent,

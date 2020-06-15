@@ -128,7 +128,8 @@
 </template>
 
 <script lang="ts">
-import Boula, {Config as BoulaConfig, Marker as BoulaMarker, Series as BoulaSeries} from "@facette/boula";
+import Boula from "@facette/boula";
+import * as boula from "@facette/boula";
 import * as d3 from "d3";
 import dayjs from "dayjs";
 import cloneDeep from "lodash/cloneDeep";
@@ -209,11 +210,9 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
 
     public ranges = ranges;
 
-    private chart: Boula | null = null;
+    private chart: boula.Chart | null = null;
 
     private domRect: DOMRect | null = null;
-
-    private markers: Record<string, BoulaMarker> = {};
 
     private intersection: IntersectionObserver | null = null;
 
@@ -230,6 +229,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     public mounted(): void {
         this.checkSlots();
 
+        this.$root.$on("item-cursor", this.onCursor);
         this.$root.$on("item-refresh", this.onRefresh);
         this.$root.$on("item-timerange", this.onTimeRange);
 
@@ -249,6 +249,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public beforeDestroy(): void {
+        this.$root.$off("item-cursor", this.onCursor);
         this.$root.$off("item-refresh", this.onRefresh);
         this.$root.$off("item-timerange", this.onTimeRange);
 
@@ -473,25 +474,52 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
             return;
         }
 
-        const markers: Array<BoulaMarker> = Object.values(this.markers);
-        this.value.options?.axes?.y?.left?.constants?.forEach(constant => {
-            markers.push({label: constant.label || true, y: constant.value});
+        const markers: Array<boula.Marker> = [];
+        this.value.options?.markers?.forEach(marker => {
+            markers.push({
+                value: marker.value,
+                label: marker.label || true,
+                color: marker.color,
+                axis: marker.axis,
+            });
         });
 
-        let series: Array<BoulaSeries>;
+        let min = NaN;
+        let max = NaN;
+
+        this.data?.series?.forEach(series => {
+            series?.points?.forEach(point => {
+                if (point[1]) {
+                    min = isNaN(min) ? point[1] : Math.min(min, point[1]);
+                    max = isNaN(max) ? point[1] : Math.max(max, point[1]);
+                }
+            });
+        });
+
+        const axisMin = this.value.options?.axes?.y?.left?.min;
+        if (axisMin !== undefined && min < axisMin) {
+            markers.push({dashed: true, value: axisMin});
+        }
+
+        const axisMax = this.value.options?.axes?.y?.left?.max;
+        if (axisMax !== undefined && max > axisMax) {
+            markers.push({dashed: true, value: axisMax});
+        }
+
+        let series: Array<boula.Series>;
         if (this.data?.series) {
             const disabledSeries: Array<string> = this.chart
-                ? this.chart.config.series.reduce((names: Array<string>, s: BoulaSeries) => {
-                      if (s.disabled && s.name) {
-                          names.push(s.name);
+                ? this.chart.config.series.reduce((names: Array<string>, s: boula.Series) => {
+                      if (s.disabled && s.label) {
+                          names.push(s.label);
                       }
                       return names;
                   }, [])
                 : [];
 
             series = this.data.series.map((series, index) => {
-                const bs: BoulaSeries = {
-                    name: series.name,
+                const bs: boula.Series = {
+                    label: series.name,
                     points: series.points.map(p => ({0: p[0] * 1000, 1: p[1]})),
                 };
 
@@ -507,15 +535,20 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     bs.color = options.color;
                 }
 
+                if (options?.axis) {
+                    bs.axis = options.axis;
+                }
+
                 return bs;
             });
         } else {
             series = [];
         }
 
-        const config: BoulaConfig = {
+        const config: boula.Config = {
             axes: {
                 x: {
+                    draw: this.value?.options?.axes?.x?.show ?? true,
                     grid: false,
                     max: (this.data && this.parseDate(this.data.to).valueOf()) || undefined,
                     min: (this.data && this.parseDate(this.data.from).valueOf()) || undefined,
@@ -544,16 +577,31 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 },
                 y: {
                     center: this.value.options?.axes?.y?.center ?? false,
-                    stack: this.value.options?.axes?.y?.left?.stack || false,
-                    label: {
-                        text: this.value.options?.axes?.y?.left?.label,
+                    left: {
+                        draw: this.value?.options?.axes?.y?.left?.show ?? true,
+                        max: this.value.options?.axes?.y?.left?.max,
+                        min: this.value.options?.axes?.y?.left?.min,
+                        label: {
+                            text: this.value.options?.axes?.y?.left?.label,
+                        },
+                        ticks: {
+                            draw: false,
+                            format: v => this.formatValue(v, this.value.options?.axes?.y?.left?.unit),
+                        },
                     },
-                    max: this.value.options?.axes?.y?.left?.max,
-                    min: this.value.options?.axes?.y?.left?.min,
-                    ticks: {
-                        draw: false,
-                        format: v => this.formatValue(v, this.value.options?.axes?.y?.left?.unit),
+                    right: {
+                        draw: this.value?.options?.axes?.y?.right?.show ?? true,
+                        max: this.value.options?.axes?.y?.right?.max,
+                        min: this.value.options?.axes?.y?.right?.min,
+                        label: {
+                            text: this.value.options?.axes?.y?.right?.label,
+                        },
+                        ticks: {
+                            draw: false,
+                            format: v => this.formatValue(v, this.value.options?.axes?.y?.right?.unit),
+                        },
                     },
+                    stack: this.value.options?.axes?.y?.stack || false,
                 },
             },
             bindTo: refChart,
@@ -569,8 +617,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                         );
                     }
                 },
-                cursorMove: (date: Date | null) => {
-                    this.$root.$emit("item-cursor", date, this.$el);
+                cursor: (date: Date | null) => {
+                    this.$root.$emit("item-cursor", this.$el, date);
                 },
                 select: (from: Date, to: Date) => {
                     if (to > from) {
@@ -645,6 +693,12 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         );
 
         this.resize.observe(this.$refs.chart as HTMLElement);
+    }
+
+    private onCursor(target: Element | null, date: Date | null): void {
+        if (target === null || target !== this.$el) {
+            (this.chart?.components?.cursor as boula.Component & {move: (date: Date | null) => void}).move(date);
+        }
     }
 
     private onRefresh(target: Element | null = null): void {
@@ -873,11 +927,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     ::v-deep {
-        .selection {
-            box-sizing: content-box;
-        }
-
-        .tooltip {
+        .chart-tooltip {
             z-index: 700;
         }
     }

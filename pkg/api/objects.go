@@ -169,6 +169,7 @@ func (c Chart) Variables() ([]string, error) {
 // +store:generate=type
 type ChartOptions struct {
 	Axes      *ChartAxes         `json:"axes,omitempty"`
+	Markers   []Marker           `json:"markers,omitempty"`
 	Title     string             `json:"title,omitempty"`
 	Type      ChartType          `json:"type,omitempty"`
 	Variables []TemplateVariable `json:"variables,omitempty"`
@@ -182,7 +183,7 @@ type ChartAxes struct {
 
 // ChartXAxis are chart X axis options.
 type ChartXAxis struct {
-	Show bool `json:"show,omitempty"`
+	Show bool `json:"show"`
 }
 
 // ChartYAxes are chart Y axes options.
@@ -194,19 +195,12 @@ type ChartYAxes struct {
 
 // ChartYAxis are chart Y axis options.
 type ChartYAxis struct {
-	Show      bool       `json:"show,omitempty"`
-	Constants []Constant `json:"constants,omitempty"`
-	Label     string     `json:"label,omitempty"`
-	Max       *float64   `json:"max,omitempty"`
-	Min       *float64   `json:"min,omitempty"`
-	Stack     StackMode  `json:"stack,omitempty"`
-	Unit      *Unit      `json:"unit,omitempty"`
-}
-
-// Constant is a chart series constant.
-type Constant struct {
-	Label string       `json:"label,omitempty"`
-	Value series.Value `json:"value"`
+	Show  bool      `json:"show"`
+	Label string    `json:"label,omitempty"`
+	Max   *float64  `json:"max,omitempty"`
+	Min   *float64  `json:"min,omitempty"`
+	Stack StackMode `json:"stack,omitempty"`
+	Unit  *Unit     `json:"unit,omitempty"`
 }
 
 // StackMode is a chart series stacking mode.
@@ -251,6 +245,14 @@ const (
 	ChartLine ChartType = "line"
 )
 
+// Marker is a chart series marker.
+type Marker struct {
+	Value series.Value `json:"value"`
+	Label string       `json:"label,omitempty"`
+	Color string       `json:"color,omitempty"`
+	Axis  string       `json:"axis,omitempty"`
+}
+
 // Unit is a chart unit.
 type Unit struct {
 	Type UnitType `json:"type"`
@@ -293,6 +295,7 @@ type Series struct {
 // SeriesOptions are chart series options.
 type SeriesOptions struct {
 	Color string `json:"color,omitempty"`
+	Axis  string `json:"axis,omitempty"`
 }
 
 // ChartList is a list of chart API objects.

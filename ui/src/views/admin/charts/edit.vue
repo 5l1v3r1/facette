@@ -1,5 +1,6 @@
 <template>
     <v-content :class="{compact: !erred && section === 'layout'}">
+        <v-modal-chart-marker></v-modal-chart-marker>
         <v-modal-chart-series></v-modal-chart-series>
         <v-modal-confirm></v-modal-confirm>
         <v-modal-template-variable :allow-fixed="link"></v-modal-template-variable>
@@ -136,6 +137,7 @@
                         <v-table class="fixed" draggable v-model="chart.series" v-else>
                             <template slot="header">
                                 <v-table-cell>{{ $tc("labels.series._", 2) }}</v-table-cell>
+                                <v-table-cell>{{ $tc("labels.charts.axes._", 1) }}</v-table-cell>
                                 <v-table-cell class="more"></v-table-cell>
                             </template>
 
@@ -145,6 +147,16 @@
                                     <span class="monospace truncate" v-tooltip="series.value.expr">
                                         {{ series.value.expr }}
                                     </span>
+                                </v-table-cell>
+
+                                <v-table-cell>
+                                    {{
+                                        $t(
+                                            `labels.charts.axes.${
+                                                (series.value.options && series.value.options.axis) || "left"
+                                            }`,
+                                        )
+                                    }}
                                 </v-table-cell>
 
                                 <v-table-cell class="more">
@@ -171,18 +183,28 @@
                 </template>
 
                 <template v-else-if="section === 'axes'">
-                    <h1>{{ $t("labels.charts.axes._") }}</h1>
+                    <h1>{{ $tc("labels.charts.axes._", 2) }}</h1>
 
                     <v-form>
                         <v-flex class="columns">
                             <v-flex direction="column">
                                 <h2>{{ $t("labels.charts.axes.yLeft") }}</h2>
+
                                 <v-form-chart-yaxis :axis="chart.options.axes.y.left"></v-form-chart-yaxis>
+
+                                <v-message type="info" v-if="chart.options.axes.y.left.show && !seriesAxes.left">
+                                    {{ $t("messages.series.emptyAxis") }}
+                                </v-message>
                             </v-flex>
 
                             <v-flex direction="column">
                                 <h2>{{ $t("labels.charts.axes.yRight") }}</h2>
+
                                 <v-form-chart-yaxis :axis="chart.options.axes.y.right"></v-form-chart-yaxis>
+
+                                <v-message type="info" v-if="chart.options.axes.y.right.show && !seriesAxes.right">
+                                    {{ $t("messages.series.emptyAxis") }}
+                                </v-message>
                             </v-flex>
 
                             <v-flex direction="column">
@@ -194,13 +216,81 @@
                         </v-flex>
                     </v-form>
                 </template>
+
+                <template v-else-if="section === 'markers'">
+                    <h1>{{ $tc("labels.markers._", 2) }}</h1>
+
+                    <v-form>
+                        <v-message type="info" v-if="chart.options.markers.length === 0">
+                            {{ $t("messages.markers.none") }}
+                        </v-message>
+
+                        <v-table class="fixed" v-model="chart.options.markers" v-else>
+                            <template slot="header">
+                                <v-table-cell></v-table-cell>
+                                <v-table-cell>{{ $t("labels.value") }}</v-table-cell>
+                                <v-table-cell>{{ $tc("labels.labels", 1) }}</v-table-cell>
+                                <v-table-cell>{{ $tc("labels.charts.axes._", 1) }}</v-table-cell>
+                                <v-table-cell class="more"></v-table-cell>
+                            </template>
+
+                            <template slot-scope="marker">
+                                <v-table-cell class="v-table-color">
+                                    <span
+                                        class="color"
+                                        :style="`background-color: ${marker.value.color || 'var(--color)'}`"
+                                    ></span>
+                                </v-table-cell>
+
+                                <v-table-cell>
+                                    {{ marker.value.value }}
+                                </v-table-cell>
+
+                                <v-table-cell>
+                                    {{ marker.value.label || marker.value.value }}
+                                </v-table-cell>
+
+                                <v-table-cell>
+                                    <v-flex>
+                                        {{ $t(`labels.charts.axes.${marker.value.axis}`) }}
+
+                                        <v-icon
+                                            icon="info-circle"
+                                            v-tooltip="$t('messages.series.emptyAxis')"
+                                            v-if="marker.value.axis && !seriesAxes[marker.value.axis]"
+                                        ></v-icon>
+                                    </v-flex>
+                                </v-table-cell>
+
+                                <v-table-cell class="more" grow>
+                                    <v-button
+                                        class="reveal"
+                                        icon="pencil-alt"
+                                        @click="editMarker(marker.index)"
+                                        v-tooltip="$t('labels.markers.edit')"
+                                    ></v-button>
+                                    <v-button
+                                        class="reveal"
+                                        icon="times"
+                                        @click="removeMarker(marker.index)"
+                                        v-tooltip="$t('labels.markers.remove')"
+                                    ></v-button>
+                                </v-table-cell>
+                            </template>
+                        </v-table>
+
+                        <v-toolbar>
+                            <v-button icon="plus" @click="addMarker">{{ $t("labels.markers.add") }}</v-button>
+                        </v-toolbar>
+                    </v-form>
+                </template>
             </template>
         </template>
     </v-content>
 </template>
 
 <script lang="ts">
-import {defaultConfig as BoulaDefault} from "@facette/boula/src/config";
+import {colors} from "@facette/boula/src/config";
 import cloneDeep from "lodash/cloneDeep";
 import merge from "lodash/merge";
 import {Component, Mixins, Watch} from "vue-property-decorator";
@@ -215,6 +305,7 @@ import {hash} from "@/src/helpers/hash";
 import {beforeRoute} from "@/src/helpers/route";
 import {resolveOption} from "@/src/helpers/select";
 import {CustomMixins} from "@/src/mixins";
+import {ModalChartMarkerParams} from "@/src/views/admin/components/modal/chart-marker.vue";
 import {ModalChartSeriesParams} from "@/src/views/admin/components/modal/chart-series.vue";
 
 import {namePattern} from "..";
@@ -227,11 +318,9 @@ const defaultXAxis: ChartXAxis = {
 
 const defaultYAxis: ChartYAxis = {
     show: true,
-    constants: [],
     label: undefined,
     max: undefined,
     min: undefined,
-    stack: undefined,
     unit: {
         type: undefined,
         base: undefined,
@@ -250,6 +339,7 @@ const defaultChart: Chart = {
                 right: merge({}, defaultYAxis, {show: false}),
             },
         },
+        markers: [],
         title: "",
         type: "area",
         variables: [],
@@ -279,8 +369,6 @@ const types: Array<SelectOption> = [
 })
 export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public chart: Chart | null = null;
-
-    public chartModel: Chart | null = null;
 
     public conflictCustomValidity!: (value: string) => Promise<string>;
 
@@ -322,13 +410,31 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         }
     }
 
-    public addSeries(): void {
+    public addMarker(): void {
         if (this.chart === null) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
             return;
         }
 
-        const series = this.chart.series as Array<ChartSeries>;
+        this.$components.modal(
+            "chart-marker",
+            {
+                marker: {},
+            } as ModalChartMarkerParams,
+            (value: Marker) => {
+                if (value) {
+                    const markers = this.chart?.options?.markers as Array<Marker>;
+                    markers.push(value);
+                }
+            },
+        );
+    }
+
+    public addSeries(): void {
+        if (this.chart === null) {
+            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
+            return;
+        }
 
         this.$components.modal(
             "chart-series",
@@ -337,6 +443,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             } as ModalChartSeriesParams,
             (value: ChartSeries) => {
                 if (value) {
+                    const series = this.chart?.series as Array<ChartSeries>;
                     series.push(value);
                 }
             },
@@ -396,6 +503,27 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         return this.params.id !== "link" && this.params.id !== "new";
     }
 
+    public editMarker(index: number): void {
+        if (this.chart === null || !this.chart.options?.markers) {
+            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
+            return;
+        }
+
+        const markers = this.chart.options.markers as Array<Marker>;
+
+        this.$components.modal(
+            "chart-marker",
+            {
+                marker: cloneDeep(markers[index]),
+            } as ModalChartMarkerParams,
+            (value: Marker) => {
+                if (value) {
+                    markers.splice(index, 1, value);
+                }
+            },
+        );
+    }
+
     public editSeries(index: number): void {
         if (this.chart === null || !this.chart.series) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
@@ -418,7 +546,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     public getColor(index: number): string {
-        const colors = BoulaDefault.colors as Array<string>;
         return this.chart?.series?.[index].options?.color || colors[index % colors.length];
     }
 
@@ -456,6 +583,15 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         Object.keys(this.dynamicData).forEach(label => {
             this.$set(this.data, label, this.dynamicData[label]?.[0]);
         });
+    }
+
+    public removeMarker(index: number): void {
+        if (this.chart === null || !this.chart.options?.markers) {
+            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
+            return;
+        }
+
+        this.chart.options.markers.splice(index, 1);
     }
 
     public removeSeries(index: number): void {
@@ -582,6 +718,14 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    public get seriesAxes(): {left: boolean; right: boolean} {
+        const axes = {left: false, right: false};
+        this.chart?.series?.forEach(series => {
+            axes[series.options?.axis ?? "left"] = true;
+        });
+        return axes;
+    }
+
     public get types(): Array<SelectOption> {
         return types.map(option => resolveOption(this, option));
     }
@@ -601,6 +745,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.$parent.$emit(
             "chart-updated",
             this.link,
+            this.chart?.options?.markers?.length ?? null,
             this.chart?.series?.length ?? null,
             this.variables.length ?? null,
         );
@@ -621,7 +766,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         const variables = parseChartVariables(to);
 
         Object.assign(this, {
-            chartModel: to,
             template: variables.length > 0,
             variables,
         });
@@ -667,6 +811,19 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         @include content;
     }
 
+    .v-table-cell .v-icon:last-child {
+        margin-left: 0.5rem;
+    }
+
+    .v-table-color {
+        padding-right: 0;
+        text-align: center;
+
+        .color {
+            margin: 0;
+        }
+    }
+
     .preview {
         background-color: var(--background);
         border-bottom: 1px solid var(--sidebar-background);
@@ -674,7 +831,7 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         padding: 1rem;
         position: sticky;
         top: calc(var(--toolbar-size) * 2);
-        z-index: 400;
+        z-index: 1;
 
         .v-form {
             margin-bottom: 1rem;
@@ -694,6 +851,11 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             height: 16rem;
             width: 100%;
         }
+    }
+
+    .columns .v-message {
+        margin-top: 1.5rem;
+        width: 100%;
     }
 
     .color {

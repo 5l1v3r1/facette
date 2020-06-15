@@ -21,6 +21,7 @@ declare interface Chart extends ObjectMeta {
 
 declare interface ChartOptions {
     axes?: ChartAxes;
+    markers?: Array<Marker>;
     title?: string;
     type?: ChartType;
     variables?: Array<TemplateVariable>;
@@ -39,21 +40,22 @@ declare interface ChartYAxes {
     center?: boolean;
     left?: ChartYAxis;
     right?: ChartYAxis;
+    stack?: StackMode;
 }
 
 declare interface ChartYAxis {
     show?: boolean;
-    constants?: Array<Constant>;
     label?: string;
     max?: number;
     min?: number;
-    stack?: StackMode;
     unit?: Unit;
 }
 
-declare interface Constant {
+declare interface Marker {
+    color?: string;
     label?: string;
     value: number;
+    axis?: "left" | "right";
 }
 
 declare type StackMode = "" | "normal" | "percent";
@@ -74,6 +76,7 @@ declare interface ChartSeries {
 
 declare interface ChartSeriesOptions {
     color?: string;
+    axis?: "left" | "right";
 }
 
 declare interface Dashboard extends ObjectMeta {
