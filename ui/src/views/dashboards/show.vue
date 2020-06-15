@@ -210,6 +210,18 @@
                             <v-button icon="shopping-basket" @click="addBasketItem(item.index)" v-else>
                                 {{ $t("labels.basket.add") }}
                             </v-button>
+
+                            <v-divider></v-divider>
+
+                            <v-button
+                                icon="pencil-alt"
+                                :to="{
+                                    name: `admin-${item.value.type}s-edit`,
+                                    params: {id: item.value.options.id},
+                                }"
+                            >
+                                {{ $t(`labels.${item.value.type}s.edit`) }}
+                            </v-button>
                         </template>
                     </v-chart>
                 </template>
