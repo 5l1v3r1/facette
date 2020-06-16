@@ -64,7 +64,7 @@
 
             <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
 
-            <v-form class="third" @validity="onFormValidity" v-show="section === 'general'">
+            <v-form class="third" @validity="onValidity" v-show="section === 'general'">
                 <v-label>{{ $t("labels.name") }}</v-label>
                 <v-input
                     ref="name"
@@ -553,12 +553,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         return this.params.id === "link" || Boolean(this.chart?.link);
     }
 
-    public onFormValidity(to: boolean): void {
-        if (this.section === defaultSection) {
-            this.formValidity = to;
-        }
-    }
-
     @Watch("params.id")
     public onParamsID(to: string, from: string): void {
         if (to !== from) {
@@ -570,6 +564,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     @Watch("$route.hash", {immediate: true})
     public onRouteHash(to: string): void {
         this.section = to ? to.substr(1) : defaultSection;
+    }
+
+    public onValidity(to: boolean): void {
+        this.formValidity = to;
     }
 
     @Watch("chart.options.variables", {deep: true})
