@@ -50,7 +50,7 @@ export default class ChartItemComponent extends Vue {
 
     private getCharts(): void {
         this.$http
-            .get("/api/v1/charts", {params: {kind: "plain"}})
+            .get("/api/v1/charts")
             .then(response => response.json())
             .then(
                 (response: APIResponse<Array<Chart>>) => {

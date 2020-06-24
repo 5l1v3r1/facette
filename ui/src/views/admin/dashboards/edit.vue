@@ -75,7 +75,7 @@
 
                         <v-button
                             icon="pencil-alt"
-                            :to="{name: 'admin-dashboards-edit', params: {id: dashboard.link}}"
+                            :to="{name: 'admin-dashboards-edit', params: {id: String(dashboard.link)}}"
                             :style="{visibility: dashboard.link ? 'visible' : 'hidden'}"
                         >
                             {{ $t("labels.templates.edit") }}
@@ -93,31 +93,32 @@
                 </template>
             </v-form>
 
-            <template v-if="link">
-                <template v-if="section === 'variables' && variables.length > 0">
-                    <h1>{{ $t("labels.variables._") }}</h1>
-
-                    <v-form-template-variables
-                        :defined="dashboard.options.variables"
-                        :parsed="variables"
-                    ></v-form-template-variables>
-                </template>
+            <template v-if="section === 'layout'">
+                <v-grid
+                    :add-handler="!link ? addItem : undefined"
+                    :layout="resolvedDashboard.layout"
+                    :readonly="link"
+                    v-model="resolvedDashboard.items"
+                >
+                    <template slot-scope="item">
+                        <v-chart
+                            :legend="item.value.options.legend"
+                            @click.native="!link ? editItem(item.index) : undefined"
+                            v-model="dashboardRefs[`chart|${item.value.options.id}`]"
+                            v-if="item.value.type === 'chart'"
+                        >
+                        </v-chart>
+                    </template>
+                </v-grid>
             </template>
 
-            <template v-else>
-                <template v-if="section === 'layout'">
-                    <v-grid :add-handler="addItem" :layout="dashboard.layout" v-model="dashboard.items">
-                        <template slot-scope="item">
-                            <v-chart
-                                :legend="item.value.options.legend"
-                                @click.native="editItem(item.index)"
-                                v-model="dashboardRefs[`chart|${item.value.options.id}`]"
-                                v-if="item.value.type === 'chart'"
-                            >
-                            </v-chart>
-                        </template>
-                    </v-grid>
-                </template>
+            <template v-else-if="section === 'variables' && variables.length > 0">
+                <h1>{{ $t("labels.variables._") }}</h1>
+
+                <v-form-template-variables
+                    :defined="dashboard.options.variables"
+                    :parsed="variables"
+                ></v-form-template-variables>
             </template>
         </template>
     </v-content>
@@ -132,7 +133,8 @@ import {SelectOption} from "@/types/components";
 
 import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
 import {conflictCustomValidity} from "@/src/helpers/api";
-import {cleanupDashboard} from "@/src/helpers/dashboard";
+import {parseChartVariables, renderChart} from "@/src/helpers/chart";
+import {cleanupDashboard, parseDashboardVariables, renderDashboard} from "@/src/helpers/dashboard";
 import {beforeRoute} from "@/src/helpers/route";
 import {CustomMixins} from "@/src/mixins";
 import {ModalDashboardItemParams} from "@/src/views/admin/components/modal/dashboard-item.vue";
@@ -184,8 +186,6 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     public linked: Dashboard | null = null;
 
     public namePattern = namePattern;
-
-    public resolveData: Record<string, string> = {};
 
     public saving = false;
 
@@ -404,6 +404,27 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             );
     }
 
+    public get resolvedDashboard(): Dashboard | null {
+        return this.linked ? renderDashboard(this.linked, this.resolvedData) : this.dashboard;
+    }
+
+    public get resolvedData(): Record<string, string> {
+        let variables: Array<TemplateVariable> = [];
+        if (this.linked?.options?.variables) {
+            variables = variables.concat(this.linked.options.variables);
+        }
+        if (this.dashboard?.options?.variables) {
+            variables = variables.concat(this.dashboard.options.variables);
+        }
+
+        return variables.reduce((data: Record<string, string>, variable: TemplateVariable) => {
+            if (!variable.dynamic) {
+                data[variable.name] = variable.value as string;
+            }
+            return data;
+        }, {});
+    }
+
     public save(go: boolean): void {
         if (this.dashboard === null) {
             this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
@@ -457,6 +478,62 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         );
     }
 
+    private getDashboardRefs(dashboard: Dashboard): PromiseLike<void> {
+        const keys: Array<string> = [];
+        const types: Array<DashboardItemType> = [];
+
+        const req: Array<BulkRequest> =
+            dashboard.items?.reduce((req: Array<BulkRequest>, item: DashboardItem) => {
+                switch (item.type) {
+                    case "chart": {
+                        const id = item.options?.id as string | undefined;
+                        const key = `chart|${id}`;
+
+                        if (
+                            id !== undefined &&
+                            !keys.includes(key) &&
+                            (!this.dashboardRefs[key] || (this.dashboardRefs[key] as Chart).template)
+                        ) {
+                            req.push({
+                                endpoint: `/charts/${id}/resolve`,
+                                method: "POST",
+                            });
+
+                            keys.push(key);
+                        }
+                    }
+                }
+
+                types.push(item.type);
+
+                return req;
+            }, []) ?? [];
+
+        if (req.length === 0) {
+            return Promise.resolve();
+        }
+
+        return this.$http
+            .post("/api/v1/bulk", req)
+            .then(response => response.json())
+            .then((response: APIResponse<Array<BulkResult>>) => {
+                if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
+                    this.$components.notify(this.$t("messages.error.bulk") as string, "error");
+                    return;
+                }
+
+                response.data?.forEach((result, index) => {
+                    switch (types[index]) {
+                        case "chart": {
+                            const chart = result.response.data as Chart;
+                            this.dashboardRefs[`chart|${chart.id}`] = renderChart(chart, this.resolvedData);
+                            break;
+                        }
+                    }
+                });
+            });
+    }
+
     private getTemplates(): PromiseLike<void> {
         return this.$http
             .get("/api/v1/dashboards", {params: {kind: "template"}})
@@ -471,78 +548,79 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
             });
     }
 
-    private onDashboard(to: Dashboard): void {
+    private async onDashboard(to: Dashboard): Promise<void> {
         if (!to.items) {
+            this.parseVariables(to);
             this.emitUpdate();
             return;
         }
 
-        const keys: Array<string> = [];
-        const types: Array<DashboardItemType> = [];
+        await this.getDashboardRefs(to);
 
-        const req: Array<BulkRequest> = to.items.reduce((req: Array<BulkRequest>, item: DashboardItem) => {
-            switch (item.type) {
-                case "chart": {
-                    const id = item.options?.id as string | undefined;
-                    const key = `chart|${id}`;
+        this.loading = false;
+        this.parseVariables(to);
+        this.emitUpdate();
+    }
 
-                    if (
-                        id !== undefined &&
-                        !keys.includes(key) &&
-                        (!this.dashboardRefs[key] || (this.dashboardRefs[key] as Chart).template)
-                    ) {
-                        req.push({
-                            endpoint: `/charts/${id}/resolve`,
-                            method: "POST",
-                        });
-
-                        keys.push(key);
-                    }
-                }
-            }
-
-            types.push(item.type);
-
-            return req;
-        }, []);
-
-        if (req.length === 0) {
+    private onDashboardLinked(to: Dashboard, from: Dashboard | undefined): void {
+        if (!to.link || to.link === from?.link) {
             this.emitUpdate();
             return;
         }
 
         this.$http
-            .post("/api/v1/bulk", req)
+            .get(`/api/v1/dashboards/${to.link}`)
             .then(response => response.json())
             .then(
-                (response: APIResponse<Array<BulkResult>>) => {
-                    if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
-                        this.$components.notify(this.$t("messages.error.bulk") as string, "error");
-                        return;
-                    }
+                async (response: APIResponse<Chart>) => {
+                    const linked = response.data as Chart;
 
-                    response.data?.forEach((result, index) => {
-                        switch (types[index]) {
-                            case "chart": {
-                                const chart = result.response.data as Chart;
-                                this.dashboardRefs[`chart|${chart.id}`] = chart;
-                                break;
-                            }
-                        }
+                    Object.assign(this, {
+                        linked,
+                        variables: parseDashboardVariables(linked),
                     });
 
+                    await this.getDashboardRefs(linked);
+
                     this.loading = false;
                     this.emitUpdate();
                 },
-                () => {
+                this.handleError(() => {
                     this.loading = false;
                     this.emitUpdate();
-                },
+                }),
             );
     }
 
-    private onDashboardLinked(to: Dashboard, from: Dashboard | undefined): void {
-        // noop
+    private parseVariables(to: Dashboard): void {
+        let variables = parseDashboardVariables(to);
+        const names = variables.map(variable => variable.name);
+
+        Object.keys(this.dashboardRefs).forEach(key => {
+            switch (key.split("|", 2)[0]) {
+                case "chart": {
+                    const vars = parseChartVariables(this.dashboardRefs[key] as Chart).filter(variable => {
+                        const keep = !names.includes(variable.name);
+                        if (keep) {
+                            names.push(variable.name);
+                        }
+                        return keep;
+                    });
+                    if (vars) {
+                        variables = variables.concat(vars);
+                    }
+                }
+            }
+        });
+
+        // Current dashboard should only be considered as a template if any
+        // of the variables are undefined
+        const set = this.dashboard?.options?.variables?.map(variable => variable.name) ?? [];
+
+        Object.assign(this, {
+            template: variables.filter(variable => !set.includes(variable.name)).length > 0,
+            variables,
+        });
     }
 }
 </script>
@@ -556,6 +634,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
 
         canvas {
             cursor: pointer;
+        }
+
+        .v-grid[aria-readonly] canvas {
+            cursor: default;
         }
     }
 }

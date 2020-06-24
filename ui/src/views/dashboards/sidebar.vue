@@ -44,7 +44,7 @@
                     :to="{name: 'dashboards-show', params: {id: dashboard.name}}"
                     v-for="dashboard in dashboards"
                 >
-                    {{ dashboard.options && dashboard.options.title ? dashboard.options.title : dashboard.name }}
+                    {{ dashboardLabel(dashboard) }}
                 </v-button>
             </template>
 
@@ -87,6 +87,7 @@ import {resolveOption} from "@/src/helpers/select";
 import {CustomMixins} from "@/src/mixins";
 
 import {itemTypes} from "./show.vue";
+import {dataFromVariables, parseVariables, renderTemplate} from "../../helpers/template";
 
 const types: Array<SelectOption> = [
     {label: "labels.home", value: "dashboards", icon: "home"},
@@ -123,6 +124,20 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
 
     public checkType(type: string): boolean {
         return itemTypes.includes(type);
+    }
+
+    public dashboardLabel(dashboard: Dashboard): string {
+        if (dashboard.options?.title) {
+            let label = dashboard.options.title;
+
+            if (parseVariables(label).length > 0) {
+                label = renderTemplate(label, dataFromVariables(dashboard.options?.variables ?? []));
+            }
+
+            return label;
+        }
+
+        return dashboard.name;
     }
 
     public highlight(e: KeyboardEvent | MouseEvent, index?: number): void {
@@ -212,7 +227,7 @@ export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {
         }
 
         this.$http
-            .get("/api/v1/dashboards", {params: {parent: this.dashboard?.id}})
+            .get("/api/v1/dashboards", {params: {kind: "plain", parent: this.dashboard?.id}})
             .then(response => response.json())
             .then(
                 (response: APIResponse<Array<Dashboard>>) => {

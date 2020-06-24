@@ -5,6 +5,10 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {cloneDeep} from "lodash";
+
+import {parseVariables, renderTemplate} from "@/src/helpers/template";
+
 export function cleanupDashboard(dashboard: Dashboard): Dashboard {
     if (!dashboard.options?.title) {
         delete dashboard.options?.title;
@@ -25,6 +29,26 @@ export function mapReferences(refs: Array<Reference>): Record<string, unknown> {
             return out;
         }, {}) ?? {}
     );
+}
+
+export function parseDashboardVariables(dashboard: Dashboard): Array<TemplateVariable> {
+    let data = "";
+
+    if (dashboard.options?.title) {
+        data += `\xff${dashboard.options.title}`;
+    }
+
+    return parseVariables(data).map(name => ({name, dynamic: false}));
+}
+
+export function renderDashboard(dashboard: Dashboard, data: Record<string, string>): Dashboard {
+    const proxy: Dashboard = cloneDeep(dashboard);
+
+    if (proxy.options?.title) {
+        proxy.options.title = renderTemplate(proxy.options.title, data);
+    }
+
+    return proxy;
 }
 
 export async function resolveVariables(

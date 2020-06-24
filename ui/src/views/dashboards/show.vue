@@ -150,7 +150,7 @@
                         :to="{
                             name: `admin-${params.type}-edit`,
                             params: {id: dashboard.id},
-                            hash: !dashboard.template ? '#layout' : undefined,
+                            hash: !dashboard.link ? '#layout' : undefined,
                         }"
                         v-else
                     >
@@ -243,10 +243,11 @@ import GridComponent from "@/src/components/grid/grid.vue";
 import {ModalPromptParams} from "@/src/components/modal/prompt.vue";
 import {conflictCustomValidity} from "@/src/helpers/api";
 import {renderChart} from "@/src/helpers/chart";
-import {mapReferences, resolveVariables} from "@/src/helpers/dashboard";
+import {mapReferences, renderDashboard, resolveVariables} from "@/src/helpers/dashboard";
 import {CustomMixins} from "@/src/mixins";
 import {updateRouteQuery} from "@/src/router";
 import {ModalTimeRangeParams} from "@/src/views/dashboards/components/modal/time-range.vue";
+import {dataFromVariables} from "../../helpers/template";
 
 interface Options {
     data: Record<string, string>;
@@ -411,7 +412,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
 
     public emitDashboardLoaded(): void {
         // Emit loaded event to trigger sidebar update
-        this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
+        this.$parent.$emit("dashboard-loaded", this.resolvedDashboard, this.resolvedRefs);
     }
 
     public getDashboard(): void {
@@ -570,7 +571,7 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
                                 });
                             }
 
-                            this.$parent.$emit("dashboard-loaded", this.dashboard, this.resolvedRefs);
+                            this.$parent.$emit("dashboard-loaded", this.resolvedDashboard, this.resolvedRefs);
                             this.loading = false;
                         },
                         this.handleError(() => {
@@ -687,7 +688,10 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
     public get resolvedRefs(): Record<string, unknown> {
         return Object.keys(this.dashboardRefs).reduce((refs: Record<string, unknown>, key: string) => {
             if (key.startsWith("chart|")) {
-                refs[key] = renderChart(this.dashboardRefs[key] as Chart, this.options.data);
+                refs[key] = renderChart(
+                    this.dashboardRefs[key] as Chart,
+                    Object.assign({}, this.options.data, this.staticData),
+                );
             }
             return refs;
         }, {});
@@ -824,6 +828,16 @@ export default class Show extends Mixins<CustomMixins>(CustomMixins) {
             this.refreshDashboard();
             this.updateRefresh();
         }
+    }
+
+    private get resolvedDashboard(): Dashboard | null {
+        return this.dashboard
+            ? renderDashboard(this.dashboard, Object.assign({}, this.options.data, this.staticData))
+            : null;
+    }
+
+    private get staticData(): Record<string, string> {
+        return this.dashboard?.options?.variables ? dataFromVariables(this.dashboard.options.variables) : {};
     }
 
     private updateRefresh(): void {

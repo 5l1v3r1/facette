@@ -145,14 +145,25 @@ class Template {
     }
 }
 
-export function renderTemplate(text: string, data: Record<string, string>): string {
-    const tmpl: Template = new Template();
-    tmpl.parse(text);
-    return tmpl.render(data);
+export function dataFromVariables(variables: Array<TemplateVariable>): Record<string, string> {
+    return (
+        variables.reduce((data: Record<string, string>, variable: TemplateVariable) => {
+            if (!variable.dynamic) {
+                data[variable.name] = variable.value as string;
+            }
+            return data;
+        }, {}) ?? {}
+    );
 }
 
 export function parseVariables(text: string): Array<string> {
     const tmpl: Template = new Template();
     tmpl.parse(text);
     return tmpl.variables();
+}
+
+export function renderTemplate(text: string, data: Record<string, string>): string {
+    const tmpl: Template = new Template();
+    tmpl.parse(text);
+    return tmpl.render(data);
 }

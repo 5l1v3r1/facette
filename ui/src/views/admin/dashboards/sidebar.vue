@@ -42,7 +42,6 @@
                     :badge="visited.layout && !validity.layout ? '!' : items || null"
                     :class="{invalid: visited.layout && !validity.layout}"
                     :to="{name: 'admin-dashboards-edit', params: {id: params.id}, hash: '#layout'}"
-                    v-if="!link"
                 >
                     {{ $t("labels.layout") }}
                 </v-button>
@@ -51,7 +50,6 @@
                     exact
                     :badge="variables || null"
                     :to="{name: 'admin-dashboards-edit', params: {id: params.id}, hash: '#variables'}"
-                    v-else-if="variables !== null"
                 >
                     {{ $t("labels.variables._") }}
                 </v-button>

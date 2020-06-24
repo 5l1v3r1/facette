@@ -336,6 +336,9 @@ func (d Dashboard) Excerpt() interface{} {
 	if d.Options.Title != "" {
 		options["title"] = d.Options.Title
 	}
+	if len(d.Options.Variables) > 0 {
+		options["variables"] = d.Options.Variables
+	}
 
 	return struct {
 		ObjectMeta `json:",inline"`

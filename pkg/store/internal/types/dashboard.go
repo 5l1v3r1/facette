@@ -73,6 +73,8 @@ func (d Dashboard) Copy(dst api.Object) error {
 		Options:    (*api.DashboardOptions)(d.Options),
 		Items:      api.DashboardItems(d.Items),
 		Layout:     api.GridLayout(d.Layout),
+		Parent:     d.Parent.String,
+		Link:       d.Link.String,
 		Template:   d.Template,
 		References: d.References,
 	}
