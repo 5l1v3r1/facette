@@ -31,7 +31,7 @@ type Dashboard struct {
 
 func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
 	return &Dashboard{
-		ObjectMeta: ObjectMetaFromAPI(dashboard.ObjectMeta),
+		ObjectMeta: objectMetaFromAPI(dashboard.ObjectMeta),
 		Options:    (*DashboardOptions)(dashboard.Options),
 		Items:      DashboardItems(dashboard.Items),
 		Layout:     GridLayout(dashboard.Layout),

@@ -25,7 +25,7 @@ type Provider struct {
 
 func providerFromAPI(provider *api.Provider) *Provider {
 	return &Provider{
-		ObjectMeta:   ObjectMetaFromAPI(provider.ObjectMeta),
+		ObjectMeta:   objectMetaFromAPI(provider.ObjectMeta),
 		Connector:    ProviderConnector(provider.Connector),
 		Filters:      ProviderFilters(provider.Filters),
 		PollInterval: int(provider.PollInterval.Seconds()),

@@ -28,10 +28,10 @@ func formatError(err error) error {
 		}
 
 		if xerr.Field != "" {
-			return fmt.Errorf("%s: expected a %s", xerr.Field, strings.ToLower(expected))
+			return fmt.Errorf("%s: expected %s", xerr.Field, strings.ToLower(expected))
 		}
 
-		return fmt.Errorf("expected a %s", strings.ToLower(expected))
+		return fmt.Errorf("expected %s", strings.ToLower(expected))
 	}
 
 	return err

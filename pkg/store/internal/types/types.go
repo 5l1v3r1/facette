@@ -27,9 +27,7 @@ type ObjectMeta struct {
 	Modified time.Time `gorm:"not null;default:current_timestamp"`
 }
 
-// ObjectMetaFromAPI returns a back-end storage representation of an API object
-// metadata.
-func ObjectMetaFromAPI(meta api.ObjectMeta) ObjectMeta {
+func objectMetaFromAPI(meta api.ObjectMeta) ObjectMeta {
 	return ObjectMeta{
 		ID:       meta.ID,
 		Name:     meta.Name,

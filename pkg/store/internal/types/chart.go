@@ -27,7 +27,7 @@ type Chart struct {
 
 func chartFromAPI(chart *api.Chart) *Chart {
 	return &Chart{
-		ObjectMeta: ObjectMetaFromAPI(chart.ObjectMeta),
+		ObjectMeta: objectMetaFromAPI(chart.ObjectMeta),
 		Options:    (*ChartOptions)(chart.Options),
 		Series:     SeriesList(chart.Series),
 		Link:       sql.NullString{String: chart.Link, Valid: chart.Link != ""},
