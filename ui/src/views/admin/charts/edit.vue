@@ -635,6 +635,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 await this.getTemplates();
                 chart = cloneDeep(defaultChartLinked);
                 this.unwatchChart = this.$watch("chart", this.onChartLinked, {deep: true});
+
+                if (this.$route.query.template) {
+                    chart.link = this.$route.query.template as string;
+                }
             } else {
                 chart = cloneDeep(defaultChart);
                 this.unwatchChart = this.$watch("chart", this.onChart, {deep: true});
@@ -761,18 +765,12 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     private onChart(to: Chart): void {
-        const variables = parseChartVariables(to);
-
-        Object.assign(this, {
-            template: variables.length > 0,
-            variables,
-        });
-
+        this.parseVariables(to);
         this.emitUpdate();
     }
 
-    private onChartLinked(to: Chart, from: Chart | undefined): void {
-        if (!to.link || to.link === from?.link) {
+    private onChartLinked(to: Chart): void {
+        if (!to.link || to.link === this.linked?.id) {
             this.emitUpdate();
             return;
         }
@@ -797,6 +795,15 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                     this.emitUpdate();
                 }),
             );
+    }
+
+    private parseVariables(to: Chart): void {
+        const variables = parseChartVariables(to);
+
+        Object.assign(this, {
+            template: variables.length > 0,
+            variables,
+        });
     }
 }
 </script>

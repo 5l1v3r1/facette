@@ -368,6 +368,10 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
                 await this.getTemplates();
                 dashboard = cloneDeep(defaultDashboardLinked);
                 this.unwatchDashboard = this.$watch("dashboard", this.onDashboardLinked, {deep: true});
+
+                if (this.$route.query.template) {
+                    dashboard.link = this.$route.query.template as string;
+                }
             } else {
                 dashboard = cloneDeep(defaultDashboard);
                 this.unwatchDashboard = this.$watch("dashboard", this.onDashboard, {deep: true});
@@ -562,8 +566,8 @@ export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
         this.emitUpdate();
     }
 
-    private onDashboardLinked(to: Dashboard, from: Dashboard | undefined): void {
-        if (!to.link || to.link === from?.link) {
+    private onDashboardLinked(to: Dashboard): void {
+        if (!to.link || to.link === this.linked?.id) {
             this.emitUpdate();
             return;
         }

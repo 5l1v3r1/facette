@@ -216,13 +216,27 @@
                                         <v-divider></v-divider>
                                     </template>
 
-                                    <template v-else-if="templatable && options.kind === 'plain'">
+                                    <template v-else-if="templatable">
                                         <v-button
                                             icon="arrow-alt-circle-right"
                                             :to="{name: `${params.type}-show`, params: {id: obj.value.name}}"
+                                            v-if="options.kind === 'plain'"
                                         >
                                             {{ $tc(`labels.goto.${params.type}`, 1) }}
                                         </v-button>
+
+                                        <v-button
+                                            icon="plus"
+                                            :to="{
+                                                name: `admin-${params.type}-edit`,
+                                                params: {id: 'link'},
+                                                query: {template: obj.value.id},
+                                            }"
+                                            v-else
+                                        >
+                                            {{ $t("labels.templates.newFrom") }}
+                                        </v-button>
+
                                         <v-divider></v-divider>
                                     </template>
 
