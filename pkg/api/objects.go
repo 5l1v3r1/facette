@@ -333,9 +333,11 @@ type Dashboard struct {
 // Excerpt returns an excerpted version of the dashboard API object.
 func (d Dashboard) Excerpt() interface{} {
 	options := map[string]interface{}{}
+
 	if d.Options.Title != "" {
 		options["title"] = d.Options.Title
 	}
+
 	if len(d.Options.Variables) > 0 {
 		options["variables"] = d.Options.Variables
 	}

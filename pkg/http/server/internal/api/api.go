@@ -98,6 +98,10 @@ func Register(
 	root.Endpoint("/query").
 		Post(h.ExecuteQuery)
 
+	root.Endpoint("/store").
+		Get(h.DumpStore).
+		Post(h.RestoreStore)
+
 	root.Endpoint("/version").
 		Get(h.GetVersion)
 

@@ -12,6 +12,9 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"facette.io/facette/cmd/facette/internal/command/run"
+	"facette.io/facette/cmd/facette/internal/command/store"
+	_ "facette.io/facette/cmd/facette/internal/connector" // Import connectors
+	_ "facette.io/facette/cmd/facette/internal/driver"    // Import drivers
 )
 
 func main() {
@@ -20,6 +23,7 @@ func main() {
 		Usage: "Time series data visualization software",
 		Commands: []*cli.Command{
 			run.Command,
+			store.Command,
 		},
 		HideHelpCommand: true,
 		Action:          cli.ShowAppHelp,

@@ -187,7 +187,7 @@ func resolveChartReferences(dashboard *Dashboard, store StoreFuncs, ids ...strin
 // DashboardList is a back-end storage list of dashboard objects.
 type DashboardList []Dashboard
 
-// Copy copies back-end storage dashboards list data into an API objects list.
+// Copy satisfies the ObjectList interface.
 func (d DashboardList) Copy(dst api.ObjectList) error {
 	list, ok := dst.(*api.DashboardList)
 	if !ok {
@@ -206,6 +206,11 @@ func (d DashboardList) Copy(dst api.ObjectList) error {
 	}
 
 	return nil
+}
+
+// New satisfies the ObjectList interface.
+func (d DashboardList) New() Object {
+	return &Dashboard{}
 }
 
 // Objects satisfies the ObjectList interface.

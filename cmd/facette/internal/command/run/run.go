@@ -20,15 +20,13 @@ import (
 	"facette.io/facette/pkg/store"
 
 	"facette.io/facette/cmd/facette/internal/config"
-	_ "facette.io/facette/cmd/facette/internal/connector" // Import connectors
-	_ "facette.io/facette/cmd/facette/internal/driver"    // Import drivers
 )
 
 // Command is a run command.
 var Command = &cli.Command{
 	Name:   "run",
-	Usage:  "run service",
-	Action: action,
+	Usage:  "Run service",
+	Action: run,
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "config",
@@ -39,7 +37,7 @@ var Command = &cli.Command{
 	},
 }
 
-func action(ctx *cli.Context) error {
+func run(ctx *cli.Context) error {
 	cfg, err := config.Load(ctx.String("config"))
 	if err != nil {
 		return err

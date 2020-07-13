@@ -106,9 +106,36 @@ func FromAPI(obj api.Object) (Object, error) {
 	return nil, fmt.Errorf("unhandled object: %T", obj)
 }
 
+// ToAPI returns an API representation of a back-end storage object.
+func ToAPI(obj Object) (api.Object, error) {
+	var v api.Object
+
+	switch obj.(type) {
+	case *Chart:
+		v = &api.Chart{}
+
+	case *Dashboard:
+		v = &api.Dashboard{}
+
+	case *Provider:
+		v = &api.Provider{}
+
+	default:
+		return nil, fmt.Errorf("unhandled object: %T", obj)
+	}
+
+	err := obj.Copy(v)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
 // ObjectList is a back-end storage objects list interface.
 type ObjectList interface {
 	Copy(dst api.ObjectList) error
+	New() Object
 	Objects() []Object
 }
 

@@ -118,7 +118,7 @@ func (c *Chart) Resolve(store StoreFuncs) error {
 // ChartList is a back-end storage list of chart objects.
 type ChartList []Chart
 
-// Copy copies back-end storage charts list data into an API objects list.
+// Copy satisfies the ObjectList interface.
 func (c ChartList) Copy(dst api.ObjectList) error {
 	list, ok := dst.(*api.ChartList)
 	if !ok {
@@ -137,6 +137,11 @@ func (c ChartList) Copy(dst api.ObjectList) error {
 	}
 
 	return nil
+}
+
+// New satisfies the ObjectList interface.
+func (c ChartList) New() Object {
+	return &Chart{}
 }
 
 // Objects satisfies the ObjectList interface.

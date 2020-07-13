@@ -59,7 +59,7 @@ func (p Provider) Copy(dst api.Object) error {
 // ProviderList is a back-end storage list of provider objects.
 type ProviderList []Provider
 
-// Copy copies back-end storage providers list data into an API objects list.
+// Copy satisfies the ObjectList interface.
 func (p ProviderList) Copy(dst api.ObjectList) error {
 	list, ok := dst.(*api.ProviderList)
 	if !ok {
@@ -78,6 +78,11 @@ func (p ProviderList) Copy(dst api.ObjectList) error {
 	}
 
 	return nil
+}
+
+// New satisfies the ObjectList interface.
+func (p ProviderList) New() Object {
+	return &Provider{}
 }
 
 // Objects satisfies the ObjectList interface.

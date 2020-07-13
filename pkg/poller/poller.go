@@ -11,7 +11,9 @@ import (
 
 	"go.uber.org/zap"
 
+	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/catalog"
+	"facette.io/facette/pkg/store"
 )
 
 // Poller is a metrics poller.
@@ -51,6 +53,27 @@ loop:
 	}
 
 	return nil
+}
+
+// InsertFromStore insert jobs into the metrics poller based on providers
+// present and enabled into the back-end storage.
+func (p *Poller) InsertFromStore(store *store.Store) {
+	for _, job := range p.jobs {
+		p.Notify(EventRemove, job.provider)
+	}
+
+	providers := api.ProviderList{}
+
+	_, err := store.List(&providers, &api.ListOptions{Filter: api.ListFilter{"enabled": true}})
+	if err != nil {
+		zap.L().Error("cannot list providers", zap.Error(err))
+		return
+	}
+
+	for _, provider := range providers {
+		x := provider
+		p.Notify(EventInsert, &x)
+	}
 }
 
 func (p *Poller) handleEvent(ctx context.Context, ev event) {
