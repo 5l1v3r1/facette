@@ -23,6 +23,7 @@ import (
 type Store struct {
 	driver driver.Driver
 	db     *gorm.DB
+	log    *zap.Logger
 }
 
 // New creates a new back-end storage instance.
@@ -68,21 +69,20 @@ func New(config *Config) (*Store, error) {
 	return &Store{
 		driver: driver,
 		db:     db,
+		log:    log,
 	}, nil
 }
 
 // Close closes the back-end storage database connection.
 func (s *Store) Close() {
 	if s.db != nil {
-		log := zap.L().Named("store")
-
 		err := s.db.Close()
 		if err != nil {
-			log.Error("cannot close back-end storage", zap.Error(err))
+			s.log.Error("cannot close back-end storage", zap.Error(err))
 			return
 		}
 
-		log.Info("back-end storage closed")
+		s.log.Info("back-end storage closed")
 	}
 }
 
