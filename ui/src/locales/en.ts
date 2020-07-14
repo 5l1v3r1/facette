@@ -387,6 +387,7 @@ export default {
             _: "Error: {0}",
             bulk: "An error occurred during bulk execution",
             load: "An error occurred loading data",
+            request: "Cannot execute request",
             unhandled: "An unhandled error has occurred",
         },
         filters: {

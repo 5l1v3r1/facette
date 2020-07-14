@@ -113,6 +113,8 @@ export class CustomMixins extends Vue {
             this.$components.notify(
                 (response.data?.error
                     ? this.$t("messages.error._", [response.data.error])
+                    : response.status === 0
+                    ? this.$t("messages.error.request")
                     : this.$t("messages.error.unhandled")) as string,
                 "error",
             );
