@@ -36,8 +36,8 @@
             <template v-if="chart && edit">
                 <v-spacer></v-spacer>
 
-                <v-label class="modified" v-if="chart.modified">
-                    {{ $t("messages.lastModified", [formatDate(chart.modified, $t("date.long"))]) }}
+                <v-label class="modified" v-if="chart.modifiedAt">
+                    {{ $t("messages.lastModified", [formatDate(chart.modifiedAt, $t("date.long"))]) }}
                 </v-label>
             </template>
         </v-toolbar>

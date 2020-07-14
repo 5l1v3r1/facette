@@ -12,9 +12,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/mattn/go-sqlite3"
-	"go.uber.org/zap"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/errors"
@@ -22,16 +22,23 @@ import (
 	"facette.io/facette/pkg/store/driver"
 )
 
-var dialect gorm.Dialect
+// Type is the SQLite back-end storage driver type.
+const Type driver.Type = "sqlite"
 
 // Driver is a SQLite back-end storage driver.
 type Driver struct {
-	config *driver.Config
+	config    *driver.Config
+	dialector gorm.Dialector
 }
 
 // New creates a new SQLite back-end storage driver instance.
 func New(config *driver.Config) (driver.Driver, error) {
-	return &Driver{config}, nil
+	return &Driver{
+		config: config,
+		dialector: &dialector{
+			Dialector: sqlite.Dialector{DSN: config.DSN},
+		},
+	}, nil
 }
 
 // Error normalizes driver-specific errors.
@@ -52,7 +59,7 @@ func (d *Driver) Error(err error) error {
 		return errors.Wrapf(api.ErrConflict, "conflicting field: %s", fieldName(xerr))
 
 	case sqlite3.ErrConstraintForeignKey:
-		return errors.Wrapf(api.ErrInvalid, "unknown field reference")
+		return errors.Wrapf(api.ErrInvalid, "unknown reference")
 
 	case sqlite3.ErrConstraintNotNull:
 		return errors.Wrapf(api.ErrInvalid, "missing field: %s", fieldName(xerr))
@@ -67,8 +74,18 @@ func (d *Driver) Init(db *gorm.DB) error {
 }
 
 // Open opens a new back-end storage database connection.
-func (d *Driver) Open() (*gorm.DB, error) {
-	return gorm.Open("sqlite3_custom", d.config.Path)
+func (d *Driver) Open(config *gorm.Config) (*gorm.DB, error) {
+	return gorm.Open(d.dialector, config)
+}
+
+// TruncateStmt returns a driver-specific TRUNCATE statement.
+func (d *Driver) TruncateStmt(table string) string {
+	var b strings.Builder
+
+	b.WriteString("DELETE FROM ")
+	d.dialector.QuoteTo(&b, table)
+
+	return b.String()
 }
 
 // WhereClause returns driver-specific WHERE clause.
@@ -96,14 +113,6 @@ func (d *Driver) WhereClause(column string, v interface{}) (string, interface{})
 	return strings.Join([]string{column, operator, placeholder}, " "), v
 }
 
-// ZapFields returns SQLite-specific back-end storage zap fields.
-func (d *Driver) ZapFields() []zap.Field {
-	return []zap.Field{
-		zap.Any("type", d.config.Type),
-		zap.String("path", d.config.Path),
-	}
-}
-
 var errRegexp = regexp.MustCompile(`^.+: [^.]+\.(.+?)(?:, .+)?$`)
 
 func fieldName(err error) string {
@@ -115,6 +124,21 @@ func fieldName(err error) string {
 	return ""
 }
 
+type dialector struct {
+	sqlite.Dialector
+}
+
+func (d dialector) Initialize(db *gorm.DB) error {
+	err := d.Dialector.Initialize(db)
+	if err != nil {
+		return err
+	}
+
+	db.ConnPool, err = sql.Open("sqlite3_custom", d.DSN)
+
+	return err
+}
+
 func init() {
 	sql.Register("sqlite3_custom", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
@@ -122,14 +146,5 @@ func init() {
 		},
 	})
 
-	var ok bool
-
-	dialect, ok = gorm.GetDialect("sqlite3")
-	if !ok {
-		panic("cannot find SQLite dialect")
-	}
-
-	gorm.RegisterDialect("sqlite3_custom", dialect)
-
-	driver.Register(driver.TypeSQLite, New)
+	driver.Register(Type, New)
 }

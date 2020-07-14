@@ -9,7 +9,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.9
-	github.com/jinzhu/gorm v1.9.12
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/prometheus/client_golang v1.6.0
 	github.com/prometheus/common v0.9.1
@@ -20,4 +19,6 @@ require (
 	go.uber.org/zap v1.15.0
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f
 	gopkg.in/yaml.v3 v3.0.0-20200506231410-2ff61e1afc86
+	gorm.io/driver/sqlite v1.0.8
+	gorm.io/gorm v0.2.20
 )

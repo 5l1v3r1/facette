@@ -6,31 +6,39 @@
 package store
 
 import (
+	"context"
 	"fmt"
-	"strings"
+	"time"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm/logger"
 )
 
-type logger struct{}
+type customLogger struct {
+	log *zap.Logger
+}
 
-func (l logger) Print(v ...interface{}) {
-	if v[0] == "sql" {
-		args := []string{}
-
-		for _, arg := range v[4].([]interface{}) {
-			format := "%v"
-
-			switch arg.(type) {
-			case string, fmt.Stringer:
-				format = "%q"
-			}
-
-			args = append(args, fmt.Sprintf(format, arg))
-		}
-
-		zap.S().Named("store/sql").Debugf("%s [%s] in %s\n", v[3], strings.Join(args, ", "), v[2])
-	} else {
-		zap.S().Named("store/sql").Debugf("%s", v[2])
+func newLogger() logger.Interface {
+	return &customLogger{
+		log: zap.L().WithOptions(zap.AddCallerSkip(2)).Named("store/sql"),
 	}
+}
+
+func (l *customLogger) LogMode(level logger.LogLevel) logger.Interface {
+	return l
+}
+
+func (l customLogger) Info(ctx context.Context, msg string, data ...interface{}) {
+	l.log.Info(fmt.Sprintf(msg, data...))
+}
+
+func (l customLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
+	l.log.Warn(fmt.Sprintf(msg, data...))
+}
+
+func (l customLogger) Error(ctx context.Context, msg string, data ...interface{}) {
+	l.log.Error(fmt.Sprintf(msg, data...))
+}
+
+func (l customLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 }

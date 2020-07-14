@@ -9,17 +9,16 @@ package driver
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // Driver is a back-end storage driver interface.
 type Driver interface {
 	Error(err error) error
 	Init(db *gorm.DB) error
-	Open() (*gorm.DB, error)
+	Open(config *gorm.Config) (*gorm.DB, error)
+	TruncateStmt(table string) string
 	WhereClause(column string, v interface{}) (string, interface{})
-	ZapFields() []zap.Field
 }
 
 // New creates a new back-end storage driver instance.
@@ -34,13 +33,6 @@ func New(config *Config) (Driver, error) {
 
 // Type is a back-end storage driver type.
 type Type string
-
-// Types:
-const (
-	TypeMySQL      Type = "mysql"
-	TypePostgreSQL Type = "pgsql"
-	TypeSQLite     Type = "sqlite"
-)
 
 // Fn is a back-end storage driver function.
 type Fn func(config *Config) (Driver, error)

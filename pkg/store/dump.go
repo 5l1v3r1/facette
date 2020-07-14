@@ -8,7 +8,7 @@ package store
 import (
 	"context"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 
@@ -46,13 +46,13 @@ func (s *Store) dump(tx *gorm.DB, objects types.ObjectList, ch chan<- api.Object
 
 	switch objects.(type) {
 	case *types.ChartList:
-		q = q.Order("template DESC").Order("created")
+		q = q.Order("template DESC").Order("created_at")
 
 	case *types.DashboardList:
-		q = q.Order("template DESC").Order("parent").Order("created")
+		q = q.Order("template DESC").Order("parent_id").Order("created_at")
 
 	case *types.ProviderList:
-		q = q.Order("created")
+		q = q.Order("created_at")
 	}
 
 	rows, err := q.Rows()
@@ -81,21 +81,19 @@ func (s *Store) dump(tx *gorm.DB, objects types.ObjectList, ch chan<- api.Object
 
 // Restore restores back-end storage data from objects.
 func (s *Store) Restore(ctx context.Context, ch <-chan api.Object) error {
+	var err error
+
 	tx := s.db.Begin()
 
-	err := tx.Delete(&types.ChartList{}).Error
-	if err != nil {
-		goto stop
-	}
-
-	err = tx.Delete(&types.DashboardList{}).Error
-	if err != nil {
-		goto stop
-	}
-
-	err = tx.Delete(&types.ProviderList{}).Error
-	if err != nil {
-		goto stop
+	for _, table := range []string{
+		"charts",
+		"dashboards",
+		"providers",
+	} {
+		err = tx.Exec(s.driver.TruncateStmt(table)).Error
+		if err != nil {
+			goto stop
+		}
 	}
 
 	for {

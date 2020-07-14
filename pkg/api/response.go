@@ -8,6 +8,6 @@ package api
 // Response is an API response.
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
-	Total uint        `json:"total,omitempty"`
+	Total int64       `json:"total,omitempty"`
 	Error string      `json:"error,omitempty"`
 }

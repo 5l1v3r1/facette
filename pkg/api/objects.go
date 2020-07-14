@@ -49,10 +49,10 @@ func (ProviderList) objectlist()  {}
 
 // ObjectMeta are API object metadata.
 type ObjectMeta struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	Created  time.Time `json:"created"`
-	Modified time.Time `json:"modified"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	CreatedAt  time.Time `json:"createdAt"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 // Validate checks for API object metadata validity.

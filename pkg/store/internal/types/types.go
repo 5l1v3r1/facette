@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/errors"
@@ -21,32 +21,32 @@ import (
 
 // ObjectMeta are back-end storage object metadata.
 type ObjectMeta struct {
-	ID       string    `gorm:"type:varchar(36);not null;primary_key"`
-	Name     string    `gorm:"type:varchar(128);not null;unique_index"`
-	Created  time.Time `gorm:"not null;default:current_timestamp"`
-	Modified time.Time `gorm:"not null;default:current_timestamp"`
+	ID         string    `gorm:"type:varchar(36);primary_key;not null"`
+	Name       string    `gorm:"type:varchar(128);not null;unique_index"`
+	CreatedAt  time.Time `gorm:"default:current_timestamp;not null"`
+	ModifiedAt time.Time `gorm:"default:current_timestamp;not null"`
 }
 
 func objectMetaFromAPI(meta api.ObjectMeta) ObjectMeta {
 	return ObjectMeta{
-		ID:       meta.ID,
-		Name:     meta.Name,
-		Created:  meta.Created,
-		Modified: meta.Modified,
+		ID:         meta.ID,
+		Name:       meta.Name,
+		CreatedAt:  meta.CreatedAt,
+		ModifiedAt: meta.ModifiedAt,
 	}
 }
 
 // ToAPI returns an API representation of the back-end storage object metadata.
 func (m ObjectMeta) ToAPI() api.ObjectMeta {
 	return api.ObjectMeta{
-		ID:       m.ID,
-		Name:     m.Name,
-		Created:  m.Created,
-		Modified: m.Modified,
+		ID:         m.ID,
+		Name:       m.Name,
+		CreatedAt:  m.CreatedAt,
+		ModifiedAt: m.ModifiedAt,
 	}
 }
 
-func (m *ObjectMeta) beforeSave(scope *gorm.Scope) error {
+func (m *ObjectMeta) beforeSave(db *gorm.DB) error {
 	if m.Name == "" {
 		return errors.New("invalid name")
 	}
@@ -57,10 +57,7 @@ func (m *ObjectMeta) beforeSave(scope *gorm.Scope) error {
 			return err
 		}
 
-		err = scope.SetColumn("ID", uuid.String())
-		if err != nil {
-			return err
-		}
+		db.Statement.SetColumn("ID", uuid.String())
 	} else {
 		_, err := uuid.Parse(m.ID)
 		if err != nil {
@@ -70,16 +67,10 @@ func (m *ObjectMeta) beforeSave(scope *gorm.Scope) error {
 
 	now := time.Now().UTC()
 
-	err := scope.SetColumn("Modified", now)
-	if err != nil {
-		return err
-	}
+	db.Statement.SetColumn("ModifiedAt", now)
 
-	if m.Created.IsZero() {
-		err = scope.SetColumn("Created", now)
-		if err != nil {
-			return err
-		}
+	if m.CreatedAt.IsZero() {
+		db.Statement.SetColumn("CreatedAt", now)
 	}
 
 	return nil
@@ -163,5 +154,5 @@ type Resolver interface {
 // StoreFuncs are back-end storage functions.
 type StoreFuncs struct {
 	Get  func(obj api.Object) (Object, error)
-	List func(objects api.ObjectList, opts *api.ListOptions) (ObjectList, uint, error)
+	List func(objects api.ObjectList, opts *api.ListOptions) (ObjectList, int64, error)
 }

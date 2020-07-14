@@ -6,52 +6,60 @@
 package types
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/imdario/mergo"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/set"
 )
 
 // Dashboard is a back-end storage dashboard object.
-// nolint:lll
 type Dashboard struct {
 	ObjectMeta
 	Options    *DashboardOptions `gorm:"type:text"`
 	Layout     GridLayout        `gorm:"type:text"`
 	Items      DashboardItems    `gorm:"type:text"`
-	Parent     sql.NullString    `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE SET NULL ON UPDATE SET NULL"`
-	Link       sql.NullString    `gorm:"type:varchar(36); DEFAULT NULL REFERENCES dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE"`
+	ParentID   *string           `gorm:""`
+	Parent     *Dashboard        `gorm:"constraint:OnDelete:SET NULL,OnUpdate:SET NULL"`
+	LinkID     *string           `gorm:""`
+	Link       *Dashboard        `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
 	Template   bool              `gorm:"not null"`
 	References []api.Reference   `gorm:"-"`
 }
 
 func dashboardFromAPI(dashboard *api.Dashboard) *Dashboard {
-	return &Dashboard{
+	d := &Dashboard{
 		ObjectMeta: objectMetaFromAPI(dashboard.ObjectMeta),
 		Options:    (*DashboardOptions)(dashboard.Options),
 		Items:      DashboardItems(dashboard.Items),
 		Layout:     GridLayout(dashboard.Layout),
-		Parent:     sql.NullString{String: dashboard.Parent, Valid: dashboard.Parent != ""},
-		Link:       sql.NullString{String: dashboard.Link, Valid: dashboard.Link != ""},
 		Template:   dashboard.Template,
 		References: dashboard.References,
 	}
+
+	if dashboard.Parent != "" {
+		d.ParentID = &dashboard.Parent
+	}
+
+	if dashboard.Link != "" {
+		d.LinkID = &dashboard.Link
+	}
+
+	return d
 }
 
 // BeforeSave handles the back-end storage ORM "BeforeSave" callback.
-func (d *Dashboard) BeforeSave(scope *gorm.Scope) error {
-	err := d.ObjectMeta.beforeSave(scope)
+func (d *Dashboard) BeforeSave(db *gorm.DB) error {
+	err := d.ObjectMeta.beforeSave(db)
 	if err != nil {
 		return err
 	}
 
 	// Cleanup extraneous options
 	switch {
-	case d.Link.String != "": // linked: only keep variables
+	case d.LinkID != nil: // linked: only keep variables
 		d.Options = &DashboardOptions{Variables: d.Options.Variables}
 
 	case d.Template: // template: discard any defined variables
@@ -73,10 +81,16 @@ func (d Dashboard) Copy(dst api.Object) error {
 		Options:    (*api.DashboardOptions)(d.Options),
 		Items:      api.DashboardItems(d.Items),
 		Layout:     api.GridLayout(d.Layout),
-		Parent:     d.Parent.String,
-		Link:       d.Link.String,
 		Template:   d.Template,
 		References: d.References,
+	}
+
+	if d.ParentID != nil {
+		dashboard.Parent = *d.ParentID
+	}
+
+	if d.LinkID != nil {
+		dashboard.Link = *d.LinkID
 	}
 
 	return nil
@@ -94,8 +108,8 @@ func (d *Dashboard) Resolve(store StoreFuncs) error {
 		err   error
 	)
 
-	if d.Link.Valid {
-		tmpl := &api.Dashboard{ObjectMeta: api.ObjectMeta{ID: d.Link.String}}
+	if d.LinkID != nil {
+		tmpl := &api.Dashboard{ObjectMeta: api.ObjectMeta{ID: *d.LinkID}}
 
 		v, err := store.Get(tmpl)
 		if err != nil {

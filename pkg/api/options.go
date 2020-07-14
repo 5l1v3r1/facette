@@ -11,12 +11,16 @@ import "strings"
 type ListOptions struct {
 	Filter ListFilter
 	Sort   string
-	Offset uint
-	Limit  uint
+	Offset int64
+	Limit  int64
 }
 
 // SortFields returns options sorting fields.
 func (o *ListOptions) SortFields() []SortField {
+	if o.Sort == "" {
+		return nil
+	}
+
 	fields := []SortField{}
 
 	for _, part := range strings.Split(o.Sort, ",") {

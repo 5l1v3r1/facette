@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 )
@@ -19,8 +19,8 @@ type Provider struct {
 	ObjectMeta
 	Connector    ProviderConnector `gorm:"type:varchar(32);not null"`
 	Filters      ProviderFilters   `gorm:"type:text"`
-	PollInterval int               `gorm:"not null;default:0"`
-	Enabled      bool              `gorm:"not null;default:false"`
+	PollInterval int               `gorm:"not null"`
+	Enabled      bool              `gorm:"not null"`
 }
 
 func providerFromAPI(provider *api.Provider) *Provider {
@@ -34,8 +34,8 @@ func providerFromAPI(provider *api.Provider) *Provider {
 }
 
 // BeforeSave handles the back-end storage ORM "BeforeSave" callback.
-func (p *Provider) BeforeSave(scope *gorm.Scope) error {
-	return p.ObjectMeta.beforeSave(scope)
+func (p *Provider) BeforeSave(db *gorm.DB) error {
+	return p.ObjectMeta.beforeSave(db)
 }
 
 // Copy copies back-end storage provider data into an API object.

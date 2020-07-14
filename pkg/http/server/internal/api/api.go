@@ -157,7 +157,7 @@ func (h handler) WriteError(rw http.ResponseWriter, err error) {
 		httpjson.Write(rw, responseFromError(err), http.StatusUnsupportedMediaType)
 
 	default:
-		zap.L().Error(err.Error())
+		zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error())
 		httpjson.Write(rw, responseFromError(api.ErrUnhandled), http.StatusInternalServerError)
 	}
 }

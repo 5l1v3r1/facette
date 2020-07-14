@@ -23,12 +23,12 @@ import (
 )
 
 func listOptionsFromRequest(r *http.Request) (*api.ListOptions, error) {
-	offset, err := uintFromQuery(r, "offset")
+	offset, err := int64FromQuery(r, "offset")
 	if err != nil {
 		return nil, errors.Wrap(api.ErrInvalid, "invalid offset")
 	}
 
-	limit, err := uintFromQuery(r, "limit")
+	limit, err := int64FromQuery(r, "limit")
 	if err != nil {
 		return nil, errors.Wrap(api.ErrInvalid, "invalid limit")
 	}
@@ -69,7 +69,7 @@ func listOptionsFromRequest(r *http.Request) (*api.ListOptions, error) {
 		if section == "dashboards" {
 			parent := httprouter.QueryParam(r, "parent")
 			if parent != "" {
-				opts.Filter["parent"] = parent
+				opts.Filter["parent_id"] = parent
 			}
 		}
 
@@ -106,11 +106,10 @@ func boolFromQuery(r *http.Request, key string) (bool, bool, error) {
 	return false, false, nil
 }
 
-func uintFromQuery(r *http.Request, key string) (uint, error) {
+func int64FromQuery(r *http.Request, key string) (int64, error) {
 	value := httprouter.QueryParam(r, key)
 	if value != "" {
-		v, err := strconv.ParseUint(value, 10, 32)
-		return uint(v), err
+		return strconv.ParseInt(value, 10, 64)
 	}
 
 	return 0, nil

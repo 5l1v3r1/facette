@@ -35,8 +35,8 @@
             <template v-if="dashboard && edit">
                 <v-spacer></v-spacer>
 
-                <v-label class="modified" v-if="dashboard.modified">
-                    {{ $t("messages.lastModified", [formatDate(dashboard.modified, $t("date.long"))]) }}
+                <v-label class="modified" v-if="dashboard.modifiedAt">
+                    {{ $t("messages.lastModified", [formatDate(dashboard.modifiedAt, $t("date.long"))]) }}
                 </v-label>
             </template>
         </v-toolbar>

@@ -96,7 +96,7 @@ func dumpObject(tw *tar.Writer, obj api.Object) error {
 		Name:    prefix + meta.ID + ".json",
 		Size:    int64(len(data)),
 		Mode:    0644,
-		ModTime: meta.Modified,
+		ModTime: meta.ModifiedAt,
 	})
 	if err != nil {
 		return err

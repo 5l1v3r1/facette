@@ -8,8 +8,8 @@
 declare interface ObjectMeta {
     id: string;
     name: string;
-    created?: Date;
-    modified?: Date;
+    createdAt?: Date;
+    modifiedAt?: Date;
 }
 
 declare interface Chart extends ObjectMeta {

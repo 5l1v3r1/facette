@@ -28,7 +28,7 @@ func (h handler) ListLabels(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	labels := h.catalog.Labels(matcher)
-	total := uint(len(labels))
+	total := int64(len(labels))
 
 	if opts.Limit > 0 {
 		applyCatalogPagination(&labels, total, opts.Offset, opts.Limit)
@@ -55,7 +55,7 @@ func (h handler) ListMetrics(rw http.ResponseWriter, r *http.Request) {
 		metrics = append(metrics, metric.String())
 	}
 
-	total := uint(len(metrics))
+	total := int64(len(metrics))
 
 	if opts.Limit > 0 {
 		applyCatalogPagination(&metrics, total, opts.Offset, opts.Limit)
@@ -78,7 +78,7 @@ func (h handler) ListValues(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	values := h.catalog.Values(httprouter.ContextParam(r, "label").(string), matcher)
-	total := uint(len(values))
+	total := int64(len(values))
 
 	if opts.Limit > 0 {
 		applyCatalogPagination(&values, total, opts.Offset, opts.Limit)
@@ -87,7 +87,7 @@ func (h handler) ListValues(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: values, Total: total}, http.StatusOK)
 }
 
-func applyCatalogPagination(entries *[]string, total, offset, limit uint) {
+func applyCatalogPagination(entries *[]string, total, offset, limit int64) {
 	if offset < total {
 		end := offset + limit
 		if limit > 0 && total > end {

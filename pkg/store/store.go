@@ -9,8 +9,8 @@ package store
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/errors"
@@ -36,13 +36,12 @@ func New(config *Config) (*Store, error) {
 		return nil, err
 	}
 
-	db, err := driver.Open()
+	db, err := driver.Open(&gorm.Config{
+		Logger: newLogger(),
+	})
 	if err != nil {
-		log.Error(err.Error(), driver.ZapFields()...)
 		return nil, err
 	}
-
-	db.SetLogger(logger{})
 
 	log.Info("back-end storage opened", zap.Any("type", config.Driver.Type))
 
@@ -59,7 +58,7 @@ func New(config *Config) (*Store, error) {
 		(*types.Chart)(nil),
 		(*types.Dashboard)(nil),
 		(*types.Provider)(nil),
-	).Error
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +75,11 @@ func New(config *Config) (*Store, error) {
 // Close closes the back-end storage database connection.
 func (s *Store) Close() {
 	if s.db != nil {
-		err := s.db.Close()
+		db, err := s.db.DB()
+		if err == nil {
+			err = db.Close()
+		}
+
 		if err != nil {
 			s.log.Error("cannot close back-end storage", zap.Error(err))
 			return
@@ -150,7 +153,7 @@ func (s *Store) get(obj api.Object) (types.Object, error) {
 		return nil, err
 	}
 
-	err = s.db.Where(fmt.Sprintf("%v = ?", s.db.Dialect().Quote(column)), value).First(v).Error
+	err = s.db.Where(fmt.Sprintf("%v = ?", s.db.Statement.Quote(column)), value).First(v).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, api.ErrNotFound
 	} else if err != nil {
@@ -161,7 +164,7 @@ func (s *Store) get(obj api.Object) (types.Object, error) {
 }
 
 // List returns a list of objects from the back-end storage.
-func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (uint, error) {
+func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (int64, error) {
 	v, total, err := s.list(objects, opts)
 	if err != nil {
 		return 0, err
@@ -175,7 +178,7 @@ func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (uint, error
 	return total, nil
 }
 
-func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.ObjectList, uint, error) {
+func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.ObjectList, int64, error) {
 	v, err := types.ListFromAPI(objects)
 	if err != nil {
 		return nil, 0, err
@@ -197,7 +200,7 @@ func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.Objec
 		}
 	}
 
-	var total uint
+	var total int64
 
 	err = tx.Count(&total).Error
 	if err != nil {
@@ -206,19 +209,21 @@ func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.Objec
 
 	if opts != nil {
 		for _, field := range opts.SortFields() {
-			if !tx.Dialect().HasColumn(tx.NewScope(v).TableName(), field.Name) {
-				return nil, 0, errors.Wrapf(api.ErrInvalid, "unknown field: %s", field.Name)
+			fieldName := tx.NamingStrategy.ColumnName("", field.Name)
+
+			if !tx.Migrator().HasColumn(v, fieldName) {
+				return nil, 0, errors.Wrapf(api.ErrInvalid, "unknown field: %s", fieldName)
 			}
 
 			if field.Desc {
-				tx = tx.Order(field.Name + " DESC")
+				tx = tx.Order(fieldName + " DESC")
 			} else {
-				tx = tx.Order(field.Name)
+				tx = tx.Order(fieldName)
 			}
 		}
 
 		if opts.Limit > 0 {
-			tx = tx.Offset(opts.Offset).Limit(opts.Limit)
+			tx = tx.Offset(int(opts.Offset)).Limit(int(opts.Limit))
 		}
 	}
 

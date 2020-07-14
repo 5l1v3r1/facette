@@ -144,11 +144,11 @@
                         </v-table-cell>
 
                         <v-table-cell>
-                            <v-flex class="sort" @click.native="toggleSort('modified')">
+                            <v-flex class="sort" @click.native="toggleSort('modifiedAt')">
                                 {{ $t("labels.lastModified") }}
                                 <v-icon
-                                    :icon="`chevron-${options.sort == '-modified' ? 'down' : 'up'}`"
-                                    v-if="options.sort == 'modified' || options.sort == '-modified'"
+                                    :icon="`chevron-${options.sort == '-modifiedAt' ? 'down' : 'up'}`"
+                                    v-if="options.sort == 'modifiedAt' || options.sort == '-modifiedAt'"
                                 ></v-icon>
                             </v-flex>
                         </v-table-cell>
@@ -197,7 +197,7 @@
                         </v-table-cell>
 
                         <v-table-cell>
-                            {{ formatDate(obj.value.modified, $t("date.long")) }}
+                            {{ formatDate(obj.value.modifiedAt, $t("date.long")) }}
                         </v-table-cell>
 
                         <v-table-cell>

@@ -6,45 +6,49 @@
 package types
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/imdario/mergo"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"facette.io/facette/pkg/api"
 )
 
 // Chart is a back-end storage chart object.
-// nolint:lll
 type Chart struct {
 	ObjectMeta
-	Options  *ChartOptions  `gorm:"type:text"`
-	Series   SeriesList     `gorm:"type:text"`
-	Link     sql.NullString `gorm:"type:varchar(36); DEFAULT NULL REFERENCES charts (id) ON DELETE CASCADE ON UPDATE CASCADE"`
-	Template bool           `gorm:"not null"`
+	Options  *ChartOptions `gorm:"type:text"`
+	Series   SeriesList    `gorm:"type:text"`
+	LinkID   *string       `gorm:""`
+	Link     *Chart        `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Template bool          `gorm:"not null"`
 }
 
 func chartFromAPI(chart *api.Chart) *Chart {
-	return &Chart{
+	c := &Chart{
 		ObjectMeta: objectMetaFromAPI(chart.ObjectMeta),
 		Options:    (*ChartOptions)(chart.Options),
 		Series:     SeriesList(chart.Series),
-		Link:       sql.NullString{String: chart.Link, Valid: chart.Link != ""},
 		Template:   chart.Template,
 	}
+
+	if chart.Link != "" {
+		c.LinkID = &chart.Link
+	}
+
+	return c
 }
 
 // BeforeSave handles the back-end storage ORM "BeforeSave" callback.
-func (c *Chart) BeforeSave(scope *gorm.Scope) error {
-	err := c.ObjectMeta.beforeSave(scope)
+func (c *Chart) BeforeSave(db *gorm.DB) error {
+	err := c.ObjectMeta.beforeSave(db)
 	if err != nil {
 		return err
 	}
 
 	// Cleanup extraneous options
 	switch {
-	case c.Link.String != "": // linked: only keep variables
+	case c.LinkID != nil: // linked: only keep variables
 		c.Options = &ChartOptions{Variables: c.Options.Variables}
 
 	case c.Template: // template: discard any defined variables
@@ -65,8 +69,11 @@ func (c Chart) Copy(dst api.Object) error {
 		ObjectMeta: c.ObjectMeta.ToAPI(),
 		Options:    (*api.ChartOptions)(c.Options),
 		Series:     api.SeriesList(c.Series),
-		Link:       c.Link.String,
 		Template:   c.Template,
+	}
+
+	if c.LinkID != nil {
+		chart.Link = *c.LinkID
 	}
 
 	return nil
@@ -81,8 +88,8 @@ func (c *Chart) Resolve(store StoreFuncs) error {
 
 	var proxy *Chart
 
-	if c.Link.Valid {
-		tmpl := &api.Chart{ObjectMeta: api.ObjectMeta{ID: c.Link.String}}
+	if c.LinkID != nil {
+		tmpl := &api.Chart{ObjectMeta: api.ObjectMeta{ID: *c.LinkID}}
 
 		v, err := store.Get(tmpl)
 		if err != nil {

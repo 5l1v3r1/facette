@@ -45,8 +45,8 @@
             <template v-if="provider && edit">
                 <v-spacer></v-spacer>
 
-                <v-label class="modified" v-if="provider.modified">
-                    {{ $t("messages.lastModified", [formatDate(provider.modified, $t("date.long"))]) }}
+                <v-label class="modified" v-if="provider.modifiedAt">
+                    {{ $t("messages.lastModified", [formatDate(provider.modifiedAt, $t("date.long"))]) }}
                 </v-label>
             </template>
         </v-toolbar>
