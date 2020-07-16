@@ -133,7 +133,7 @@ func (d *Dashboard) Resolve(store StoreFuncs) error {
 		proxy = d
 	}
 
-	// Loop through dashboard items are fetch each known referenced element. If
+	// Loop through dashboard items and fetch each known referenced element. If
 	// those elements are resolvable, resolve them too.
 	refs := map[api.DashboardItemType]*set.Set{}
 

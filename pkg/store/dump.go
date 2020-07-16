@@ -22,21 +22,20 @@ func (s *Store) Dump(ch chan<- api.Object) error {
 	tx := s.db.Begin()
 	defer tx.Commit()
 
-	err := s.dump(tx, &types.ProviderList{}, ch)
-	if err != nil {
-		return err
+	var err error
+
+	for _, objects := range []types.ObjectList{
+		&types.ChartList{},
+		&types.DashboardList{},
+		&types.ProviderList{},
+	} {
+		err = s.dump(tx, objects, ch)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = s.dump(tx, &types.ChartList{}, ch)
-	if err != nil {
-		return err
-	}
-
-	// TODO: check for all parents order
-	err = s.dump(tx, &types.DashboardList{}, ch)
-	if err != nil {
-		return err
-	}
+	// TODO: check for dashboards parents order
 
 	return nil
 }

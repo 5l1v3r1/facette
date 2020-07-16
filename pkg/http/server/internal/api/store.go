@@ -57,6 +57,7 @@ func dumpStore(store *store.Store, w io.Writer) error {
 			err := dumpObject(tw, obj)
 			if err != nil {
 				errCh <- err
+				break
 			}
 		}
 
