@@ -169,6 +169,7 @@ func (c Chart) Variables() ([]string, error) {
 // +store:generate=type
 type ChartOptions struct {
 	Axes      *ChartAxes         `json:"axes,omitempty"`
+	Legend    bool               `json:"legend"`
 	Markers   []Marker           `json:"markers,omitempty"`
 	Title     string             `json:"title,omitempty"`
 	Type      ChartType          `json:"type,omitempty"`
@@ -411,8 +412,8 @@ func (d Dashboard) Variables() ([]string, error) {
 // DashboardOptions are dashboard options.
 // +store:generate=type
 type DashboardOptions struct {
-	Title     string              `json:"title,omitempty"`
-	Variables []*TemplateVariable `json:"variables,omitempty"`
+	Title     string             `json:"title,omitempty"`
+	Variables []TemplateVariable `json:"variables,omitempty"`
 }
 
 // DashboardItem is a dashboard object.
@@ -431,8 +432,8 @@ type DashboardItemType string
 
 // UnmarshalText satisfies the encoding.TextUnmarshaler interface.
 func (d *DashboardItemType) UnmarshalText(b []byte) error {
-	switch v := DashboardItemType(b); v { // nolint:gocritic
-	case DashboardItemChart:
+	switch v := DashboardItemType(b); v {
+	case DashboardItemChart, DashboardItemText:
 		*d = v
 		return nil
 	}
@@ -443,6 +444,7 @@ func (d *DashboardItemType) UnmarshalText(b []byte) error {
 // Dashboard item types:
 const (
 	DashboardItemChart DashboardItemType = "chart"
+	DashboardItemText  DashboardItemType = "text"
 )
 
 // GridLayout is a dashboard grid layout.
