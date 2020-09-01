@@ -2,7 +2,10 @@
     <v-content>
         <v-toolbar clip="content">
             <v-spacer></v-spacer>
-            <v-button href="https://facette.io" icon="globe" target="_blank">{{ $t("labels.visit.website") }}</v-button>
+
+            <v-button href="https://facette.io" icon="globe" target="_blank">
+                {{ i18n.t("labels.visit.website") }}
+            </v-button>
         </v-toolbar>
 
         <v-spinner v-if="loading"></v-spinner>
@@ -10,91 +13,86 @@
         <v-message-error @retry="getVersion" v-else-if="erred"></v-message-error>
 
         <template v-else>
-            <h1>{{ $t("labels.info._") }}</h1>
+            <h1>{{ i18n.t("labels.info._") }}</h1>
 
             <dl>
                 <template v-if="version">
-                    <dt>{{ $t("labels.info.version") }}</dt>
+                    <dt>{{ i18n.t("labels.info.version") }}</dt>
                     <dd>{{ version.version }}</dd>
 
-                    <dt>{{ $t("labels.info.branch") }}</dt>
+                    <dt>{{ i18n.t("labels.info.branch") }}</dt>
                     <dd>{{ version.branch }}</dd>
 
-                    <dt>{{ $t("labels.info.revision") }}</dt>
+                    <dt>{{ i18n.t("labels.info.revision") }}</dt>
                     <dd>{{ version.revision }}</dd>
 
-                    <dt>{{ $t("labels.info.compiler") }}</dt>
+                    <dt>{{ i18n.t("labels.info.compiler") }}</dt>
                     <dd>{{ version.compiler }}</dd>
 
-                    <dt>{{ $t("labels.info.buildDate") }}</dt>
+                    <dt>{{ i18n.t("labels.info.buildDate") }}</dt>
                     <dd>{{ version.buildDate }}</dd>
                 </template>
 
-                <dt>{{ $t("labels.info.connectors") }}</dt>
-                <template v-if="connectors">
-                    <dd :key="name" v-for="name in connectors">{{ name }}</dd>
+                <dt>{{ i18n.t("labels.info.connectors") }}</dt>
+                <template v-if="apiOptions.connectors">
+                    <dd :key="name" v-for="name in apiOptions.connectors">{{ name }}</dd>
                 </template>
-                <dd v-else>{{ $t("messages.notAvailable") }}</dd>
+                <dd v-else>{{ i18n.t("messages.notAvailable") }}</dd>
             </dl>
         </template>
     </v-content>
 </template>
 
 <script lang="ts">
-import {Component, Mixins} from "vue-property-decorator";
+import {computed, onMounted, ref} from "vue";
+import {useI18n} from "vue-i18n";
+import {useStore} from "vuex";
 
-import {CustomMixins} from "@/src/mixins";
+import api from "@/lib/api";
+import common from "@/common";
+import {State} from "@/store";
 
-interface Version {
-    version?: string;
-    branch?: string;
-    revision?: string;
-    compiler?: string;
-    buildDate?: string;
-}
+export default {
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+        const store = useStore<State>();
 
-@Component
-export default class Info extends Mixins<CustomMixins>(CustomMixins) {
-    public loading = true;
+        const {erred, loading, onFetchRejected} = common;
 
-    public version: Version | null = null;
+        const version = ref<Version | null>(null);
 
-    public mounted(): void {
-        this.getVersion();
-    }
+        const apiOptions = computed(() => store.state.apiOptions);
 
-    public get connectors(): Array<string> {
-        return this.$store.getters.connectors;
-    }
+        const getVersion = (): void => {
+            store.commit("loading", true);
 
-    private getVersion(): void {
-        this.$http
-            .get("/api/v1/version")
-            .then(response => response.json())
-            .then(
-                (response: APIResponse<Version>) => {
-                    this.version = response.data ?? null;
-                    this.loading = false;
-                },
-                this.handleError(() => {
-                    this.loading = false;
-                }, true),
-            );
-    }
-}
+            api.version()
+                .then(response => {
+                    version.value = response.data ?? null;
+                }, onFetchRejected)
+                .finally(() => {
+                    store.commit("loading", false);
+                });
+        };
+
+        onMounted(() => getVersion());
+
+        return {
+            apiOptions,
+            erred,
+            getVersion,
+            i18n,
+            loading,
+            version,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-.v-content {
-    dl {
-        dt {
-            color: var(--light-gray);
-            margin: 0.65rem 0;
-        }
+@import "../../mixins";
 
-        dd {
-            margin: 0 0 0 1.5rem;
-        }
-    }
+.v-content {
+    @include content;
 }
 </style>

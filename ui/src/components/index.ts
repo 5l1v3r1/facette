@@ -5,26 +5,39 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {registerComponents} from "@/src/helpers/vue";
+import kebabCase from "lodash/kebabCase";
+import {App, Component} from "vue";
 
 import ChartComponent from "./chart/chart.vue";
 import DatetimeComponent from "./datetime/datetime.vue";
 import GridComponent from "./grid/grid.vue";
-import GridItemComponent from "./grid/item.vue";
+import GridItemComponent from "./grid/grid-item.vue";
+import LabelsComponent from "./labels/labels.vue";
 import MessageErrorComponent from "./message/error.vue";
 import ModalConfirmComponent from "./modal/confirm.vue";
 import ModalHelpComponent from "./modal/help.vue";
 import ModalPromptComponent from "./modal/prompt.vue";
-import ToolbarMainComponent from "./toolbar/main.vue";
+import ModalTimeRangeComponent from "./modal/time-range.vue";
+import TextComponent from "./text/text.vue";
 
-registerComponents({
+const components: Record<string, Component> = {
+    ChartComponent,
     DatetimeComponent,
     GridComponent,
     GridItemComponent,
-    ChartComponent,
+    LabelsComponent,
     MessageErrorComponent,
     ModalConfirmComponent,
     ModalHelpComponent,
     ModalPromptComponent,
-    ToolbarMainComponent,
-});
+    ModalTimeRangeComponent,
+    TextComponent,
+};
+
+export default {
+    install: (app: App): void => {
+        Object.keys(components).forEach(key =>
+            app.component(`v-${kebabCase(key.replace(/Component$/, ""))}`, components[key]),
+        );
+    },
+};

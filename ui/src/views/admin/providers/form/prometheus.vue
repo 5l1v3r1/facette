@@ -1,0 +1,50 @@
+<!-- eslint-disable vue/no-mutating-props -->
+
+<template>
+    <v-label>{{ i18n.t("labels.url") }}</v-label>
+    <v-input
+        required
+        type="url"
+        :help="i18n.t('help.providers.url', ['Prometheus'])"
+        :placeholder="i18n.t('labels.placeholders.example', ['http://localhost:9090/'])"
+        v-model:value="settings.url"
+    ></v-input>
+
+    <v-checkbox type="toggle" v-model:value="settings.skipVerify" v-if="secured">
+        {{ i18n.t("labels.tls.skipVerify") }}
+    </v-checkbox>
+
+    <v-label>{{ i18n.t("labels.filters._", 1) }}</v-label>
+    <v-input
+        :help="i18n.t('help.providers.prometheus.filter')"
+        :placeholder="i18n.t('labels.placeholders.example', ['{job=&quot;prometheus&quot;}'])"
+        v-model:value="settings.filter"
+    ></v-input>
+</template>
+
+<script lang="ts">
+import {computed} from "vue";
+import {useI18n} from "vue-i18n";
+
+export default {
+    inheritAttrs: false,
+    props: {
+        settings: {
+            required: true,
+            type: Object as () => Provider["connector"]["settings"],
+        },
+    },
+    setup(props: Record<string, any>): Record<string, unknown> {
+        const i18n = useI18n();
+
+        const secured = computed(() => {
+            return Boolean(((props.settings.url ?? "") as string).startsWith("https://"));
+        });
+
+        return {
+            i18n,
+            secured,
+        };
+    },
+};
+</script>

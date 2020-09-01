@@ -5,10 +5,8 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {LocaleMessages} from "vue-i18n";
-
 import en from "./en";
 
-export const messages: LocaleMessages = {
+export const messages = {
     en,
 };

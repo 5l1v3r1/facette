@@ -16,16 +16,14 @@
     "moduleResolution": "node",
     "paths": {
       "@/*": [
-        "./*",
+        "src/*"
       ]
     },
     "sourceMap": true,
     "strict": true,
     "target": "esnext",
     "types": [
-      "webpack-env",
-      "mocha",
-      "chai"
+      "webpack-env"
     ]
   },
   "exclude": [
@@ -34,6 +32,6 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
-    "types/*.d.ts",
+    "types/*.d.ts"
   ]
 }

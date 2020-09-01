@@ -5,18 +5,14 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {Route} from "vue-router";
+import {RouteRecordRaw} from "vue-router";
 
-import {defineParams} from "@/src/router";
+import home from "./home/home.vue";
+import show from "./show/show.vue";
+import sidebar from "./common/sidebar.vue";
+import toolbar from "../common/toolbar.vue";
 
-import "./components";
-
-import home from "./home.vue";
-import show from "./show.vue";
-import sidebar from "./sidebar.vue";
-import toolbar from "./toolbar.vue";
-
-export default [
+const routes: Array<RouteRecordRaw> = [
     {
         path: "/dashboards",
         name: "dashboards-home",
@@ -26,7 +22,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
+            default: (): Record<string, any> => ({type: "dashboards"}),
         },
     },
     {
@@ -38,19 +34,7 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route): void => defineParams(route, {type: "dashboards"}),
-        },
-    },
-    {
-        path: "/basket",
-        name: "basket-show",
-        components: {
-            default: show,
-            sidebar: sidebar,
-            toolbar: toolbar,
-        },
-        props: {
-            default: (route: Route): void => defineParams(route, {type: "basket"}),
+            default: (): Record<string, any> => ({type: "dashboards"}),
         },
     },
     {
@@ -62,7 +46,21 @@ export default [
             toolbar: toolbar,
         },
         props: {
-            default: (route: Route): void => defineParams(route, {type: "charts"}),
+            default: (): Record<string, any> => ({type: "charts"}),
+        },
+    },
+    {
+        path: "/basket",
+        name: "basket-show",
+        components: {
+            default: show,
+            sidebar: sidebar,
+            toolbar: toolbar,
+        },
+        props: {
+            default: (): Record<string, any> => ({type: "basket"}),
         },
     },
 ];
+
+export default routes;

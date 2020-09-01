@@ -1,59 +1,83 @@
 <template>
-    <v-app>
-        <v-modal-help></v-modal-help>
-        <v-notifier></v-notifier>
+    <router-view name="toolbar"></router-view>
+    <router-view name="sidebar"></router-view>
+    <router-view></router-view>
 
-        <router-view name="toolbar"></router-view>
-        <router-view name="sidebar"></router-view>
-        <router-view></router-view>
-    </v-app>
+    <v-notifier></v-notifier>
+    <v-modal-confirm></v-modal-confirm>
+    <v-modal-help></v-modal-help>
+    <v-modal-prompt></v-modal-prompt>
 </template>
 
 <script lang="ts">
-import {Component, Vue} from "vue-property-decorator";
+import {onBeforeUnmount, onMounted} from "vue";
+import {useStore} from "vuex";
 
-@Component
-export default class Main extends Vue {
-    public mounted(): void {
-        document.addEventListener("keydown", this.onModifier);
-        document.addEventListener("keyup", this.onModifier);
-        document.addEventListener("visibilitychange", this.onModifier);
-    }
+import {useUI} from "@/components/ui";
+import {State} from "@/store";
 
-    public beforeDestroy(): void {
-        document.removeEventListener("keydown", this.onModifier);
-        document.removeEventListener("keyup", this.onModifier);
-        document.removeEventListener("visibilitychange", this.onModifier);
-    }
+export default {
+    setup(): void {
+        const store = useStore<State>();
+        const ui = useUI();
 
-    private onModifier(e: Event | KeyboardEvent): void {
-        switch (e.type) {
-            case "keydown":
-            case "keyup": {
-                const ke = e as KeyboardEvent;
+        const onModifier = (ev: Event | KeyboardEvent): void => {
+            switch (ev.type) {
+                case "keydown":
+                case "keyup": {
+                    const ke = ev as KeyboardEvent;
+                    let key: string;
 
-                if (ke.code === "AltLeft" || ke.code === "AltRight") {
-                    const modifiers = Object.assign(this.$store.getters.modifiers, {
-                        alt: e.type === "keydown",
-                    });
+                    if (ke.code === "AltLeft" || ke.code === "AltRight") {
+                        key = "alt";
+                    } else if (ke.code === "ShiftLeft" || ke.code === "ShiftRight") {
+                        key = "shift";
+                    } else {
+                        break;
+                    }
 
-                    this.$store.commit("modifiers", modifiers);
-                } else if (ke.code === "ShiftLeft" || ke.code === "ShiftRight") {
-                    const modifiers = Object.assign(this.$store.getters.modifiers, {
-                        shift: e.type === "keydown",
-                    });
+                    store.commit(
+                        "modifiers",
+                        Object.assign({}, store.state.modifiers, {
+                            [key]: ev.type === "keydown",
+                        }),
+                    );
 
-                    this.$store.commit("modifiers", modifiers);
+                    break;
                 }
 
-                break;
-            }
+                case "visibilitychange": {
+                    store.commit("modifiers", {alt: false, shift: false});
 
-            case "visibilitychange": {
-                this.$store.commit("modifiers", {alt: false, shift: false});
-                break;
+                    break;
+                }
             }
-        }
-    }
-}
+        };
+
+        onMounted(() => {
+            document.addEventListener("keydown", onModifier);
+            document.addEventListener("keyup", onModifier);
+            document.addEventListener("visibilitychange", onModifier);
+
+            // Trigger pending notification if found
+            const notification = store.state.pendingNotification;
+            if (notification !== null) {
+                ui.notify(notification.text, notification.type, notification.icon);
+                store.commit("pendingNotification", null);
+            }
+        });
+
+        onBeforeUnmount(() => {
+            document.removeEventListener("keydown", onModifier);
+            document.removeEventListener("keyup", onModifier);
+            document.removeEventListener("visibilitychange", onModifier);
+        });
+    },
+};
 </script>
+
+<style lang="scss">
+$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+@import "~@fortawesome/fontawesome-free/scss/regular";
+@import "~@fortawesome/fontawesome-free/scss/solid";
+</style>

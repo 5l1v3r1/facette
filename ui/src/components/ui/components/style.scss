@@ -1,0 +1,62 @@
+@font-face {
+    font-display: swap;
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    src: local("Roboto Regular"), local("Roboto-Regular"),
+        url("~typeface-roboto/files/roboto-latin-400.woff2") format("woff2"),
+        url("~typeface-roboto/files/roboto-latin-400.woff") format("woff");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 500;
+    src: local("Roboto Regular"), local("Roboto-Regular"),
+        url("~typeface-roboto/files/roboto-latin-500.woff2") format("woff2"),
+        url("~typeface-roboto/files/roboto-latin-500.woff") format("woff");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Roboto Mono";
+    font-style: normal;
+    font-weight: 400;
+    src: local("Roboto Mono"), local("Roboto-Mono"),
+        url("~typeface-roboto-mono/files/roboto-mono-latin-400.woff2") format("woff2"),
+        url("~typeface-roboto-mono/files/roboto-mono-latin-400.woff") format("woff");
+}
+
+html {
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--color);
+    font-size: 0.85rem;
+    line-height: 1.75;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+::placeholder {
+    opacity: var(--placeholder-opacity);
+}
+
+::selection {
+    background-color: var(--selection-background);
+    color: var(--selection-color);
+}

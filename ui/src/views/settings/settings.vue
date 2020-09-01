@@ -1,193 +1,197 @@
 <template>
     <v-content>
-        <v-modal-confirm></v-modal-confirm>
-
         <v-toolbar clip="content">
-            <v-button icon="save" @click="save">{{ $t("labels.settings.save") }}</v-button>
+            <v-button icon="save" @click="save">{{ i18n.t("labels.settings.save") }}</v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="undo" :disabled="!guarded" @click="reset()">{{ $t("labels.reset") }}</v-button>
+            <v-button icon="undo" :disabled="!routeGuarded" @click="reset()">{{ i18n.t("labels.reset") }}</v-button>
         </v-toolbar>
 
-        <template v-if="section === 'display'">
-            <h1>{{ $t("labels.settings.display") }}</h1>
+        <template v-if="$route.params.section === 'display'">
+            <h1>{{ i18n.t("labels.settings.display") }}</h1>
 
-            <v-form>
-                <v-label>{{ $t("labels.language._") }}</v-label>
+            <v-form class="half">
+                <v-label>{{ i18n.t("labels.language._") }}</v-label>
                 <v-select
-                    :options="locales"
-                    :placeholder="$t('labels.language.select')"
-                    v-autofocus
-                    v-model="settings.locale"
+                    class="half"
+                    :options="localeOptions"
+                    :placeholder="i18n.t('labels.language.select')"
+                    v-model:value="settings.locale"
                 ></v-select>
 
-                <v-label>{{ $t("labels.theme._") }}</v-label>
+                <v-label>{{ i18n.t("labels.theme._") }}</v-label>
                 <v-select
-                    :options="themes"
-                    :placeholder="$t('labels.theme.select')"
-                    v-model="settings.theme"
+                    class="half"
+                    :options="themeOptions"
+                    :placeholder="i18n.t('labels.theme.select')"
+                    v-model:value="settings.theme"
                 ></v-select>
 
-                <v-label>{{ $t("labels.timezone._") }}</v-label>
+                <v-label>{{ i18n.t("labels.timezone._") }}</v-label>
                 <v-select
-                    :options="timezones"
-                    :placeholder="$t('labels.timezone.select')"
-                    v-model="settings.timezoneUTC"
+                    class="half"
+                    :options="timezoneOptions"
+                    :placeholder="i18n.t('labels.timezone.select')"
+                    v-model:value="settings.timezoneUTC"
                 ></v-select>
             </v-form>
         </template>
 
-        <template v-else-if="section === 'keyboard'">
-            <h1>{{ $t("labels.keyboard.shortcuts._") }}</h1>
+        <template v-else-if="$route.params.section === 'keyboard'">
+            <h1>{{ i18n.t("labels.settings.keyboard") }}</h1>
 
-            <v-form>
+            <v-form class="third">
                 <v-markdown
-                    :source="$t('help.keyboard.shortcuts', ['#keyboard'])"
-                    @click.native="onHelpClick"
+                    :content="i18n.t('help.keyboard.shortcuts', ['#keyboard'])"
+                    @click="onHelpClick"
                 ></v-markdown>
 
-                <v-checkbox toggle v-model="settings.shortcuts">
-                    {{ $t("labels.keyboard.shortcuts.enable") }}
+                <v-checkbox type="toggle" v-model:value="settings.shortcuts">
+                    {{ i18n.t("labels.keyboard.shortcuts.enable") }}
                 </v-checkbox>
             </v-form>
         </template>
 
-        <v-message type="warning" v-if="guarded">{{ $t("messages.settings.reload") }}</v-message>
+        <v-message class="half" type="warning" v-if="routeGuarded">{{ i18n.t("messages.settings.reload") }}</v-message>
     </v-content>
 </template>
 
 <script lang="ts">
-import {Component, Mixins, Watch} from "vue-property-decorator";
+import clone from "lodash/clone";
+import {computed, onBeforeMount, onMounted, ref} from "vue";
+import {useI18n} from "vue-i18n";
+import {onBeforeRouteLeave, onBeforeRouteUpdate} from "vue-router";
+import {useStore} from "vuex";
 
-import {SelectOption} from "@/types/components";
+import {SelectOption} from "types/ui";
 
-import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
-import themes from "@/src/components/vue/app/themes";
-import {beforeRoute} from "@/src/helpers/route";
-import {resolveOption} from "@/src/helpers/select";
-import {CustomMixins} from "@/src/mixins";
+import common from "@/common";
+import {ModalConfirmParams} from "@/components/modal/confirm.vue";
+import {useUI} from "@/components/ui";
+import themes from "@/components/ui/themes";
+import {State} from "@/store";
 
 interface Settings {
     locale: string;
-    shortcuts: true;
-    theme: string;
+    shortcuts: boolean;
+    theme: string | null;
     timezoneUTC: boolean;
 }
 
-const defaultSection = "display";
+const defaultSettings = {
+    locale: "",
+    shortcuts: true,
+    theme: null,
+    timezoneUTC: false,
+};
 
-const timezones: Array<SelectOption> = [
-    {label: "labels.timezone.local", value: false},
-    {label: "labels.timezone.utc", value: true},
-];
+export default {
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+        const store = useStore<State>();
+        const ui = useUI();
 
-@Component({
-    beforeRouteLeave: beforeRoute,
-    beforeRouteUpdate: beforeRoute,
-})
-export default class Display extends Mixins<CustomMixins>(CustomMixins) {
-    public section = defaultSection;
+        const {applyRouteParams, beforeRoute, routeGuarded, unwatchGuard, watchGuard} = common;
 
-    public settings: Settings = {
-        locale: "",
-        shortcuts: true,
-        theme: "",
-        timezoneUTC: false,
-    };
+        const settings = ref<Settings>(clone(defaultSettings));
 
-    public mounted(): void {
-        this.reset(true);
-    }
+        const localeOptions = computed<Array<SelectOption>>(() => {
+            return Object.keys(i18n.messages.value as Record<string, unknown>)
+                .sort()
+                .map(name => ({label: i18n.t("name", name), value: name}));
+        });
 
-    public get locales(): Array<SelectOption> {
-        return Object.keys(this.$i18n.messages)
-            .sort()
-            .map(name => ({label: this.$t("name", name) as string, value: name}));
-    }
-
-    public onHelpClick(e: MouseEvent): void {
-        e.preventDefault();
-
-        if ((e.target as HTMLElement).tagName === "A") {
-            this.$components.modal("help", {tab: "keyboard"});
-        }
-    }
-
-    @Watch("$route.hash", {immediate: true})
-    public onRouteHash(to: string): void {
-        this.section = to ? to.substr(1) : defaultSection;
-    }
-
-    public reset(apply = false): void {
-        if (!apply) {
-            this.$components.modal(
-                "confirm",
-                {
-                    button: {
-                        label: this.$t("labels.settings.reset"),
-                        danger: true,
-                    },
-                    message: this.$t("messages.confirmLeave"),
-                } as ModalConfirmParams,
-                (value: boolean) => {
-                    if (value) {
-                        this.reset(true);
-                    }
-                },
+        const themeOptions = computed<Array<SelectOption>>(() => {
+            return Array<SelectOption>().concat(
+                {label: i18n.t("labels.theme.auto"), value: null},
+                ...Object.keys(themes).map(key => ({label: themes[key].name, value: key})),
             );
+        });
 
-            return;
-        }
+        const timezoneOptions = ref<Array<SelectOption>>([
+            {label: i18n.t("labels.timezone.local"), value: false},
+            {label: i18n.t("labels.timezone.utc"), value: true},
+        ]);
 
-        this.settings = {
-            locale: this.$store.getters.locale,
-            shortcuts: this.$store.getters.shortcuts,
-            theme: this.$store.getters.theme,
-            timezoneUTC: this.$store.getters.timezoneUTC,
+        const onHelpClick = (ev: MouseEvent): void => {
+            if ((ev.target as HTMLElement).tagName === "A") {
+                ev.preventDefault();
+                ui.modal("help");
+            }
         };
 
-        this.guardWatch("settings");
-    }
+        const reset = async (force = false): Promise<void> => {
+            if (!force) {
+                const ok = await ui.modal<boolean>("confirm", {
+                    button: {
+                        label: i18n.t("labels.settings.reset"),
+                        danger: true,
+                    },
+                    message: i18n.t("messages.unsavedLost"),
+                } as ModalConfirmParams);
 
-    public save(): void {
-        this.$store.commit("locale", this.settings.locale);
-        this.$store.commit("shortcuts", this.settings.shortcuts);
-        this.$store.commit("theme", this.settings.theme);
-        this.$store.commit("timezoneUTC", this.settings.timezoneUTC);
+                if (!ok) {
+                    return;
+                }
+            }
 
-        this.$components.notify(
-            this.$t("messages.settings.saved", this.settings.locale as string) as string,
-            "success",
-        );
+            settings.value = {
+                locale: store.state.locale,
+                shortcuts: store.state.shortcuts,
+                theme: store.state.theme,
+                timezoneUTC: store.state.timezoneUTC,
+            };
 
-        this.unguard();
-        location.reload();
-    }
+            watchGuard(settings);
+        };
 
-    public get themes(): Array<SelectOption> {
-        return Object.keys(themes).map(key => ({label: themes[key].name, value: key}));
-    }
+        const save = (): void => {
+            store.commit("locale", settings.value.locale);
+            store.commit("shortcuts", settings.value.shortcuts);
+            store.commit("theme", settings.value.theme);
+            store.commit("timezoneUTC", settings.value.timezoneUTC);
 
-    public get timezones(): Array<SelectOption> {
-        return timezones.map(option => resolveOption(this, option));
-    }
-}
+            store.commit("pendingNotification", {
+                text: i18n.t("messages.settings.saved", null, {locale: settings.value.locale}),
+                type: "success",
+            });
+
+            unwatchGuard();
+            location.reload();
+        };
+
+        onBeforeRouteLeave(beforeRoute);
+
+        onBeforeRouteUpdate(beforeRoute);
+
+        onBeforeMount(() => applyRouteParams());
+
+        onMounted(() => reset(true));
+
+        return {
+            i18n,
+            localeOptions,
+            onHelpClick,
+            reset,
+            routeGuarded,
+            save,
+            settings,
+            themeOptions,
+            timezoneOptions,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
+@import "../mixins";
+
 .v-content {
-    .v-form,
-    .v-message {
-        width: 33.33%;
-    }
+    @include content;
 
-    .v-label {
-        margin-top: 1rem;
-    }
-
-    .v-select {
-        width: 50%;
+    .v-message.warning {
+        margin-top: 3em;
     }
 }
 </style>

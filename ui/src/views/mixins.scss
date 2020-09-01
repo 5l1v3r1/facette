@@ -1,0 +1,193 @@
+@mixin content {
+    h1 .count {
+        color: var(--gray);
+        font-size: 1.35rem;
+        margin-left: 1rem;
+    }
+
+    dl {
+        dt {
+            color: var(--light-gray);
+            margin: 0.65rem 0;
+        }
+
+        dd {
+            margin: 0 0 0 1.5rem;
+        }
+    }
+
+    .v-message {
+        &.note {
+            color: var(--gray);
+        }
+
+        &.selection {
+            padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+
+            ::v-deep(.v-button) {
+                margin-left: 0.5rem;
+
+                .v-button-content {
+                    color: inherit;
+                    opacity: 0.65;
+                }
+
+                .active > .v-button-content,
+                > .v-button-content:active,
+                > .v-button-content:focus,
+                > .v-button-content:hover {
+                    background-color: transparent;
+                    opacity: 1;
+                }
+            }
+        }
+
+        + .v-toolbar {
+            margin-top: 0.5rem;
+        }
+    }
+
+    .v-table-row {
+        .link {
+            cursor: pointer;
+            text-decoration: none;
+
+            &:focus {
+                outline: none;
+                text-decoration: underline;
+            }
+        }
+
+        .reveal {
+            visibility: hidden;
+        }
+
+        &:hover {
+            .link {
+                text-decoration: underline;
+            }
+
+            .reveal {
+                visibility: visible;
+            }
+        }
+    }
+
+    .v-toolbar {
+        .v-input.search {
+            width: 20rem;
+        }
+
+        .note {
+            color: var(--light-gray);
+            padding: 0 0.6rem;
+        }
+    }
+
+    .v-message + .v-toolbar,
+    .v-table + .v-toolbar {
+        background: none;
+        margin-top: 1rem;
+
+        > :first-child {
+            margin-left: 0;
+        }
+
+        > :last-child {
+            margin-right: 0;
+        }
+    }
+
+    .monospace {
+        font-family: "Roboto Mono", monospace;
+        font-size: 0.8rem;
+    }
+
+    .half {
+        width: 50% !important;
+    }
+
+    .third {
+        width: 33.33% !important;
+    }
+}
+
+@mixin item-toolbar {
+    align-self: flex-end;
+    border-bottom-left-radius: 0.2rem;
+    height: 1.95rem;
+    align-items: flex-start;
+    min-height: 1.95rem;
+    padding: 0.15rem 0;
+    pointer-events: auto;
+
+    > .v-button {
+        height: 1.5rem;
+        line-height: 1.5rem;
+        margin-right: 0.375rem;
+        min-height: 1.5rem;
+        min-width: 1.5rem;
+
+        ::v-deep() {
+            > .v-button-content {
+                padding: 0 0.35rem;
+            }
+        }
+
+        &.icon {
+            width: 1.5rem;
+
+            ::v-deep(.v-icon) {
+                font-size: 0.8rem;
+            }
+        }
+    }
+
+    > .v-divider {
+        height: 1.35rem;
+    }
+}
+
+@mixin sidebar {
+    .v-toolbar {
+        .v-button,
+        .v-select {
+            flex-grow: 1;
+        }
+
+        .v-button ::v-deep(.v-button-content) {
+            justify-content: flex-start;
+        }
+
+        .v-select {
+            background-color: unset;
+        }
+    }
+
+    .v-message.placeholder {
+        color: var(--light-gray);
+        line-height: var(--button-height);
+        margin: 0;
+        padding: 0 1.5rem;
+
+        .v-spinner {
+            margin-right: 0.65rem;
+        }
+    }
+
+    ::v-deep() {
+        .v-button.invalid .v-button-badge {
+            background-color: var(--input-invalid-color);
+            color: white;
+        }
+
+        .v-button-label {
+            display: unset !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}

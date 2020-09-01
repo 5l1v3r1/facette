@@ -5,11 +5,13 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {RouteRecordRaw} from "vue-router";
+
 import settings from "./settings.vue";
 import sidebar from "./sidebar.vue";
-import toolbar from "./toolbar.vue";
+import toolbar from "../common/toolbar.vue";
 
-export default [
+const routes: Array<RouteRecordRaw> = [
     {
         path: "/settings",
         name: "settings",
@@ -20,3 +22,5 @@ export default [
         },
     },
 ];
+
+export default routes;

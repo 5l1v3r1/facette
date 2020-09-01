@@ -1,0 +1,64 @@
+<template>
+    <div class="v-spinner">
+        <svg :height="size" :width="size" xmlns="http://www.w3.org/2000/svg">
+            <g fill="none" fill-rule="evenodd" :stroke-width="strokeWidth">
+                <circle stroke="var(--spinner-background)" :cx="half" :cy="half" :r="innerHalf" />
+                <circle
+                    stroke="var(--accent)"
+                    stroke-linecap="round"
+                    stroke-dasharray="32,128"
+                    :cx="half"
+                    :cy="half"
+                    :r="innerHalf"
+                />
+            </g>
+        </svg>
+    </div>
+</template>
+
+<script lang="ts">
+import {computed} from "vue";
+
+export default {
+    props: {
+        size: {
+            default: 48,
+            type: Number,
+        },
+        strokeWidth: {
+            default: 3,
+            type: Number,
+        },
+    },
+    setup(props: Record<string, any>): Record<string, unknown> {
+        const half = computed(() => props.size / 2);
+        const innerHalf = computed(() => (props.size - props.strokeWidth) / 2);
+
+        return {
+            half,
+            innerHalf,
+        };
+    },
+};
+</script>
+
+<style lang="scss" scoped>
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(359deg);
+    }
+}
+
+.v-spinner {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+
+    svg {
+        animation: rotate 0.65s infinite linear;
+    }
+}
+</style>

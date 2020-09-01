@@ -5,23 +5,29 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import Vue from "vue";
-import {Route} from "vue-router";
-import Vuex from "vuex";
-import VuexPersistedState from "vuex-persistedstate";
+import {RouteLocationNormalized} from "vue-router";
+import {MutationPayload, Store, createStore} from "vuex";
 
-Vue.use(Vuex);
+import {Notification} from "types/ui";
 
-class State {
+const persistKey = "facette";
+
+export class State {
+    public apiOptions: Options = {
+        connectors: [],
+        driver: {
+            name: "",
+            version: "",
+        },
+    };
+
     public autoPropagate = true;
 
     public basket: Array<DashboardItem> = [];
 
-    public connectors: Array<string> = [];
-
-    public data: unknown = null;
-
     public error: APIError = null;
+
+    public loading = true;
 
     public locale = "en";
 
@@ -30,154 +36,89 @@ class State {
         shift: false,
     };
 
-    public prevRoute: Route | null = null;
+    public pendingNotification: Notification | null = null;
+
+    public routeData: Record<string, unknown> | null = null;
 
     public routeGuarded = false;
 
-    public routeGuardFn: ((e: Event) => void) | null = null;
-
     public shortcuts = true;
+
+    public prevRoute: RouteLocationNormalized | null = null;
 
     public sidebar = true;
 
-    public theme = "dark";
+    public theme: string | null = null;
 
     public timeRange: TimeRange | null = null;
 
     public timezoneUTC = false;
 }
 
-const store = new Vuex.Store({
+const store = createStore({
     state: new State(),
-    getters: {
-        autoPropagate(state: State): boolean {
-            return state.autoPropagate;
-        },
-
-        basket(state: State): Array<DashboardItem> {
-            return state.basket;
-        },
-
-        connectors(state: State): Array<string> {
-            return state.connectors;
-        },
-
-        data(state: State): unknown {
-            return state.data;
-        },
-
-        error(state: State): APIError {
-            return state.error;
-        },
-
-        locale(state: State): string {
-            return state.locale;
-        },
-
-        modifiers(state: State): Modifiers {
-            return state.modifiers;
-        },
-
-        prevRoute(state: State): Route | null {
-            return state.prevRoute;
-        },
-
-        routeGuarded(state: State): boolean {
-            return state.routeGuarded;
-        },
-
-        routeGuardFn(state: State): ((e: Event) => void) | null {
-            return state.routeGuardFn;
-        },
-
-        shortcuts(state: State): boolean {
-            return state.shortcuts;
-        },
-
-        sidebar(state: State): boolean {
-            return state.sidebar;
-        },
-
-        theme(state: State): string {
-            return state.theme;
-        },
-
-        timeRange(state: State): TimeRange | null {
-            return state.timeRange;
-        },
-
-        timezoneUTC(state: State): boolean {
-            return state.timezoneUTC;
-        },
-    },
     mutations: {
+        apiOptions(state: State, value: Options): void {
+            state.apiOptions = value;
+        },
         autoPropagate(state: State, value: boolean): void {
             state.autoPropagate = value;
         },
-
         basket(state: State, value: Array<DashboardItem>): void {
             state.basket = value;
         },
-
-        connectors(state: State, value: Array<string>): void {
-            state.connectors = value;
-        },
-
-        data(state: State, value: unknown): void {
-            state.data = value;
-        },
-
         error(state: State, value: APIError): void {
             state.error = value;
         },
-
         locale(state: State, value: string): void {
             state.locale = value;
         },
-
+        loading(state: State, value: boolean): void {
+            state.loading = value;
+        },
         modifiers(state: State, value: Modifiers): void {
             state.modifiers = value;
         },
-
-        prevRoute(state: State, value: Route | null): void {
+        pendingNotification(state: State, value: Notification | null): void {
+            state.pendingNotification = value;
+        },
+        prevRoute(state: State, value: RouteLocationNormalized | null): void {
             state.prevRoute = value;
         },
-
+        routeData(state: State, value: Record<string, unknown> | null): void {
+            state.routeData = value;
+        },
         routeGuarded(state: State, value: boolean): void {
             state.routeGuarded = value;
         },
-
-        routeGuardFn(state: State, value: ((e: Event) => void) | null): void {
-            state.routeGuardFn = value;
-        },
-
         shortcuts(state: State, value: boolean): void {
             state.shortcuts = value;
         },
-
         sidebar(state: State, value: boolean): void {
             state.sidebar = value;
         },
-
-        theme(state: State, value: string): void {
+        theme(state: State, value: string | null): void {
             state.theme = value;
         },
-
         timeRange(state: State, value: TimeRange | null): void {
             state.timeRange = value;
         },
-
         timezoneUTC(state: State, value: boolean): void {
             state.timezoneUTC = value;
         },
     },
-    plugins: [
-        VuexPersistedState({
-            key: "facette",
-            reducer: (state: State): Record<string, unknown> => ({
+    plugins: [persist()],
+});
+
+function persist() {
+    const save = (state: State): void => {
+        localStorage.setItem(
+            persistKey,
+            JSON.stringify({
                 autoPropagate: state.autoPropagate,
                 basket: state.basket,
                 locale: state.locale,
+                pendingNotification: state.pendingNotification,
                 prevRoute:
                     state.prevRoute !== null
                         ? {
@@ -190,8 +131,40 @@ const store = new Vuex.Store({
                 theme: state.theme,
                 timezoneUTC: state.timezoneUTC,
             }),
-        }),
-    ],
-});
+        );
+    };
+
+    let saveTimeout: number | null = null;
+
+    const saveDebounce = (mutation: MutationPayload, state: State) => {
+        if (saveTimeout !== null) {
+            clearTimeout(saveTimeout);
+        }
+
+        saveTimeout = setTimeout(() => save(state), 250);
+    };
+
+    return (store: Store<State>) => {
+        // Restore state keys from local storage, then subscribe to mutations
+        // to keep it in-sync with live changes.
+        try {
+            const value = localStorage.getItem(persistKey);
+            if (value !== null) {
+                store.replaceState(Object.assign({}, store.state, JSON.parse(value)));
+            }
+        } catch (err) {}
+
+        store.subscribe(saveDebounce);
+
+        // Ensure local storage is in-sync before unloading
+        window.addEventListener("beforeunload", () => {
+            if (saveTimeout !== null) {
+                clearTimeout(saveTimeout);
+            }
+
+            save(store.state);
+        });
+    };
+}
 
 export default store;

@@ -1,52 +1,48 @@
 <template>
     <v-content>
-        <v-modal-confirm></v-modal-confirm>
-        <v-modal-provider-filter></v-modal-provider-filter>
+        <teleport to="body">
+            <v-modal-provider-filter></v-modal-provider-filter>
+        </teleport>
 
         <v-toolbar clip="content">
             <v-button
                 icon="save"
-                :disabled="erred || formFailed || saving || testing || !validity"
-                @click="save(true)"
+                :disabled="erred || loading || saving || testing"
+                @click="saveProvider(true)"
                 v-if="modifiers.alt"
             >
-                {{ $t("labels.saveAndGo") }}
+                {{ i18n.t("labels.saveAndGo") }}
             </v-button>
 
-            <v-button
-                icon="save"
-                :disabled="erred || formFailed || saving || testing || !validity"
-                @click="save(false)"
-                v-else
-            >
-                {{ $t("labels.providers.save") }}
+            <v-button icon="save" :disabled="erred || loading || saving || testing" @click="saveProvider(false)" v-else>
+                {{ i18n.t("labels.providers.save") }}
             </v-button>
 
             <v-button icon="trash" @click="deleteProvider()" :disabled="testing" v-if="!erred && edit && modifiers.alt">
-                {{ $t("labels.delete") }}
+                {{ i18n.t("labels.delete") }}
             </v-button>
 
             <v-button :disabled="erred" :to="{name: 'admin-providers-list'}" v-else>
-                {{ $t("labels.cancel") }}
+                {{ i18n.t("labels.cancel") }}
             </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="undo" :disabled="erred || loading || testing || !guarded" @click="reset()">
-                {{ $t("labels.reset") }}
+            <v-button icon="undo" :disabled="erred || loading || testing || !routeGuarded" @click="reset()">
+                {{ i18n.t("labels.reset") }}
             </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="clipboard-check" :disabled="erred || formFailed || testing || !validity" @click="test()">
-                {{ $t("labels.providers.test") }}
+            <v-button icon="clipboard-check" :disabled="erred || loading || saving || testing" @click="testProvider">
+                {{ i18n.t("labels.providers.test") }}
             </v-button>
 
             <template v-if="provider && edit">
                 <v-spacer></v-spacer>
 
-                <v-label class="modified" v-if="provider.modifiedAt">
-                    {{ $t("messages.lastModified", [formatDate(provider.modifiedAt, $t("date.long"))]) }}
+                <v-label class="note" v-if="provider.modifiedAt">
+                    {{ i18n.t("messages.lastModified", [formatDate(provider.modifiedAt, i18n.t("date.long"))]) }}
                 </v-label>
             </template>
         </v-toolbar>
@@ -55,72 +51,72 @@
 
         <v-message-error v-else-if="erred"></v-message-error>
 
-        <template v-else>
-            <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
+        <template v-else-if="provider">
+            <h1 v-if="!$route.params.section">{{ i18n.t("labels.general") }}</h1>
 
-            <v-form class="third" @validity="onValidity" v-show="section === 'general'">
-                <v-label>{{ $t("labels.name") }}</v-label>
+            <v-form ref="form" class="third" v-show="!$route.params.section">
+                <v-label>{{ i18n.t("labels.name._") }}</v-label>
                 <v-input
-                    ref="name"
                     required
-                    :custom-validity="conflictCustomValidity"
-                    :help="$t('help.providers.name')"
+                    :custom-validity="objectNameValidity('providers', provider.id)"
+                    :delay="350"
+                    :help="i18n.t('help.providers.name')"
                     :pattern="namePattern"
+                    :placeholder="i18n.t('labels.name.choose')"
                     v-autofocus.select
-                    v-model="provider.name"
+                    v-model:value="provider.name"
                 ></v-input>
 
-                <v-label>{{ $tc("labels.connectors._", 1) }}</v-label>
+                <v-label>{{ i18n.t("labels.connectors._", 1) }}</v-label>
                 <v-select
                     class="half"
                     required
                     :options="providers"
-                    :placeholder="$t('labels.connectors.select')"
-                    v-model="provider.connector.type"
+                    :placeholder="i18n.t('labels.connectors.select')"
+                    v-model:value="provider.connector.type"
                 ></v-select>
 
-                <v-label>{{ $t("labels.providers.pollInterval") }}</v-label>
+                <v-label>{{ i18n.t("labels.providers.pollInterval") }}</v-label>
                 <v-input
                     class="half"
-                    :help="$t('help.providers.pollInterval')"
-                    :placeholder="$t('labels.placeholders.example', ['1m, 30m, 2h'])"
-                    v-model="provider.pollInterval"
+                    :help="i18n.t('help.providers.pollInterval')"
+                    :placeholder="i18n.t('labels.placeholders.example', ['1m, 30m, 2h'])"
+                    v-model:value="provider.pollInterval"
                 ></v-input>
 
-                <v-message type="error" v-if="formFailed">
-                    {{ $t("messages.providers.loadFailed", [provider.connector.type]) }}
+                <v-message type="error" v-if="supportFailed">
+                    {{ i18n.t("messages.providers.supportFailed", [provider.connector.type]) }}
                 </v-message>
 
                 <component
-                    class="v-form"
-                    :is="form"
+                    :is="support"
                     :settings="provider.connector.settings"
-                    v-else-if="provider.connector && form !== null"
+                    v-else-if="provider.connector && support !== null"
                 ></component>
             </v-form>
 
-            <template v-if="section === 'filters'">
-                <h1>{{ $tc("labels.filters._", 2) }}</h1>
+            <template v-if="$route.params.section === 'filters'">
+                <h1>{{ i18n.t("labels.filters._", 2) }}</h1>
 
                 <v-form class="half">
-                    <v-message type="info" v-if="!provider.filters || provider.filters.length === 0">
-                        {{ $t("messages.filters.none") }}
+                    <v-message type="info" v-if="!provider.filters?.length">
+                        {{ i18n.t("messages.filters.none") }}
                     </v-message>
 
-                    <v-table draggable v-model="provider.filters" v-else>
-                        <template slot="header">
+                    <v-table draggable v-model:value="provider.filters" v-else>
+                        <template v-slot:header>
                             <v-table-cell>
-                                {{ $t("labels.filters.action._") }}
+                                {{ i18n.t("labels.filters.action._") }}
                             </v-table-cell>
 
                             <v-table-cell grow>
-                                {{ $t("labels.properties") }}
+                                {{ i18n.t("labels.properties") }}
                             </v-table-cell>
 
                             <v-table-cell></v-table-cell>
                         </template>
 
-                        <template slot-scope="item">
+                        <template v-slot="item">
                             <v-table-cell>
                                 {{ item.value.action }}
                             </v-table-cell>
@@ -146,23 +142,26 @@
                                     class="reveal"
                                     icon="pencil-alt"
                                     @click="editFilter(item.index)"
-                                    v-tooltip="$t('labels.filters.edit')"
+                                    v-tooltip="i18n.t('labels.filters.edit')"
                                 ></v-button>
+
                                 <v-button
                                     class="reveal"
                                     icon="times"
                                     @click="removeFilter(item.index)"
-                                    v-tooltip="$t('labels.filters.remove')"
+                                    v-tooltip="i18n.t('labels.filters.remove')"
                                 ></v-button>
                             </v-table-cell>
                         </template>
                     </v-table>
 
                     <v-toolbar>
-                        <v-button icon="plus" @click="addFilter">{{ $t("labels.filters.add") }}</v-button>
+                        <v-button icon="plus" @click="addFilter">{{ i18n.t("labels.filters.add") }}</v-button>
+
                         <v-spacer></v-spacer>
+
                         <v-message icon="question-circle" type="note">
-                            {{ $t("messages.labels.emptyDiscarded") }}
+                            {{ i18n.t("messages.labels.emptyDiscarded") }}
                         </v-message>
                     </v-toolbar>
                 </v-form>
@@ -172,20 +171,33 @@
 </template>
 
 <script lang="ts">
-import cloneDeep from "lodash/cloneDeep";
 import merge from "lodash/merge";
-import {VueConstructor} from "vue";
-import {Component, Mixins, Watch} from "vue-property-decorator";
+import {
+    Component,
+    computed,
+    defineAsyncComponent,
+    onBeforeMount,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    shallowRef,
+    watch,
+} from "vue";
+import {useI18n} from "vue-i18n";
+import {onBeforeRouteLeave, onBeforeRouteUpdate, useRouter} from "vue-router";
+import {useStore} from "vuex";
 
-import {SelectOption} from "@/types/components";
+import {FormComponent, SelectOption} from "types/ui";
 
-import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
-import {conflictCustomValidity} from "@/src/helpers/api";
-import {beforeRoute} from "@/src/helpers/route";
-import {CustomMixins} from "@/src/mixins";
-import {ModalProviderFilterParams} from "@/src/views/admin/components/modal/provider-filter.vue";
+import common, {namePattern} from "@/common";
+import {ModalConfirmParams} from "@/components/modal/confirm.vue";
+import {useUI} from "@/components/ui";
+import {formatDate} from "@/helpers/date";
+import {objectNameValidity} from "@/helpers/validity";
+import api from "@/lib/api";
+import {State} from "@/store";
 
-import {namePattern} from "..";
+import ModalProviderFilterComponent, {ModalProviderFilterParams} from "./modal/filter.vue";
 
 const defaultProvider: Provider = {
     id: "",
@@ -195,9 +207,8 @@ const defaultProvider: Provider = {
         settings: {},
     },
     filters: [],
+    enabled: true,
 };
-
-const defaultSection = "general";
 
 const providers: Array<SelectOption> = [
     {label: "KairosDB", value: "kairosdb"},
@@ -205,317 +216,270 @@ const providers: Array<SelectOption> = [
     {label: "RRDTool", value: "rrdtool"},
 ];
 
-@Component({
-    beforeRouteLeave: beforeRoute,
-    beforeRouteUpdate: beforeRoute,
-})
-export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
-    public conflictCustomValidity!: (value: string) => Promise<string>;
+export default {
+    components: {
+        "v-modal-provider-filter": ModalProviderFilterComponent,
+    },
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+        const router = useRouter();
+        const store = useStore<State>();
+        const ui = useUI();
 
-    public form: VueConstructor | null = null;
+        const {
+            applyRouteParams,
+            beforeRoute,
+            erred,
+            loading,
+            modifiers,
+            onFetchRejected,
+            routeGuarded,
+            watchGuard,
+            unwatchGuard,
+        } = common;
 
-    public formFailed = false;
+        const form = ref<FormComponent | null>(null);
+        const invalid = ref(false);
+        const provider = ref<Provider | null>(null);
+        const saving = ref(false);
+        const support = shallowRef<Component | null>(null);
+        const supportFailed = ref(false);
+        const testing = ref(false);
 
-    public formValidity = false;
+        const edit = computed(() => router.currentRoute.value.params.id !== "new");
 
-    public loading = true;
+        const addFilter = async (): Promise<void> => {
+            if (provider.value === null) {
+                throw Error("cannot get provider");
+            }
 
-    public namePattern = namePattern;
-
-    public provider: Provider | null = null;
-
-    public providers: Array<SelectOption> = providers;
-
-    public saving = false;
-
-    public section = defaultSection;
-
-    public testing = false;
-
-    public created(): void {
-        this.conflictCustomValidity = conflictCustomValidity(this, "providers", this.params.id);
-    }
-
-    public mounted(): void {
-        this.reset(true);
-    }
-
-    public addFilter(): void {
-        this.$components.modal(
-            "provider-filter",
-            {
+            const rule = await ui.modal<FilterRule>("provider-filter", {
+                edit: false,
                 rule: {},
-            } as ModalProviderFilterParams,
-            (value: FilterRule) => {
-                if (value && this.provider) {
-                    if (!this.provider.filters) {
-                        this.provider.filters = [];
-                    }
-                    this.provider.filters.push(value);
-                    this.emitUpdate();
+            } as ModalProviderFilterParams);
+
+            if (rule) {
+                if (!provider.value.filters) {
+                    provider.value.filters = [];
                 }
-            },
-        );
-    }
-
-    public deleteProvider(apply = false): void {
-        if (this.provider === null) {
-            return;
-        }
-
-        if (apply) {
-            this.$http
-                .delete(`/api/v1/providers/${this.provider.id}`)
-                .then(response => response.json())
-                .then(() => {
-                    this.unguard();
-                    this.$components.notify(this.$tc("messages.providers.deleted", 1) as string, "success");
-                    this.$router.push({name: "admin-providers-list"});
-                }, this.handleError());
-
-            return;
-        }
-
-        this.$components.modal(
-            "confirm",
-            {
-                button: {
-                    icon: "trash",
-                    label: this.$tc(`labels.${this.params.type}.delete`, 1),
-                    danger: true,
-                },
-                message: this.$tc(`messages.${this.params.type}.delete`, 1, this.provider),
-            } as ModalConfirmParams,
-            (value: boolean) => {
-                if (value) {
-                    this.deleteProvider(true);
-                }
-            },
-        );
-    }
-
-    public get edit(): boolean {
-        return this.params.id !== "new";
-    }
-
-    public editFilter(index: number): void {
-        if (this.provider === null || !this.provider.filters) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        }
-
-        const filters: Array<FilterRule> = this.provider.filters;
-
-        this.$components.modal(
-            "provider-filter",
-            {
-                rule: cloneDeep(filters[index]),
-            } as ModalProviderFilterParams,
-            (value: FilterRule) => {
-                if (value) {
-                    filters.splice(index, 1, value);
-                }
-            },
-        );
-    }
-
-    @Watch("provider.connector.type", {immediate: true})
-    public async onConnectorType(to: string, from?: string): Promise<void> {
-        if (!to) {
-            return;
-        }
-
-        // Reset settings on type change (check for from to avoid emptying upon
-        // load)
-        if (this.provider?.connector && from) {
-            this.provider.connector.settings = {};
-        }
-
-        try {
-            Object.assign(this, {
-                form: (await import(`../components/provider/${to}.vue`)).default,
-                formFailed: false,
-            });
-        } catch {
-            this.formFailed = true;
-        }
-    }
-
-    @Watch("$route.hash", {immediate: true})
-    public onRouteHash(to: string): void {
-        this.section = to ? to.substr(1) : defaultSection;
-    }
-
-    public onValidity(to: boolean): void {
-        this.formValidity = to;
-    }
-
-    public removeFilter(index: number): void {
-        if (this.provider?.filters) {
-            this.provider.filters.splice(index, 1);
-            this.emitUpdate();
-        }
-    }
-
-    public reset(apply = false): void {
-        if (!apply) {
-            this.$components.modal(
-                "confirm",
-                {
-                    button: {
-                        label: this.$t("labels.providers.reset"),
-                        danger: true,
-                    },
-                    message: this.$t("messages.confirmLeave"),
-                } as ModalConfirmParams,
-                (value: boolean) => {
-                    if (value) {
-                        this.reset(true);
-                    }
-                },
-            );
-
-            return;
-        }
-
-        this.formValidity = false;
-
-        if (!this.edit) {
-            this.provider = cloneDeep(defaultProvider);
-            this.loading = false;
-            this.emitUpdate();
-            this.guardWatch("provider");
-
-            return;
-        }
-
-        this.loading = true;
-
-        this.$http
-            .get(`/api/v1/providers/${this.params.id}`)
-            .then(response => response.json())
-            .then(
-                (response: APIResponse<Provider>) => {
-                    this.provider = merge({}, defaultProvider, response.data);
-                    this.loading = false;
-                    this.emitUpdate();
-                    this.guardWatch("provider");
-                },
-                this.handleError(() => {
-                    this.emitUpdate();
-                    this.loading = false;
-                }, true),
-            );
-    }
-
-    public save(go: boolean): void {
-        if (!this.guarded) {
-            this.redirect(go);
-            return;
-        }
-
-        if (this.provider === null) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        } else if (this.saving) {
-            return;
-        }
-        this.saving = true;
-
-        const provider: Provider = cloneDeep(this.provider);
-        if (!this.edit) {
-            provider.enabled = true;
-        }
-
-        this.$http({
-            url: `/api/v1/providers${this.edit ? `/${this.params.id}` : ""}`,
-            method: this.edit ? "PUT" : "POST",
-            body: provider,
-        }).then(
-            () => {
-                this.unguard();
-                this.$components.notify(this.$t("messages.providers.saved") as string, "success");
-                this.redirect(go);
-                this.saving = false;
-            },
-            this.handleError(() => {
-                this.saving = false;
-            }),
-        );
-    }
-
-    public test(): void {
-        this.testing = true;
-
-        this.$http
-            .post(`/api/v1/providers/test`, this.provider)
-            .then(response => response.json())
-            .then(
-                (response: APIResponse<unknown>) => {
-                    if (response.error) {
-                        this.$components.notify(
-                            this.$t("messages.providers.test.error", [response.error]) as string,
-                            "error",
-                        );
-                    } else {
-                        this.$components.notify(this.$t("messages.providers.test.success") as string, "success");
-                    }
-
-                    this.testing = false;
-                },
-                this.handleError(() => {
-                    this.testing = false;
-                }),
-            );
-    }
-
-    public get validity(): boolean {
-        const validity: Record<string, boolean> = {
-            general: this.formValidity,
+                provider.value.filters.push(rule);
+                updateRouteData();
+            }
         };
 
-        this.$parent.$emit("provider-validity", validity);
+        const deleteProvider = async (): Promise<void> => {
+            if (provider.value === null) {
+                throw Error("cannot get provider");
+            }
 
-        return !Object.values(validity).includes(false);
-    }
+            const ok = await ui.modal<boolean>("confirm", {
+                button: {
+                    label: i18n.t(`labels.providers.delete`, 1),
+                    danger: true,
+                },
+                message: i18n.t(`messages.providers.delete`, provider.value, 1),
+            } as ModalConfirmParams);
 
-    private emitUpdate(): void {
-        this.$parent.$emit("provider-updated", this.provider?.filters ? this.provider.filters.length : null);
-    }
+            if (ok) {
+                api.delete("providers", provider.value.id).then(() => {
+                    ui.notify(i18n.t(`messages.providers.deleted`, 1), "success");
+                    unwatchGuard();
+                    router.push({name: "admin-providers-list"});
+                }, onFetchRejected);
+            }
+        };
 
-    private redirect(go: boolean): void {
-        this.$router.push(
-            go && this.provider?.name
-                ? {
-                      name: "admin-metrics-list",
-                      query: {filter: `{__provider__=${JSON.stringify(this.provider.name)}}`},
-                  }
-                : {name: "admin-providers-list"},
+        const editFilter = async (index: number): Promise<void> => {
+            if (provider.value === null) {
+                throw Error("cannot get provider");
+            }
+
+            const rule = await ui.modal<FilterRule>("provider-filter", {
+                edit: false,
+                rule: provider.value.filters?.[index],
+            } as ModalProviderFilterParams);
+
+            if (rule) {
+                provider.value.filters?.splice(index, 1, rule);
+                updateRouteData();
+            }
+        };
+
+        const removeFilter = (index: number): void => {
+            provider.value?.filters?.splice(index, 1);
+            updateRouteData();
+        };
+
+        const redirect = (go: boolean): void => {
+            router.push(
+                go && provider.value?.name
+                    ? {
+                          name: "admin-metrics-list",
+                          query: {filter: `{__provider__=${JSON.stringify(provider.value.name)}}`},
+                      }
+                    : {name: "admin-providers-list"},
+            );
+        };
+
+        const reset = async (force = false): Promise<void> => {
+            if (!force) {
+                const ok = await ui.modal<boolean>("confirm", {
+                    button: {
+                        label: i18n.t("labels.providers.reset"),
+                        danger: true,
+                    },
+                    message: i18n.t("messages.unsavedLost"),
+                } as ModalConfirmParams);
+
+                if (!ok) {
+                    return;
+                }
+            }
+
+            let promise: Promise<APIResponse<Provider | null>>;
+            if (edit.value) {
+                promise = api.object<Provider>("providers", router.currentRoute.value.params.id as string);
+            } else {
+                promise = Promise.resolve({data: null});
+            }
+
+            form.value?.reset();
+            invalid.value = false;
+            store.commit("loading", true);
+
+            promise
+                .then(response => {
+                    if (response.data === undefined) {
+                        return Promise.reject("cannot get provider");
+                    }
+
+                    provider.value = merge({}, defaultProvider, response.data);
+                    watchGuard(provider);
+                }, onFetchRejected)
+                .finally(() => {
+                    updateRouteData();
+                    store.commit("loading", false);
+                });
+        };
+
+        const saveProvider = (go: boolean): void => {
+            if (provider.value === null) {
+                throw Error("cannot get provider");
+            }
+
+            if (!routeGuarded) {
+                redirect(go);
+                return;
+            } else if (!form.value?.checkValidity()) {
+                ui.notify(i18n.t("messages.error.formVerify"), "error");
+                invalid.value = true;
+                updateRouteData();
+                return;
+            }
+
+            api.saveObject<Provider>("providers", provider.value).then(() => {
+                ui.notify(i18n.t("messages.providers.saved"), "success");
+                unwatchGuard();
+                redirect(go);
+            }, onFetchRejected);
+        };
+
+        const testProvider = (): void => {
+            if (provider.value === null) {
+                throw Error("cannot get provider");
+            }
+
+            testing.value = true;
+
+            api.testObject<Provider>("providers", provider.value)
+                .then(response => {
+                    if (response.error) {
+                        ui.notify(i18n.t("messages.providers.test.error", [response.error]), "error");
+                    } else {
+                        ui.notify(i18n.t("messages.providers.test.success"), "success");
+                    }
+                })
+                .finally(() => {
+                    testing.value = false;
+                });
+        };
+
+        const updateRouteData = (clear = false): void => {
+            store.commit(
+                "routeData",
+                !clear
+                    ? {
+                          filters: provider.value?.filters?.length ?? 0,
+                          invalid: {
+                              general: invalid.value,
+                          },
+                      }
+                    : null,
+            );
+        };
+
+        onBeforeRouteLeave(beforeRoute);
+
+        onBeforeRouteUpdate(beforeRoute);
+
+        onBeforeMount(() => applyRouteParams());
+
+        onMounted(() => reset(true));
+
+        onBeforeUnmount(() => updateRouteData(true));
+
+        watch(
+            () => provider.value?.connector.type,
+            async to => {
+                support.value = to
+                    ? await defineAsyncComponent(() => import(/* webpackMode: "eager" */ `./form/${to}.vue`))
+                    : null;
+            },
+            {deep: true},
         );
-    }
-}
+
+        watch(
+            () => router.currentRoute.value.params.section,
+            () => {
+                invalid.value = !form.value?.checkValidity();
+                updateRouteData();
+            },
+        );
+
+        return {
+            addFilter,
+            deleteProvider,
+            edit,
+            editFilter,
+            erred,
+            form,
+            formatDate,
+            i18n,
+            invalid,
+            loading,
+            modifiers,
+            namePattern,
+            objectNameValidity,
+            provider,
+            providers,
+            removeFilter,
+            reset,
+            routeGuarded,
+            saveProvider,
+            saving,
+            support,
+            supportFailed,
+            testing,
+            testProvider,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-@import "../mixins";
+@import "../../mixins";
 
 .v-content {
-    ::v-deep {
-        @include content;
-    }
-
-    .empty {
-        color: var(--light-gray);
-        text-transform: lowercase;
-    }
-
-    .v-table .v-icon {
-        color: var(--light-gray);
-        margin: 0 0.75rem;
-    }
-
-    .v-toolbar .v-label {
-        color: var(--light-gray);
-    }
+    @include content;
 }
 </style>

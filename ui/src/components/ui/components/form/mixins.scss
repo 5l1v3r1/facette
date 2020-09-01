@@ -1,0 +1,27 @@
+@mixin form {
+    > .v-label {
+        margin: 0.75rem 0 0.25rem;
+    }
+
+    > .v-input,
+    > .v-select,
+    > .v-textarea {
+        width: 100%;
+    }
+
+    > .v-button,
+    > .v-input,
+    > .v-select,
+    > .v-textarea {
+        + .v-button,
+        + .v-input,
+        + .v-select,
+        + .v-textarea {
+            margin-left: 1rem;
+        }
+
+        + .v-checkbox {
+            margin-top: 0.35rem;
+        }
+    }
+}

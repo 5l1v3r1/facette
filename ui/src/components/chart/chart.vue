@@ -1,45 +1,52 @@
 <template>
-    <div class="v-chart" :class="{empty: !value || !series}">
+    <div
+        class="v-chart"
+        ref="el"
+        :class="{empty: !value || !series}"
+        @cursor-chart="onCursorChart"
+        @range-chart="onRangeChart"
+        @refresh-chart="update()"
+    >
         <v-spinner :size="16" :stroke-width="2" v-if="loading"></v-spinner>
 
-        <v-message v-else-if="!value || !series">{{ $t("messages.data.none") }}</v-message>
+        <v-message v-else-if="!value || !series">{{ i18n.t("messages.data.none") }}</v-message>
 
         <div class="v-chart-controls" v-if="controls">
             <v-toolbar v-if="!series">
-                <v-button icon="sync" @click="refresh" v-tooltip="$t('labels.charts.refresh')"></v-button>
+                <v-button icon="sync-alt" @click="update()" v-tooltip="i18n.t('labels.charts.refresh')"></v-button>
             </v-toolbar>
 
             <v-toolbar v-else>
-                <v-button icon="sync" @click="refresh" v-tooltip="$t('labels.charts.refresh')"></v-button>
+                <v-button icon="sync-alt" @click="update()" v-tooltip="i18n.t('labels.charts.refresh')"></v-button>
 
                 <v-button
+                    dropdown-anchor="bottom-right"
                     icon="calendar-alt"
-                    :disabled="loading || erred"
-                    v-tooltip="$t('labels.timeRange.set')"
+                    v-tooltip="i18n.t('labels.timeRange.set')"
                     v-if="!autoPropagate"
                 >
-                    <template slot="dropdown">
-                        <v-button icon="history" :disabled="isDefaultTimeRange" @click="resetTimeRange">
-                            {{ $t("labels.timeRange.reset") }}
+                    <template v-slot:dropdown>
+                        <v-button icon="history" :disabled="!canResetTimeRange" @click="resetTimeRange">
+                            {{ i18n.t("labels.timeRange.reset") }}
                         </v-button>
 
                         <v-divider></v-divider>
 
-                        <v-columns :count="2">
+                        <div class="v-columns">
                             <v-button
                                 :icon="range.value === timeRange.from && timeRange.to === 'now' ? 'check' : ''"
                                 :key="index"
                                 @click="setTimeRange({from: range.value, to: 'now'})"
                                 v-for="(range, index) in ranges"
                             >
-                                {{ $tc(`labels.timeRange.units.${range.unit}`, range.amount) }}
+                                {{ i18n.t(`labels.timeRange.units.${range.unit}`, range.amount) }}
                             </v-button>
-                        </v-columns>
+                        </div>
 
                         <v-divider></v-divider>
 
-                        <v-button icon="calendar" @click="setTimeRange()">
-                            {{ $t("labels.custom") }}
+                        <v-button icon="calendar" @click="setTimeRange(null)">
+                            {{ i18n.t("labels.custom") }}
                         </v-button>
                     </template>
                 </v-button>
@@ -49,26 +56,20 @@
                 <v-button
                     icon="search-minus"
                     @click="updateRange('zoom-out')"
-                    v-tooltip="$t('labels.charts.zoom.out')"
+                    v-tooltip="i18n.t('labels.charts.zoom.out')"
                 ></v-button>
+
                 <v-button
                     icon="search-plus"
                     @click="updateRange('zoom-in')"
-                    v-tooltip="$t('labels.charts.zoom.in')"
+                    v-tooltip="i18n.t('labels.charts.zoom.in')"
                 ></v-button>
+
                 <v-button
                     icon="arrows-alt-h"
                     @click="updateRange('propagate')"
-                    v-tooltip="$t('labels.timeRange.propagate')"
+                    v-tooltip="i18n.t('labels.timeRange.propagate')"
                     v-if="!autoPropagate"
-                ></v-button>
-
-                <v-divider vertical></v-divider>
-
-                <v-button
-                    icon="list"
-                    @click="toggleSummary(true)"
-                    v-tooltip="$t('labels.charts.showSummary')"
                 ></v-button>
 
                 <v-divider vertical></v-divider>
@@ -76,27 +77,30 @@
                 <v-button
                     class="icon"
                     dropdown-anchor="bottom-right"
-                    icon="angle-down"
-                    v-tooltip.nowrap="$t('labels.moreActions')"
+                    icon="angle-double-down"
+                    v-tooltip.nowrap="i18n.t('labels.moreActions')"
                 >
-                    <template slot="dropdown">
+                    <template v-slot:dropdown>
                         <v-button dropdown-anchor="right" icon="file-download">
-                            {{ $t("labels.charts.export._") }}
-                            <template slot="dropdown">
+                            {{ i18n.t("labels.export._") }}
+                            <template v-slot:dropdown>
                                 <v-button @click="downloadExport('png')">
-                                    {{ $t("labels.charts.export.imagePNG") }}</v-button
-                                >
+                                    {{ i18n.t("labels.export.imagePNG") }}
+                                </v-button>
+
                                 <v-divider></v-divider>
+
                                 <v-button @click="downloadExport('csv')">
-                                    {{ $t("labels.charts.export.summaryCSV") }}</v-button
-                                >
+                                    {{ i18n.t("labels.export.summaryCSV") }}
+                                </v-button>
+
                                 <v-button @click="downloadExport('json')">
-                                    {{ $t("labels.charts.export.summaryJSON") }}</v-button
-                                >
+                                    {{ i18n.t("labels.export.summaryJSON") }}
+                                </v-button>
                             </template>
                         </v-button>
 
-                        <template v-if="more">
+                        <template v-if="hasMore">
                             <v-divider></v-divider>
 
                             <slot name="more"></slot>
@@ -110,677 +114,688 @@
                     <v-button
                         class="backward"
                         icon="arrow-left"
-                        :class="{active: this.sliders.backward}"
-                        @click.native="updateRange('backward')"
+                        :class="{active: sliders.backward}"
+                        @click="updateRange('backward')"
                     ></v-button>
+
                     <v-button
                         class="forward"
                         icon="arrow-right"
-                        :class="{active: this.sliders.forward}"
-                        @click.native="updateRange('forward')"
+                        :class="{active: sliders.forward}"
+                        @click="updateRange('forward')"
                     ></v-button>
                 </div>
             </div>
         </div>
 
-        <div ref="chart" @mousemove="controls && onMouse($event)" v-show="value && series"></div>
+        <div ref="chart" v-show="value"></div>
     </div>
 </template>
 
 <script lang="ts">
-import Boula from "@facette/boula";
-import * as boula from "@facette/boula";
-import * as d3 from "d3";
-import dayjs from "dayjs";
+import Boula, * as boula from "@facette/boula";
+import {timeDay, timeHour, timeMinute, timeMonth, timeSecond, timeYear} from "d3-time";
+import {timeFormat, utcFormat} from "d3-time-format";
 import cloneDeep from "lodash/cloneDeep";
-import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
+import {DateTime} from "luxon";
 import ResizeObserver from "resize-observer-polyfill";
 import slugify from "slugify";
-import {Component, Mixins, Prop, Watch} from "vue-property-decorator";
+import {SetupContext, computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
+import {useI18n} from "vue-i18n";
+import {useStore} from "vuex";
 
-import {CustomMixins} from "@/src/mixins";
-import {ModalTimeRangeParams} from "@/src/views/dashboards/components/modal/time-range.vue";
+import common from "@/common";
+import {ModalTimeRangeParams} from "@/components/modal/time-range.vue";
+import {useUI} from "@/components/ui";
+import {parseDate} from "@/helpers/date";
+import {formatValue} from "@/helpers/value";
+import api from "@/lib/api";
+import {State} from "@/store";
 
-interface Range {
-    unit: string;
-    amount: number;
-    value: string;
+import {dateFormatDisplay, dateFormatFilename, defaultTimeRange, ranges} from ".";
+
+interface CursorDispatchEvent {
+    date: Date | null;
+    el: HTMLElement;
 }
 
-export const dateFormatDisplay = "YYYY-MM-DD HH:mm:ss";
-
-export const dateFormatFilename = "YYYYMMDDHHmmss";
-
-export const dateFormatRFC3339 = "YYYY-MM-DDTHH:mm:ss.SSSZ";
-
-export const defaultTimeRange: TimeRange = {
-    from: "-1h",
-    to: "now",
-};
+interface RangeDispatchEvent {
+    force?: boolean;
+    range: TimeRange;
+}
 
 const mouseRange = 40;
 
-export const ranges: Array<Range> = [
-    {unit: "minutes", amount: 5, value: "-5m"},
-    {unit: "minutes", amount: 15, value: "-15m"},
-    {unit: "minutes", amount: 30, value: "-30m"},
-    {unit: "hours", amount: 1, value: "-1h"},
-    {unit: "hours", amount: 3, value: "-3h"},
-    {unit: "hours", amount: 6, value: "-6h"},
-    {unit: "hours", amount: 12, value: "-12h"},
-    {unit: "days", amount: 1, value: "-1d"},
-    {unit: "days", amount: 3, value: "-3d"},
-    {unit: "days", amount: 7, value: "-7d"},
-    {unit: "months", amount: 1, value: "-1M"},
-    {unit: "months", amount: 3, value: "-3M"},
-    {unit: "months", amount: 6, value: "-6M"},
-    {unit: "years", amount: 1, value: "-1y"},
-];
+export default {
+    props: {
+        controls: {
+            default: false,
+            type: Boolean,
+        },
+        dispatchCursor: {
+            default: false,
+            type: Boolean,
+        },
+        range: {
+            default: null,
+            type: Object as () => TimeRange,
+        },
+        tooltip: {
+            default: false,
+            type: Boolean,
+        },
+        value: {
+            required: true,
+            validator: (prop: unknown): boolean => typeof prop === "object" || prop === null,
+        },
+    },
+    setup(props: Record<string, any>, ctx: SetupContext): Record<string, unknown> {
+        const i18n = useI18n();
+        const store = useStore<State>();
+        const ui = useUI();
 
-@Component
-export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
-    @Prop({default: false, type: Boolean})
-    public controls!: boolean;
+        const {onFetchRejected} = common;
 
-    @Prop({default: false, type: Boolean})
-    public emitCursor!: boolean;
+        let domRect: DOMRect | null = null;
+        let instance: boula.Chart | null = null;
+        let intersection: IntersectionObserver | null = null;
+        let lastDate: Date | null = null;
+        let resize: ResizeObserver | null = null;
 
-    @Prop({default: false, type: Boolean})
-    public legend!: boolean;
+        const chart = ref<HTMLElement | null>(null);
+        const data = ref<SeriesResult | null>(null);
+        const el = ref<HTMLElement | null>(null);
+        const hasMore = ref(false);
+        const loading = ref(true);
+        const sliders = ref<{backward: boolean; forward: boolean}>({backward: false, forward: false});
+        const timeRange = ref<TimeRange | null>(props.range);
 
-    @Prop({default: null, type: Object})
-    public range!: TimeRange | null;
+        const absoluteRange = computed((): boolean => {
+            return (
+                timeRange.value !== null &&
+                parseDate(timeRange.value.from).isValid &&
+                parseDate(timeRange.value.to).isValid
+            );
+        });
 
-    @Prop({default: false, type: Boolean})
-    public tooltip!: boolean;
+        const autoPropagate = computed((): boolean => {
+            return store.state.autoPropagate;
+        });
 
-    @Prop({required: true, validator: v => typeof v === "object" || v === undefined})
-    public value!: Chart;
+        const canResetTimeRange = computed((): boolean => {
+            return !isEqual(timeRange.value, defaultTimeRange);
+        });
 
-    public chartColors: Array<string> = [];
+        const series = computed((): boolean => {
+            return !loading.value && Boolean(data.value?.series);
+        });
 
-    public data: SeriesResult | null = null;
+        const timezoneUTC = computed((): boolean => {
+            return store.state.timezoneUTC;
+        });
 
-    public loading = true;
-
-    public more = false;
-
-    public timeRange: TimeRange = cloneDeep(defaultTimeRange);
-
-    public ranges = ranges;
-
-    private chart: boula.Chart | null = null;
-
-    private domRect: DOMRect | null = null;
-
-    private intersection: IntersectionObserver | null = null;
-
-    private resize: ResizeObserver | null = null;
-
-    private sliders: {
-        backward: boolean;
-        forward: boolean;
-    } = {
-        backward: false,
-        forward: false,
-    };
-
-    public mounted(): void {
-        this.checkSlots();
-
-        this.$root.$on("item-cursor", this.onCursor);
-        this.$root.$on("item-refresh", this.onRefresh);
-        this.$root.$on("item-timerange", this.onTimeRange);
-
-        this.observeIntersection();
-
-        if (this.value) {
-            this.update();
-        }
-    }
-
-    public get isDefaultTimeRange(): boolean {
-        return isEqual(this.timeRange, defaultTimeRange);
-    }
-
-    public updated(): void {
-        this.checkSlots();
-    }
-
-    public beforeDestroy(): void {
-        this.$root.$off("item-cursor", this.onCursor);
-        this.$root.$off("item-refresh", this.onRefresh);
-        this.$root.$off("item-timerange", this.onTimeRange);
-
-        this.unobserveIntersection();
-        this.unobserveResize();
-
-        if (this.chart) {
-            this.chart.destroy();
-        }
-    }
-
-    public downloadExport(type: "csv" | "json" | "png"): void {
-        if (!this.data) {
-            return;
-        }
-
-        const el: HTMLAnchorElement = document.createElement("a");
-
-        const baseName = `${slugify(this.value.options?.title || this.value.name)}_${dayjs
-            .utc(this.data.from)
-            .format(dateFormatFilename)}_${this.parseDate(this.data.to).format(dateFormatFilename)}`;
-
-        switch (type) {
-            case "csv":
-            case "json": {
-                let data: string;
-
-                if (type === "csv") {
-                    const summary = this.data.series.reduce((out: string, series: Series, index: number) => {
-                        const keys: Array<string> = Object.keys(series.summary);
-                        if (index === 0) {
-                            out += `name,${keys.join(",")}\n`;
-                        }
-                        return `${out}"${series.name}",${keys.map(k => series.summary[k]).join(",")}\n`;
-                    }, "");
-
-                    data = `data:text/csv;charset=utf-8,${encodeURIComponent(summary)}`;
-                } else {
-                    const summaries = this.data.series.reduce((out: Record<string, SeriesSummary>, series: Series) => {
-                        out[series.name] = series.summary;
-                        return out;
-                    }, {});
-
-                    data = `data:application/json,${encodeURIComponent(JSON.stringify(summaries, null, "\t"))}`;
-                }
-
-                Object.assign(el, {download: `${baseName}.${type}`, href: data});
-
-                document.body.appendChild(el);
-                el.click();
-                document.body.removeChild(el);
-
-                break;
+        const draw = (): void => {
+            if (!chart.value) {
+                throw Error("cannot get chart");
             }
 
-            case "png": {
-                if (!this.chart) {
-                    this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-                    return;
-                }
+            const value = props.value as Chart;
 
-                const data: string = (this.chart.canvas as HTMLCanvasElement).toDataURL("image/png");
+            const markers: Array<boula.Marker> =
+                value.options?.markers?.map(marker => ({
+                    value: marker.value,
+                    label: marker.label || true,
+                    color: marker.color,
+                    axis: marker.axis,
+                })) ?? [];
 
-                Object.assign(el, {download: `${baseName}.png`, href: data.replace("image/png", "image/octet-stream")});
-
-                document.body.appendChild(el);
-                el.click();
-                document.body.removeChild(el);
-
-                URL.revokeObjectURL(data);
-
-                break;
-            }
-        }
-    }
-
-    public get autoPropagate(): boolean {
-        return this.$store.getters.autoPropagate;
-    }
-
-    @Watch("value", {deep: true})
-    public onChange(): void {
-        this.update();
-    }
-
-    public onMouse(e: MouseEvent): void {
-        switch (e.type) {
-            case "mouseleave": {
-                const related: Element = e.relatedTarget as Element;
-                const closest: Element | null = related ? related.closest(".v-chart") : null;
-                if (!related || closest !== this.$el) {
-                    this.sliders = {backward: false, forward: false};
-                }
-
-                break;
-            }
-
-            case "mousemove": {
-                if (!this.domRect) {
-                    return;
-                }
-
-                const relX: number = e.pageX - this.domRect.x;
-
-                if (!this.sliders.backward && !this.sliders.forward) {
-                    if (relX <= mouseRange) {
-                        this.sliders.backward = true;
-                    } else if (relX >= this.domRect.width - mouseRange) {
-                        this.sliders.forward = true;
+            let min = NaN;
+            let max = NaN;
+            data.value?.series?.forEach(series => {
+                series?.points?.forEach(point => {
+                    if (point[1]) {
+                        min = isNaN(min) ? point[1] : Math.min(min, point[1]);
+                        max = isNaN(max) ? point[1] : Math.max(max, point[1]);
                     }
-                } else if (relX > mouseRange * 1.65 && relX < this.domRect.width - mouseRange * 1.65) {
-                    Object.assign(this.sliders, {backward: false, forward: false});
-                }
+                });
+            });
 
-                break;
+            const axisMin = value.options?.axes?.y?.left?.min;
+            if (axisMin !== undefined && min < axisMin) {
+                markers.push({dashed: true, value: axisMin});
             }
-        }
-    }
 
-    public refresh(): void {
-        this.$root.$emit("item-refresh", this.$el);
-    }
+            const axisMax = value.options?.axes?.y?.left?.max;
+            if (axisMax !== undefined && max > axisMax) {
+                markers.push({dashed: true, value: axisMax});
+            }
 
-    public resetTimeRange(): void {
-        this.setTimeRange(Object.assign({}, defaultTimeRange));
-    }
+            let series: Array<boula.Series>;
+            if (data.value?.series) {
+                const disabledSeries: Array<string> =
+                    instance?.config.series.reduce((names: Array<string>, s: boula.Series) => {
+                        if (s.disabled && s.label) {
+                            names.push(s.label);
+                        }
+                        return names;
+                    }, []) ?? [];
 
-    public get series(): boolean {
-        return Boolean(!this.loading && this.data?.series);
-    }
+                series = data.value.series.map((series, index) => {
+                    const bs: boula.Series = {
+                        label: series.name,
+                        points: series.points.map(p => ({0: p[0] * 1000, 1: p[1]})),
+                    };
+                    if (disabledSeries.includes(series.name)) {
+                        bs.disabled = true;
+                    }
 
-    public setTimeRange(range: TimeRange | null = null): void {
-        if (range !== null) {
-            this.timeRange = range;
-            this.$root.$emit("item-timerange", this.$el, range);
+                    const options = value.series?.[index]?.options;
+                    if (options?.color) {
+                        bs.color = options.color;
+                    }
+                    if (options?.axis) {
+                        bs.axis = options.axis;
+                    }
 
-            return;
-        }
+                    return bs;
+                });
+            } else {
+                series = [];
+            }
 
-        this.$components.modal(
-            "time-range",
-            {
-                timeRange: this.absoluteRange
-                    ? {
-                          from: this.parseDate(this.timeRange.from).format(dateFormatDisplay),
-                          to: this.parseDate(this.timeRange.to).format(dateFormatDisplay),
-                      }
-                    : {
-                          from: "",
-                          to: "",
-                      },
-            } as ModalTimeRangeParams,
-            (value: TimeRange) => {
-                if (value !== false) {
-                    this.setTimeRange({
-                        from: this.parseDate(value.from, dateFormatDisplay).format(dateFormatRFC3339),
-                        to: this.parseDate(value.to, dateFormatDisplay).format(dateFormatRFC3339),
-                    });
-                }
-            },
-        );
-    }
+            const events: boula.Config["events"] = {};
 
-    public updateRange(mode: "backward" | "forward" | "propagate" | "zoom-in" | "zoom-out"): void {
-        if (!this.data) {
-            return;
-        }
+            if (props.dispatchCursor) {
+                events.cursor = date => {
+                    if (date === lastDate) {
+                        return;
+                    }
 
-        let from: dayjs.Dayjs = this.parseDate(this.data.from);
-        let to: dayjs.Dayjs = this.parseDate(this.data.to);
-        let delta: number;
+                    el.value?.dispatchEvent(
+                        new CustomEvent<CursorDispatchEvent>("cursor-dispatch", {
+                            bubbles: true,
+                            detail: {
+                                date,
+                                el: el.value,
+                            },
+                        }),
+                    );
 
-        switch (mode) {
-            case "backward":
-                delta = to.diff(from, "second") * 0.25;
-                from = from.add(-delta, "second");
-                to = to.add(-delta, "second");
-                break;
-
-            case "forward":
-                delta = to.diff(from, "second") * 0.25;
-                from = from.add(delta, "second");
-                to = to.add(delta, "second");
-                break;
-
-            case "zoom-in":
-                delta = to.diff(from, "second") * 0.25;
-                from = from.add(delta, "second");
-                to = to.add(-delta, "second");
-                break;
-
-            case "zoom-out":
-                delta = to.diff(from, "second") * 0.5;
-                from = from.add(-delta, "second");
-                to = to.add(delta, "second");
-                break;
-        }
-
-        const range: TimeRange = {
-            from: from.format(dateFormatRFC3339),
-            to: to.format(dateFormatRFC3339),
-        };
-
-        if (this.autoPropagate || mode === "propagate") {
-            this.$root.$emit("item-timerange", null, range);
-        } else {
-            this.update(range);
-        }
-    }
-
-    private get absoluteRange(): boolean {
-        return this.parseDate(this.timeRange.from).isValid() && this.parseDate(this.timeRange.to).isValid();
-    }
-
-    private checkSlots(): void {
-        this.more = Boolean(this.$slots?.more);
-    }
-
-    private draw(): void {
-        const refChart: HTMLDivElement = this.$refs.chart as HTMLDivElement;
-        if (!refChart) {
-            return;
-        }
-
-        const markers: Array<boula.Marker> = [];
-        this.value.options?.markers?.forEach(marker => {
-            markers.push({
-                value: marker.value,
-                label: marker.label || true,
-                color: marker.color,
-                axis: marker.axis,
-            });
-        });
-
-        let min = NaN;
-        let max = NaN;
-
-        this.data?.series?.forEach(series => {
-            series?.points?.forEach(point => {
-                if (point[1]) {
-                    min = isNaN(min) ? point[1] : Math.min(min, point[1]);
-                    max = isNaN(max) ? point[1] : Math.max(max, point[1]);
-                }
-            });
-        });
-
-        const axisMin = this.value.options?.axes?.y?.left?.min;
-        if (axisMin !== undefined && min < axisMin) {
-            markers.push({dashed: true, value: axisMin});
-        }
-
-        const axisMax = this.value.options?.axes?.y?.left?.max;
-        if (axisMax !== undefined && max > axisMax) {
-            markers.push({dashed: true, value: axisMax});
-        }
-
-        let series: Array<boula.Series>;
-        if (this.data?.series) {
-            const disabledSeries: Array<string> = this.chart
-                ? this.chart.config.series.reduce((names: Array<string>, s: boula.Series) => {
-                      if (s.disabled && s.label) {
-                          names.push(s.label);
-                      }
-                      return names;
-                  }, [])
-                : [];
-
-            series = this.data.series.map((series, index) => {
-                const bs: boula.Series = {
-                    label: series.name,
-                    points: series.points.map(p => ({0: p[0] * 1000, 1: p[1]})),
+                    lastDate = date;
                 };
+            }
 
-                if (disabledSeries.includes(series.name)) {
-                    bs.disabled = true;
-                }
-
-                const options: ChartSeriesOptions | undefined = this.value.series
-                    ? this.value.series[index]?.options
-                    : undefined;
-
-                if (options?.color) {
-                    bs.color = options.color;
-                }
-
-                if (options?.axis) {
-                    bs.axis = options.axis;
-                }
-
-                return bs;
-            });
-        } else {
-            series = [];
-        }
-
-        const config: boula.Config = {
-            axes: {
-                x: {
-                    draw: this.value?.options?.axes?.x?.show ?? true,
-                    grid: false,
-                    max: (this.data && this.parseDate(this.data.to).valueOf()) || undefined,
-                    min: (this.data && this.parseDate(this.data.from).valueOf()) || undefined,
-                    ticks: {
-                        count: Math.max(Math.floor(refChart.clientWidth / 80), 2),
-                        format: (date: Date): string => {
-                            const format: (specifier: string) => (date: Date) => string = this.timezoneUTC
-                                ? d3.utcFormat
-                                : d3.timeFormat;
-
-                            return (d3.timeSecond(date) < date
-                                ? format(".%L")
-                                : d3.timeMinute(date) < date
-                                ? format(":%S")
-                                : d3.timeHour(date) < date
-                                ? format("%H:%M")
-                                : d3.timeDay(date) < date
-                                ? format("%H:00")
-                                : d3.timeMonth(date) < date
-                                ? format("%a %d")
-                                : d3.timeYear(date) < date
-                                ? format("%B")
-                                : d3.timeFormat("%Y"))(date);
-                        },
-                    },
-                },
-                y: {
-                    center: this.value.options?.axes?.y?.center ?? false,
-                    left: {
-                        draw: this.value?.options?.axes?.y?.left?.show ?? true,
-                        max: this.value.options?.axes?.y?.left?.max,
-                        min: this.value.options?.axes?.y?.left?.min,
-                        label: {
-                            text: this.value.options?.axes?.y?.left?.label,
-                        },
-                        ticks: {
-                            draw: false,
-                            format: v => this.formatValue(v, this.value.options?.axes?.y?.left?.unit),
-                        },
-                    },
-                    right: {
-                        draw: this.value?.options?.axes?.y?.right?.show ?? true,
-                        max: this.value.options?.axes?.y?.right?.max,
-                        min: this.value.options?.axes?.y?.right?.min,
-                        label: {
-                            text: this.value.options?.axes?.y?.right?.label,
-                        },
-                        ticks: {
-                            draw: false,
-                            format: v => this.formatValue(v, this.value.options?.axes?.y?.right?.unit),
-                        },
-                    },
-                    stack: this.value.options?.axes?.y?.stack || false,
-                },
-            },
-            bindTo: refChart,
-            cursor: {
-                enabled: this.tooltip,
-            },
-            events: {
-                afterDraw: () => {
-                    if (this.chart) {
-                        const defaultColors = this.chart.config.colors as Array<string>;
-                        this.chartColors = this.chart.config.series.map(
-                            (s, index) => s.color || defaultColors[index % defaultColors.length],
+            if (props.controls) {
+                events.select = (from, to) => {
+                    if (to > from) {
+                        el.value?.dispatchEvent(
+                            new CustomEvent<RangeDispatchEvent>("range-dispatch", {
+                                bubbles: true,
+                                detail: {
+                                    range: {
+                                        from: DateTime.fromJSDate(from).toISO(),
+                                        to: DateTime.fromJSDate(to).toISO(),
+                                    },
+                                },
+                            }),
                         );
                     }
-                },
-                cursor: (date: Date | null) => {
-                    this.$root.$emit("item-cursor", this.$el, date);
-                },
-                select: (from: Date, to: Date) => {
-                    if (to > from) {
-                        const range: TimeRange = {
-                            from: this.parseDate(from).format(dateFormatRFC3339),
-                            to: this.parseDate(to).format(dateFormatRFC3339),
-                        };
+                };
+            }
 
-                        this.$root.$emit("item-timerange", this.autoPropagate ? null : this.$el, range);
-                    }
+            const config: boula.Config = {
+                axes: {
+                    x: {
+                        draw: value?.options?.axes?.x?.show ?? true,
+                        grid: false,
+                        max: (data.value && parseDate(data.value.to).valueOf()) || undefined,
+                        min: (data.value && parseDate(data.value.from).valueOf()) || undefined,
+                        ticks: {
+                            count: Math.max(Math.floor(chart.value.clientWidth / 80), 2),
+                            format: (date: Date): string => {
+                                const format: (specifier: string) => (date: Date) => string = timezoneUTC.value
+                                    ? utcFormat
+                                    : timeFormat;
+
+                                return (timeSecond(date) < date
+                                    ? format(".%L")
+                                    : timeMinute(date) < date
+                                    ? format(":%S")
+                                    : timeHour(date) < date
+                                    ? format("%H:%M")
+                                    : timeDay(date) < date
+                                    ? format("%H:00")
+                                    : timeMonth(date) < date
+                                    ? format("%a %d")
+                                    : timeYear(date) < date
+                                    ? format("%B")
+                                    : timeFormat("%Y"))(date);
+                            },
+                        },
+                    },
+                    y: {
+                        center: value.options?.axes?.y?.center ?? false,
+                        left: {
+                            draw: value?.options?.axes?.y?.left?.show ?? true,
+                            max: Number(value.options?.axes?.y?.left?.max) || undefined,
+                            min: Number(value.options?.axes?.y?.left?.min) || undefined,
+                            label: {
+                                text: value.options?.axes?.y?.left?.label,
+                            },
+                            ticks: {
+                                draw: false,
+                                format: v => formatValue(v, value.options?.axes?.y?.left?.unit),
+                            },
+                        },
+                        right: {
+                            draw: value?.options?.axes?.y?.right?.show ?? true,
+                            max: Number(value.options?.axes?.y?.right?.max) || undefined,
+                            min: Number(value.options?.axes?.y?.right?.min) || undefined,
+                            label: {
+                                text: value.options?.axes?.y?.right?.label,
+                            },
+                            ticks: {
+                                draw: false,
+                                format: v => formatValue(v, value.options?.axes?.y?.right?.unit),
+                            },
+                        },
+                        stack: value.options?.axes?.y?.stack || false,
+                    },
                 },
-            },
-            legend: {
-                enabled: this.legend,
-            },
-            markers,
-            selection: {
-                enabled: this.controls,
-            },
-            series,
-            tooltip: {
-                enabled: this.tooltip,
-                date: {
-                    format: d => this.formatDate(d),
+                bindTo: chart.value,
+                cursor: {
+                    enabled: props.tooltip,
                 },
-            },
-            title: {
-                text: this.value.options?.title,
-            },
-            type: this.value.options?.type || "area",
+                events,
+                legend: {
+                    enabled: value.options?.legend,
+                },
+                markers,
+                selection: {
+                    enabled: props.controls,
+                },
+                series,
+                tooltip: {
+                    enabled: props.tooltip,
+                    date: {
+                        format: d => DateTime.fromJSDate(d).toFormat(i18n.t("date.long")),
+                    },
+                },
+                title: {
+                    text: value.options?.title,
+                },
+                type: value.options?.type || "area",
+            };
+
+            if (instance === null) {
+                instance = new Boula(config);
+            } else {
+                instance.update(config);
+            }
+
+            requestAnimationFrame(() => {
+                instance?.draw();
+
+                if (resize === null) {
+                    domRect = el.value?.getBoundingClientRect() ?? null;
+                    observeResize();
+                }
+            });
         };
 
-        if (!this.chart) {
-            this.chart = new Boula(config);
-        } else {
-            this.chart.update(config);
-        }
+        const downloadExport = (type: "csv" | "json" | "png"): void => {
+            if (data.value === null) {
+                return;
+            }
 
-        this.chart.draw();
+            const el: HTMLAnchorElement = document.createElement("a");
 
-        // Set DOMRect for sliders area detection
-        this.domRect = this.$el.getBoundingClientRect() as DOMRect;
+            const baseName = `${slugify(props.value.options?.title || props.value.name)}_${parseDate(
+                data.value.from,
+            ).toFormat(dateFormatFilename)}_${parseDate(data.value.to).toFormat(dateFormatFilename)}`;
 
-        if (this.resize === null) {
-            this.observeResize();
-        }
-    }
+            switch (type) {
+                case "csv":
+                case "json": {
+                    let href: string;
 
-    private observeIntersection(): void {
-        this.intersection = new IntersectionObserver(
-            (entries: Array<IntersectionObserverEntry>) => {
-                if (entries[0].intersectionRatio > 0) {
-                    this.unobserveIntersection();
-                    this.update(this.$store.getters.timeRange); // Use store time range to avoid shifts between charts
+                    if (type === "csv") {
+                        const summary = data.value.series.reduce((out: string, series: Series, index: number) => {
+                            const keys: Array<string> = Object.keys(series.summary);
+                            if (index === 0) {
+                                out += `name,${keys.join(",")}\n`;
+                            }
+                            return `${out}"${series.name}",${keys.map(k => series.summary[k]).join(",")}\n`;
+                        }, "");
+
+                        href = `data:text/csv,${encodeURIComponent(summary)}`;
+                    } else {
+                        const summaries = data.value.series.reduce(
+                            (out: Record<string, SeriesSummary>, series: Series) => {
+                                out[series.name] = series.summary;
+                                return out;
+                            },
+                            {},
+                        );
+
+                        href = `data:application/json,${encodeURIComponent(JSON.stringify(summaries, null, "\t"))}`;
+                    }
+
+                    Object.assign(el, {download: `${baseName}.${type}`, href});
+
+                    document.body.appendChild(el);
+                    el.click();
+                    document.body.removeChild(el);
+
+                    break;
                 }
-            },
-            {threshold: 0},
-        );
 
-        this.intersection.observe(this.$el);
-    }
+                case "png": {
+                    if (instance === null) {
+                        throw Error("cannot get instance");
+                    }
 
-    private observeResize(): void {
-        this.resize = new ResizeObserver(
-            debounce(() => {
-                if (this.$refs.chart) {
-                    requestAnimationFrame(() => {
-                        this.draw();
+                    const dataURL = instance.canvas.toDataURL("image/png");
+
+                    Object.assign(el, {
+                        download: `${baseName}.png`,
+                        href: dataURL.replace("image/png", "image/octet-stream"),
                     });
+
+                    document.body.appendChild(el);
+                    el.click();
+                    document.body.removeChild(el);
+
+                    URL.revokeObjectURL(dataURL);
+
+                    break;
                 }
-            }, 200),
-        );
-
-        this.resize.observe(this.$refs.chart as HTMLElement);
-    }
-
-    private onCursor(target: Element | null, date: Date | null): void {
-        if (target === null || target !== this.$el) {
-            (this.chart?.components?.cursor as boula.Component & {move: (date: Date | null) => void}).move(date);
-        }
-    }
-
-    private onRefresh(target: Element | null = null): void {
-        if (target === null || target === this.$el) {
-            this.update();
-        }
-    }
-
-    private onTimeRange(target: Element | null, range: TimeRange): void {
-        if (target === null || target === this.$el) {
-            this.timeRange = range;
-            this.update(range);
-        }
-    }
-
-    private get timezoneUTC(): boolean {
-        return this.$store.getters.timezoneUTC;
-    }
-
-    private unobserveIntersection(): void {
-        if (this.intersection) {
-            this.intersection.disconnect();
-            this.intersection = null;
-        }
-    }
-
-    private unobserveResize(): void {
-        if (this.resize) {
-            this.resize.disconnect();
-            this.resize = null;
-        }
-    }
-
-    private update(range: TimeRange | null = null): void {
-        if (this.intersection !== null) {
-            return;
-        } else if (!this.value?.series || this.value.series.length === 0) {
-            this.data = null;
-            this.loading = false;
-            return;
-        }
-
-        const query: SeriesQuery = {
-            exprs: this.value.series.map(series => series.expr),
+            }
         };
 
-        if (range) {
-            Object.assign(query, range);
-        } else if (this.range) {
-            Object.assign(query, this.range);
-        }
+        const observeIntersection = (): void => {
+            if (el.value === null) {
+                throw Error("cannot get element");
+            }
 
-        this.loading = true;
-
-        this.$http
-            .post("/api/v1/query", query)
-            .then(response => response.json())
-            .then(
-                (response: APIResponse<SeriesResult>) => {
-                    this.data = response.data ?? null;
-                    this.loading = false;
-
-                    if (this.data) {
-                        // Emit item-loaded event (useful to keep track of
-                        // current time range when lazy loading dashboards).
-                        this.$root.$emit("item-loaded", {from: this.data.from, to: this.data.to});
-
-                        this.$nextTick(() => {
-                            this.draw();
-                        });
+            intersection = new IntersectionObserver(
+                entries => {
+                    if (entries[0].intersectionRatio > 0) {
+                        // Stop observing and update chart using time range from
+                        // store to prevent charts timeline to drift
+                        unobserveIntersection();
+                        update(store.state.timeRange);
                     }
                 },
-                this.handleError(() => {
-                    this.loading = false;
-                }),
+                {threshold: 0},
             );
-    }
-}
+
+            intersection.observe(el.value);
+        };
+
+        const observeResize = (): void => {
+            if (chart.value === null) {
+                throw Error("cannot get chart");
+            }
+
+            resize = new ResizeObserver(entries => {
+                // Ensure dimensions changed before redrawing (i.e. avoid
+                // drawing twice on first draw)
+                if (
+                    entries[0].contentRect.width !== domRect?.width ||
+                    entries[0].contentRect.height !== domRect?.height
+                ) {
+                    domRect = el.value?.getBoundingClientRect() ?? null;
+                    requestAnimationFrame(() => instance?.draw());
+                }
+            });
+
+            resize.observe(chart.value);
+        };
+
+        const onCursorChart = (ev: CustomEvent<CursorDispatchEvent>): void => {
+            if (!(ev.detail.el as Node).isSameNode(el.value)) {
+                (instance?.components?.cursor as boula.Component & {move: (date: Date | null) => void}).move(
+                    ev.detail.date,
+                );
+            }
+        };
+
+        const onRangeChart = (ev: CustomEvent<RangeDispatchEvent>): void => {
+            timeRange.value = ev.detail.range;
+            update();
+        };
+
+        const onMouse = (ev: MouseEvent): void => {
+            switch (ev.type) {
+                case "mouseleave": {
+                    if (!(ev.relatedTarget as HTMLElement | null)?.closest(".v-chart")?.isSameNode(el.value)) {
+                        sliders.value = {backward: false, forward: false};
+                    }
+
+                    break;
+                }
+
+                case "mousemove": {
+                    if (domRect === null) {
+                        return;
+                    }
+
+                    const x: number = ev.pageX - domRect.x;
+
+                    if (!sliders.value.backward && !sliders.value.forward) {
+                        if (x <= mouseRange) {
+                            sliders.value.backward = true;
+                        } else if (x >= domRect.width - mouseRange) {
+                            sliders.value.forward = true;
+                        }
+                    } else if (x > mouseRange * 1.65 && x < domRect.width - mouseRange * 1.65) {
+                        sliders.value = {backward: false, forward: false};
+                    }
+                }
+            }
+        };
+
+        const resetTimeRange = (): void => {
+            setTimeRange(cloneDeep(defaultTimeRange));
+        };
+
+        const setTimeRange = async (range: TimeRange | null): Promise<void> => {
+            const newRange =
+                range !== null
+                    ? range
+                    : await ui.modal<TimeRange | false>("time-range", {
+                          range:
+                              timeRange.value !== null && absoluteRange.value
+                                  ? {
+                                        from: parseDate(timeRange.value.from).toFormat(dateFormatDisplay),
+                                        to: parseDate(timeRange.value.to).toFormat(dateFormatDisplay),
+                                    }
+                                  : {
+                                        from: "",
+                                        to: "",
+                                    },
+                      } as ModalTimeRangeParams);
+
+            if (newRange !== false) {
+                el.value?.dispatchEvent(
+                    new CustomEvent<RangeDispatchEvent>("range-dispatch", {bubbles: true, detail: {range: newRange}}),
+                );
+
+                timeRange.value = newRange;
+                update();
+            }
+        };
+
+        const unobserveIntersection = (): void => {
+            if (intersection !== null) {
+                intersection.disconnect();
+                intersection = null;
+            }
+        };
+
+        const unobserveResize = (): void => {
+            if (resize !== null) {
+                resize.disconnect();
+                resize = null;
+            }
+        };
+
+        const update = (range: TimeRange | null = null): void => {
+            const value = props.value as Chart | null;
+
+            if (intersection !== null) {
+                return;
+            } else if (!value?.series?.length) {
+                data.value = null;
+                loading.value = false;
+                return;
+            }
+
+            const query: SeriesQuery = Object.assign(
+                {
+                    exprs: value.series?.map(series => series.expr),
+                },
+                range ? range : timeRange.value,
+            );
+
+            loading.value = true;
+
+            api.query(query)
+                .then(response => {
+                    data.value = response.data ?? null;
+                    if (data.value) {
+                        draw();
+                    }
+                }, onFetchRejected)
+                .finally(() => {
+                    loading.value = false;
+                });
+        };
+
+        const updateRange = (mode: "backward" | "forward" | "propagate" | "zoom-in" | "zoom-out"): void => {
+            if (data.value === null) {
+                return;
+            }
+
+            let from = parseDate(data.value.from);
+            let to = parseDate(data.value.to);
+            let delta: number;
+
+            switch (mode) {
+                case "backward":
+                    delta = to.diff(from, "second").seconds * 0.25;
+                    from = from.minus({seconds: delta});
+                    to = to.minus({seconds: delta});
+                    break;
+
+                case "forward":
+                    delta = to.diff(from, "second").seconds * 0.25;
+                    from = from.plus({seconds: delta});
+                    to = to.plus({seconds: delta});
+                    break;
+
+                case "zoom-in":
+                    delta = to.diff(from, "second").seconds * 0.25;
+                    from = from.plus({seconds: delta});
+                    to = to.minus({seconds: delta});
+                    break;
+
+                case "zoom-out":
+                    delta = to.diff(from, "second").seconds * 0.5;
+                    from = from.minus({seconds: delta});
+                    to = to.plus({seconds: delta});
+                    break;
+            }
+
+            const range: TimeRange = {
+                from: from.toISO(),
+                to: to.toISO(),
+            };
+
+            const force = mode === "propagate";
+
+            el.value?.dispatchEvent(
+                new CustomEvent<RangeDispatchEvent>("range-dispatch", {bubbles: true, detail: {force, range}}),
+            );
+
+            if (!autoPropagate.value && !force) {
+                timeRange.value = range;
+                update();
+            }
+        };
+
+        onMounted(() => {
+            hasMore.value = Boolean(ctx.slots.more);
+
+            if (props.controls && chart.value !== null) {
+                chart.value?.addEventListener("mouseleave", onMouse);
+                chart.value?.addEventListener("mousemove", onMouse);
+            }
+
+            observeIntersection();
+        });
+
+        onBeforeUnmount(() => {
+            if (props.controls && chart.value !== null) {
+                chart.value.removeEventListener("mouseleave", onMouse);
+                chart.value.removeEventListener("mousemove", onMouse);
+            }
+
+            unobserveIntersection();
+            unobserveResize();
+
+            // FIXME: find why "onBeforeUnmount" is invoked twice when chart is
+            // present in v-grid component
+
+            instance?.destroy();
+            instance = null;
+        });
+
+        watch(
+            () => props.range,
+            to => {
+                timeRange.value = to;
+                update();
+            },
+            {deep: true},
+        );
+
+        watch(
+            () => props.value,
+            () => update(),
+            {deep: true},
+        );
+
+        return {
+            autoPropagate,
+            canResetTimeRange,
+            chart,
+            downloadExport,
+            el,
+            hasMore,
+            i18n,
+            loading,
+            onCursorChart,
+            onRangeChart,
+            ranges,
+            resetTimeRange,
+            series,
+            setTimeRange,
+            sliders,
+            timeRange,
+            update,
+            updateRange,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
 @import "~@facette/boula/dist/style.css";
+
+@import "../../views/mixins";
 
 .v-chart {
     background-color: inherit;
@@ -794,7 +809,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
     }
 
     .chart-container {
-        background-color: inherit;
         height: 100%;
         width: 100%;
     }
@@ -820,36 +834,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         z-index: 1;
 
         .v-toolbar {
-            align-self: flex-end;
-            border-bottom-left-radius: 0.2rem;
-            height: 2.1rem;
-            min-height: 2.1rem;
-            padding: 0.175rem 0.175rem 0.375rem 0;
-            pointer-events: auto;
-
-            > .v-button {
-                height: 1.5rem;
-                line-height: 1.5rem;
-                margin-right: 0.375rem;
-                min-height: 1.5rem;
-                min-width: 1.5rem;
-
-                &:last-child {
-                    margin-right: 0;
-                }
-
-                &.icon {
-                    width: 1.5rem;
-
-                    ::v-deep .v-icon {
-                        font-size: 0.8rem;
-                    }
-                }
-            }
-
-            > .v-divider {
-                height: 1.35rem;
-            }
+            @include item-toolbar;
         }
 
         .v-chart-sliders {
@@ -869,7 +854,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     transform: none !important;
                 }
 
-                ::v-deep .v-button-content {
+                ::v-deep(.v-button-content) {
                     background-color: var(--toolbar-background);
                 }
             }
@@ -881,7 +866,6 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                 width: 100%;
 
                 .v-button {
-                    font-size: 1.35rem;
                     height: 4rem;
                     line-height: 4rem;
                     width: 2.25rem;
@@ -889,7 +873,7 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     &.backward {
                         transform: translateX(-100%);
 
-                        ::v-deep .v-button-content {
+                        ::v-deep(.v-button-content) {
                             border-radius: 0 0.2rem 0.2rem 0;
                         }
                     }
@@ -897,21 +881,14 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
                     &.forward {
                         transform: translateX(100%);
 
-                        ::v-deep .v-button-content {
+                        ::v-deep(.v-button-content) {
                             border-radius: 0.2rem 0 0 0.2rem;
                         }
                     }
-                }
-            }
 
-            .summary {
-                font-size: 0.75rem;
-                height: 1.5rem;
-                line-height: 1.5rem;
-                transform: translateY(100%);
-
-                ::v-deep .v-button-content {
-                    border-radius: 0.2rem 0.2rem 0 0;
+                    ::v-deep(.v-icon) {
+                        font-size: 1.35rem;
+                    }
                 }
             }
         }
@@ -926,10 +903,8 @@ export default class ChartComponent extends Mixins<CustomMixins>(CustomMixins) {
         font-size: 1rem;
     }
 
-    ::v-deep {
-        .chart-tooltip {
-            z-index: 700;
-        }
+    ::v-deep(.chart-tooltip) {
+        z-index: 700;
     }
 }
 </style>

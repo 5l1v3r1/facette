@@ -1,75 +1,79 @@
 <template>
-    <v-content :class="{compact: !erred && section === 'layout'}">
-        <v-modal-confirm></v-modal-confirm>
-        <v-modal-dashboard-item></v-modal-dashboard-item>
-        <v-modal-template-variable :allow-fixed="link"></v-modal-template-variable>
+    <v-content>
+        <teleport to="body">
+            <v-modal-template-variable></v-modal-template-variable>
+        </teleport>
 
         <v-toolbar clip="content">
             <v-button
                 icon="save"
-                :disabled="erred || saving || !validity"
-                @click="save(true)"
-                v-if="prevRoute.name !== 'dashboards-show' && !template && modifiers.alt"
+                :disabled="erred || loading || saving"
+                @click="saveDashboard(true)"
+                v-if="prevRoute.name === 'dashboards-show' && !template && modifiers.alt"
             >
-                {{ $t("labels.saveAndGo") }}
+                {{ i18n.t("labels.saveAndGo") }}
             </v-button>
 
-            <v-button icon="save" :disabled="erred || saving || !validity" @click="save(false)" v-else>
-                {{ $t(`labels.${template ? "templates" : "dashboards"}.save`) }}
+            <v-button icon="save" :disabled="erred || loading || saving" @click="saveDashboard(false)" v-else>
+                {{ i18n.t(`labels.${template ? "templates" : "dashboards"}.save`) }}
             </v-button>
 
             <v-button icon="trash" @click="deleteDashboard()" v-if="!erred && edit && modifiers.alt">
-                {{ $t("labels.delete") }}
+                {{ i18n.t("labels.delete") }}
             </v-button>
 
-            <v-button :disabled="erred" :to="prevRoute || {name: 'admin-dashboards-list'}" v-else>
-                {{ $t("labels.cancel") }}
+            <v-button :disabled="erred" @click="redirectPrev()" v-else>
+                {{ i18n.t("labels.cancel") }}
             </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button icon="undo" :disabled="erred || loading || !guarded" @click="reset()">
-                {{ $t("labels.reset") }}
+            <v-button icon="undo" :disabled="erred || loading || !routeGuarded" @click="reset()">
+                {{ i18n.t("labels.reset") }}
             </v-button>
+
+            <v-divider vertical></v-divider>
 
             <template v-if="dashboard && edit">
                 <v-spacer></v-spacer>
 
-                <v-label class="modified" v-if="dashboard.modifiedAt">
-                    {{ $t("messages.lastModified", [formatDate(dashboard.modifiedAt, $t("date.long"))]) }}
+                <v-label class="note" v-if="dashboard.modifiedAt">
+                    {{ i18n.t("messages.lastModified", [formatDate(dashboard.modifiedAt, i18n.t("date.long"))]) }}
                 </v-label>
             </template>
         </v-toolbar>
 
         <v-spinner v-if="loading"></v-spinner>
 
-        <v-message-error @retry="reset(true)" v-else-if="erred"></v-message-error>
+        <v-message-error v-else-if="erred"></v-message-error>
 
-        <template v-else>
-            <h1 v-if="section === 'general'">{{ $t("labels.general") }}</h1>
+        <template v-else-if="dashboard">
+            <h1 v-if="!$route.params.section">{{ i18n.t("labels.general") }}</h1>
 
-            <v-form class="third" @validity="onValidity" v-show="section === 'general'">
-                <v-label>{{ $t("labels.name") }}</v-label>
+            <v-form ref="form" class="third" v-show="!$route.params.section">
+                <v-label>{{ i18n.t("labels.name._") }}</v-label>
                 <v-input
-                    ref="name"
                     required
-                    :custom-validity="conflictCustomValidity"
-                    :delay="500"
+                    :custom-validity="objectNameValidity('dashboards', dashboard.id)"
+                    :delay="350"
+                    :help="i18n.t('help.dashboards.name')"
                     :pattern="namePattern"
+                    :placeholder="i18n.t('labels.name.choose')"
                     v-autofocus.select
-                    v-model="dashboard.name"
+                    v-model:value="dashboard.name"
                 ></v-input>
 
                 <template v-if="link">
-                    <v-label>{{ $tc("labels.templates._", 1) }}</v-label>
-                    <v-flex class="template">
+                    <v-label>{{ i18n.t("labels.templates._", 1) }}</v-label>
+                    <v-flex class="columns">
                         <v-select
+                            required
                             :options="templates"
-                            :placeholder="$t('labels.templates.select')"
-                            v-model="dashboard.link"
+                            :placeholder="i18n.t('labels.templates.select')"
+                            v-model:value="dashboard.link"
                         >
-                            <template slot="dropdown-placeholder" v-if="templates.length === 0">
-                                <v-label>{{ $t("messages.templates.none") }}</v-label>
+                            <template v-slot:dropdown-placeholder v-if="templates.length === 0">
+                                <v-label>{{ i18n.t("messages.templates.none") }}</v-label>
                             </template>
                         </v-select>
 
@@ -78,46 +82,48 @@
                             :to="{name: 'admin-dashboards-edit', params: {id: String(dashboard.link)}}"
                             :style="{visibility: dashboard.link ? 'visible' : 'hidden'}"
                         >
-                            {{ $t("labels.templates.edit") }}
+                            {{ i18n.t("labels.templates.edit") }}
                         </v-button>
                     </v-flex>
                 </template>
 
                 <template v-else>
-                    <v-label>{{ $t("labels.title") }}</v-label>
+                    <v-label>{{ i18n.t("labels.title") }}</v-label>
                     <v-input
-                        :delay="500"
-                        :help="$t('help.dashboards.title')"
-                        v-model="dashboard.options.title"
+                        :delay="350"
+                        :help="i18n.t('help.dashboards.title')"
+                        v-model:value="dashboard.options.title"
                     ></v-input>
                 </template>
             </v-form>
 
-            <template v-if="section === 'layout'">
+            <template v-if="$route.params.section === 'layout'">
                 <v-grid
-                    :add-handler="!link ? addItem : undefined"
-                    :layout="resolvedDashboard.layout"
                     :readonly="link"
-                    v-model="resolvedDashboard.items"
+                    @add-item="!link ? addItem() : undefined"
+                    v-model:layout="resolvedDashboard.layout"
+                    v-model:value="resolvedDashboard.items"
                 >
-                    <template slot-scope="item">
+                    <template v-slot="item">
                         <v-chart
                             :legend="item.value.options.legend"
-                            @click.native="!link ? editItem(item.index) : undefined"
-                            v-model="dashboardRefs[`chart|${item.value.options.id}`]"
+                            @click="!link ? editItem(item.index) : undefined"
+                            v-model:value="dashboardRefs[`chart|${item.value.options.id}`]"
                             v-if="item.value.type === 'chart'"
                         >
                         </v-chart>
+
+                        <v-text v-model:value="item.value.options" v-else-if="item.value.type === 'text'"></v-text>
                     </template>
                 </v-grid>
             </template>
 
-            <template v-else-if="section === 'variables' && variables.length > 0">
-                <h1>{{ $t("labels.variables._") }}</h1>
+            <template v-else-if="$route.params.section === 'variables' && variables?.length">
+                <h1>{{ i18n.t("labels.variables._") }}</h1>
 
                 <v-form-template-variables
-                    :defined="dashboard.options.variables"
                     :parsed="variables"
+                    v-model:value="dashboard.options.variables"
                 ></v-form-template-variables>
             </template>
         </template>
@@ -127,19 +133,24 @@
 <script lang="ts">
 import cloneDeep from "lodash/cloneDeep";
 import merge from "lodash/merge";
-import {Component, Mixins, Watch} from "vue-property-decorator";
+import {computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch} from "vue";
+import {useI18n} from "vue-i18n";
+import {onBeforeRouteLeave, onBeforeRouteUpdate, useRouter} from "vue-router";
+import {useStore} from "vuex";
 
-import {SelectOption} from "@/types/components";
+import {FormComponent, SelectOption} from "types/ui";
 
-import {ModalConfirmParams} from "@/src/components/modal/confirm.vue";
-import {conflictCustomValidity} from "@/src/helpers/api";
-import {parseChartVariables, renderChart} from "@/src/helpers/chart";
-import {cleanupDashboard, parseDashboardVariables, renderDashboard} from "@/src/helpers/dashboard";
-import {beforeRoute} from "@/src/helpers/route";
-import {CustomMixins} from "@/src/mixins";
-import {ModalDashboardItemParams} from "@/src/views/admin/components/modal/dashboard-item.vue";
+import common, {namePattern} from "@/common";
+import {ModalConfirmParams} from "@/components/modal/confirm.vue";
+import {useUI} from "@/components/ui";
+import {formatDate} from "@/helpers/date";
+import {objectNameValidity} from "@/helpers/validity";
+import api from "@/lib/api";
+import {renderChart, renderDashboard, resolveDashboardReferences} from "@/lib/objects";
+import {State} from "@/store";
 
-import {namePattern} from "..";
+import FormTemplateVariablesComponent from "../common/form/template-variables.vue";
+import ModalTemplateVariableComponent from "../common/modal/template-variable.vue";
 
 const defaultDashboard: Dashboard = {
     id: "",
@@ -164,485 +175,343 @@ const defaultDashboardLinked: Dashboard = {
     },
 };
 
-const defaultSection = "general";
+export default {
+    components: {
+        "v-form-template-variables": FormTemplateVariablesComponent,
+        "v-modal-template-variable": ModalTemplateVariableComponent,
+    },
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+        const router = useRouter();
+        const store = useStore<State>();
+        const ui = useUI();
 
-@Component({
-    beforeRouteLeave: beforeRoute,
-    beforeRouteUpdate: beforeRoute,
-})
-export default class Edit extends Mixins<CustomMixins>(CustomMixins) {
-    public conflictCustomValidity!: (value: string) => Promise<string>;
+        const {
+            applyRouteParams,
+            beforeRoute,
+            erred,
+            loading,
+            modifiers,
+            onBulkRejected,
+            onFetchRejected,
+            prevRoute,
+            routeGuarded,
+            watchGuard,
+            unwatchGuard,
+        } = common;
 
-    public dashboard: Dashboard | null = null;
+        const dashboard = ref<Dashboard | null>(null);
+        const dashboardRefs = ref<Record<string, unknown>>({});
+        const data = ref<Record<string, string>>({});
+        //     const dynamicData = ref<Record<string, Array<string>>>({});
+        const form = ref<FormComponent | null>(null);
+        const invalid = ref(false);
+        const linked = ref<Dashboard | null>(null);
+        const saving = ref(false);
+        const templates = ref<Array<SelectOption>>([]);
+        const variables = ref<Array<TemplateVariable>>([]);
 
-    public dashboardModel: Dashboard | null = null;
+        //     const dynamicOptions = computed(
+        //         (): Record<string, Array<SelectOption>> => {
+        //             return Object.keys(dynamicData.value).reduce(
+        //                 (out: Record<string, Array<SelectOption>>, name: string) => {
+        //                     out[name] = dynamicData.value[name].map(value => ({label: value, value}));
+        //                     return out;
+        //                 },
+        //                 {},
+        //             );
+        //         },
+        //     );
 
-    public dashboardRefs: Record<string, unknown> = {};
+        //     const dynamicVariables = computed(
+        //         (): Array<TemplateVariable> => {
+        //             return dashboard.value?.options?.variables?.filter(variable => variable.dynamic) ?? [];
+        //         },
+        //     );
 
-    public formValidity = false;
-
-    public loading = true;
-
-    public linked: Dashboard | null = null;
-
-    public namePattern = namePattern;
-
-    public saving = false;
-
-    public section: string = defaultSection;
-
-    public template = false;
-
-    public templates: Array<SelectOption> = [];
-
-    public variables: Array<TemplateVariable> = [];
-
-    private unwatchDashboard: (() => void) | null = null;
-
-    public created(): void {
-        this.conflictCustomValidity = conflictCustomValidity(this, "dashboards", this.params.id);
-    }
-
-    public mounted(): void {
-        this.reset(true);
-    }
-
-    public beforeDestroy(): void {
-        if (this.unwatchDashboard) {
-            this.unwatchDashboard();
-        }
-    }
-
-    public addItem(layout: GridItemLayout): void {
-        if (this.dashboard === null) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        }
-
-        const items = this.dashboard.items as Array<DashboardItem>;
-
-        this.$components.modal(
-            "dashboard-item",
-            {
-                item: {layout: cloneDeep(layout)},
-                step: 1,
-            } as ModalDashboardItemParams,
-            (value: DashboardItem) => {
-                if (value) {
-                    items.push(value);
-                }
-            },
+        const edit = computed(
+            () => router.currentRoute.value.params.id !== "new" && router.currentRoute.value.params.id !== "link",
         );
-    }
 
-    public deleteDashboard(apply = false): void {
-        if (this.dashboard === null) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        }
+        const link = computed(() => router.currentRoute.value.params.id === "link" || Boolean(dashboard.value?.link));
 
-        if (apply) {
-            this.$http.delete(`/api/v1/dashboards/${this.dashboard.id}`).then(() => {
-                this.unguard();
-                this.$components.notify(this.$tc("messages.dashboards.deleted", 1) as string, "success");
-                this.$router.push(
-                    this.prevRoute?.name === "dashboards-show"
-                        ? {name: "dashboards-home"}
-                        : {name: "admin-dashboards-list", query: this.template ? {kind: "template"} : {}},
-                );
-            }, this.handleError());
-
-            return;
-        }
-
-        this.$components.modal(
-            "confirm",
-            {
-                button: {
-                    icon: "trash",
-                    label: this.$tc(`labels.${this.params.type}.delete`, 1),
-                    danger: true,
-                },
-                message: this.$tc(`messages.${this.params.type}.delete`, 1, this.dashboard),
-            } as ModalConfirmParams,
-            (value: boolean) => {
-                if (value) {
-                    this.deleteDashboard(true);
-                }
-            },
-        );
-    }
-
-    public get dynamicVariables(): Array<TemplateVariable> {
-        return this.dashboard?.options?.variables?.filter(variable => variable.dynamic) ?? [];
-    }
-
-    public get edit(): boolean {
-        return this.params.id !== "link" && this.params.id !== "new";
-    }
-
-    public editItem(index: number): void {
-        if (this.dashboard === null || !this.dashboard.items) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        }
-
-        const items = this.dashboard.items as Array<DashboardItem>;
-
-        this.$components.modal(
-            "dashboard-item",
-            {
-                item: cloneDeep(items[index]),
-                step: 2,
-            } as ModalDashboardItemParams,
-            (value: DashboardItem) => {
-                if (value) {
-                    items.splice(index, 1, value);
-                }
-            },
-        );
-    }
-
-    public get link(): boolean {
-        return this.params.id === "link" || Boolean(this.dashboard?.link);
-    }
-
-    @Watch("params.id")
-    public onParamsID(to: string, from: string): void {
-        if (to !== from) {
-            this.section = defaultSection;
-            this.reset(true);
-        }
-    }
-
-    @Watch("$route.hash", {immediate: true})
-    public onRouteHash(to: string): void {
-        this.section = to ? to.substr(1) : defaultSection;
-    }
-
-    public onValidity(to: boolean): void {
-        this.formValidity = to;
-    }
-
-    public removeItem(index: number): void {
-        if (this.dashboard === null || !this.dashboard.items) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        }
-
-        this.dashboard.items.splice(index, 1);
-    }
-
-    public async reset(apply = false): Promise<void> {
-        if (!apply) {
-            this.$components.modal(
-                "confirm",
-                {
-                    button: {
-                        label: this.$t("labels.dashboards.reset"),
-                        danger: true,
-                    },
-                    message: this.$t("messages.confirmLeave"),
-                } as ModalConfirmParams,
-                (value: boolean) => {
-                    if (value) {
-                        this.reset(true);
-                    }
-                },
-            );
-
-            return;
-        }
-
-        if (this.unwatchDashboard) {
-            this.unwatchDashboard();
-        }
-
-        this.formValidity = false;
-        this.dashboardRefs = {};
-
-        if (!this.edit) {
-            let dashboard: Dashboard;
-
-            if (this.link) {
-                await this.getTemplates();
-                dashboard = cloneDeep(defaultDashboardLinked);
-                this.unwatchDashboard = this.$watch("dashboard", this.onDashboardLinked, {deep: true});
-
-                if (this.$route.query.template) {
-                    dashboard.link = this.$route.query.template as string;
-                }
-            } else {
-                dashboard = cloneDeep(defaultDashboard);
-                this.unwatchDashboard = this.$watch("dashboard", this.onDashboard, {deep: true});
+        const resolvedDashboard = computed((): Dashboard | null => {
+            if (linked.value) {
+                return renderDashboard(linked.value, data.value);
+            } else if (!link.value) {
+                return dashboard.value;
             }
 
-            this.dashboard = dashboard;
-            this.loading = false;
-            this.guardWatch("dashboard");
+            return null;
+        });
 
-            return;
-        }
+        const template = computed(() => !link.value && variables.value.length > 0);
 
-        this.loading = true;
-
-        this.$http
-            .get(`/api/v1/dashboards/${this.params.id}`)
-            .then(response => response.json())
-            .then(
-                async (response: APIResponse<Dashboard>) => {
-                    if (response?.data?.link) {
-                        await this.getTemplates();
-                        this.unwatchDashboard = this.$watch("dashboard", this.onDashboardLinked, {deep: true});
-                        this.dashboard = merge({}, defaultDashboardLinked, response.data);
-                    } else {
-                        this.unwatchDashboard = this.$watch("dashboard", this.onDashboard, {deep: true});
-                        this.dashboard = merge({}, defaultDashboard, response.data);
-                    }
-
-                    this.guardWatch("dashboard");
-                },
-                this.handleError(() => {
-                    this.loading = false;
-                }, true),
-            );
-    }
-
-    public get resolvedDashboard(): Dashboard | null {
-        return this.linked ? renderDashboard(this.linked, this.resolvedData) : this.dashboard;
-    }
-
-    public get resolvedData(): Record<string, string> {
-        let variables: Array<TemplateVariable> = [];
-        if (this.linked?.options?.variables) {
-            variables = variables.concat(this.linked.options.variables);
-        }
-        if (this.dashboard?.options?.variables) {
-            variables = variables.concat(this.dashboard.options.variables);
-        }
-
-        return variables.reduce((data: Record<string, string>, variable: TemplateVariable) => {
-            if (!variable.dynamic) {
-                data[variable.name] = variable.value as string;
-            }
-            return data;
-        }, {});
-    }
-
-    public save(go: boolean): void {
-        if (this.dashboard === null) {
-            this.$components.notify(this.$t("messages.error.unhandled") as string, "error");
-            return;
-        } else if (this.saving) {
-            return;
-        }
-        this.saving = true;
-
-        const dashboard: Dashboard = cloneDeep(this.dashboard);
-        dashboard.template = this.template;
-
-        this.$http({
-            url: `/api/v1/dashboards${this.edit ? `/${this.params.id}` : ""}`,
-            method: this.edit ? "PUT" : "POST",
-            body: cleanupDashboard(dashboard),
-        }).then(
-            () => {
-                this.unguard();
-                this.$components.notify(this.$t("messages.dashboards.saved") as string, "success");
-                this.$router.push(
-                    go || this.prevRoute?.name === "dashboards-show"
-                        ? {name: "dashboards-show", params: {id: dashboard.name}}
-                        : {name: "admin-dashboards-list", query: this.template ? {kind: "template"} : {}},
-                );
-                this.saving = false;
-            },
-            this.handleError(() => {
-                this.saving = false;
-            }),
-        );
-    }
-
-    public get validity(): boolean {
-        const validity: Record<string, boolean> = {
-            general: this.formValidity,
-            layout: (this.dashboard?.items?.length ?? 0) > 0 || Boolean(this.dashboard?.link),
+        const addItem = (): void => {
+            // console.debug("addItem!");
         };
 
-        this.$parent.$emit("dashboard-validity", validity);
+        const deleteDashboard = async (): Promise<void> => {
+            if (dashboard.value === null) {
+                throw Error("cannot get dashboard");
+            }
 
-        return !Object.values(validity).includes(false);
-    }
+            const ok = await ui.modal<boolean>("confirm", {
+                button: {
+                    label: i18n.t(`labels.dashboards.delete`, 1),
+                    danger: true,
+                },
+                message: i18n.t(`messages.dashboards.delete`, dashboard.value, 1),
+            } as ModalConfirmParams);
 
-    private emitUpdate(): void {
-        this.$parent.$emit(
-            "dashboard-updated",
-            this.link,
-            this.dashboard?.items?.length ?? null,
-            this.variables.length ?? null,
-        );
-    }
+            if (ok) {
+                api.delete("dashboards", dashboard.value.id).then(() => {
+                    ui.notify(i18n.t(`messages.dashboards.deleted`, 1), "success");
+                    unwatchGuard();
+                    router.push({name: "admin-dashboards-list"});
+                }, onFetchRejected);
+            }
+        };
 
-    private getDashboardRefs(dashboard: Dashboard): PromiseLike<void> {
-        const keys: Array<string> = [];
-        const types: Array<DashboardItemType> = [];
+        const redirect = (go: boolean): void => {
+            router.push(
+                go || prevRoute.value?.name === "dashboards-show" || router.currentRoute.value.query.from === "basket"
+                    ? {
+                          name: "dashboards-show",
+                          params: {id: dashboard.value?.name as string},
+                          query: prevRoute.value?.query,
+                      }
+                    : {name: "admin-dashboards-list", query: template.value ? {kind: "template"} : {}},
+            );
+        };
 
-        const req: Array<BulkRequest> =
-            dashboard.items?.reduce((req: Array<BulkRequest>, item: DashboardItem) => {
-                switch (item.type) {
-                    case "chart": {
-                        const id = item.options?.id as string | undefined;
-                        const key = `chart|${id}`;
+        const redirectPrev = (): void => {
+            router.push(
+                prevRoute.value ?? {name: "admin-dashboards-list", query: template.value ? {kind: "template"} : {}},
+            );
+        };
 
-                        if (
-                            id !== undefined &&
-                            !keys.includes(key) &&
-                            (!this.dashboardRefs[key] || (this.dashboardRefs[key] as Chart).template)
-                        ) {
-                            req.push({
-                                endpoint: `/charts/${id}/resolve`,
-                                method: "POST",
-                            });
+        const reset = async (force = false): Promise<void> => {
+            if (!force) {
+                const ok = await ui.modal<boolean>("confirm", {
+                    button: {
+                        label: i18n.t("labels.dashboards.reset"),
+                        danger: true,
+                    },
+                    message: i18n.t("messages.unsavedLost"),
+                } as ModalConfirmParams);
 
-                            keys.push(key);
-                        }
-                    }
-                }
-
-                types.push(item.type);
-
-                return req;
-            }, []) ?? [];
-
-        if (req.length === 0) {
-            return Promise.resolve();
-        }
-
-        return this.$http
-            .post("/api/v1/bulk", req)
-            .then(response => response.json())
-            .then((response: APIResponse<Array<BulkResult>>) => {
-                if (response.data && response.data.filter(result => result.status >= 400).length > 0) {
-                    this.$components.notify(this.$t("messages.error.bulk") as string, "error");
+                if (!ok) {
                     return;
                 }
-
-                response.data?.forEach((result, index) => {
-                    switch (types[index]) {
-                        case "chart": {
-                            const chart = result.response.data as Chart;
-                            this.dashboardRefs[`chart|${chart.id}`] = renderChart(chart, this.resolvedData);
-                            break;
-                        }
-                    }
-                });
-            });
-    }
-
-    private getTemplates(): PromiseLike<void> {
-        return this.$http
-            .get("/api/v1/dashboards", {params: {kind: "template"}})
-            .then(response => response.json())
-            .then((response: APIResponse<Array<Dashboard>>) => {
-                if (response.data) {
-                    this.templates = response.data.map(dashboard => ({
-                        label: dashboard.name,
-                        value: dashboard.id,
-                    }));
-                }
-            });
-    }
-
-    private async onDashboard(to: Dashboard): Promise<void> {
-        if (!to.items) {
-            this.parseVariables(to);
-            this.emitUpdate();
-            return;
-        }
-
-        await this.getDashboardRefs(to);
-
-        this.loading = false;
-        this.parseVariables(to);
-        this.emitUpdate();
-    }
-
-    private onDashboardLinked(to: Dashboard): void {
-        if (!to.link || to.link === this.linked?.id) {
-            this.emitUpdate();
-            return;
-        }
-
-        this.$http
-            .get(`/api/v1/dashboards/${to.link}`)
-            .then(response => response.json())
-            .then(
-                async (response: APIResponse<Chart>) => {
-                    const linked = response.data as Chart;
-
-                    Object.assign(this, {
-                        linked,
-                        variables: parseDashboardVariables(linked),
-                    });
-
-                    await this.getDashboardRefs(linked);
-
-                    this.loading = false;
-                    this.emitUpdate();
-                },
-                this.handleError(() => {
-                    this.loading = false;
-                    this.emitUpdate();
-                }),
-            );
-    }
-
-    private parseVariables(to: Dashboard): void {
-        let variables = parseDashboardVariables(to);
-        const names = variables.map(variable => variable.name);
-
-        Object.keys(this.dashboardRefs).forEach(key => {
-            switch (key.split("|", 2)[0]) {
-                case "chart": {
-                    const vars = parseChartVariables(this.dashboardRefs[key] as Chart).filter(variable => {
-                        const keep = !names.includes(variable.name);
-                        if (keep) {
-                            names.push(variable.name);
-                        }
-                        return keep;
-                    });
-                    if (vars) {
-                        variables = variables.concat(vars);
-                    }
-                }
             }
-        });
 
-        // Current dashboard should only be considered as a template if any
-        // of the variables are undefined
-        const set = this.dashboard?.options?.variables?.map(variable => variable.name) ?? [];
+            let promise: Promise<APIResponse<Dashboard | null>>;
+            if (edit.value) {
+                promise = api.object<Dashboard>("dashboards", router.currentRoute.value.params.id as string);
+            } else {
+                promise = Promise.resolve(
+                    router.currentRoute.value.query.from === "basket"
+                        ? {
+                              data: {
+                                  id: "",
+                                  name: "",
+                                  items: cloneDeep(store.state.basket),
+                              },
+                          }
+                        : {data: null},
+                );
+            }
 
-        Object.assign(this, {
-            template: variables.filter(variable => !set.includes(variable.name)).length > 0,
+            form.value?.reset();
+            invalid.value = false;
+            store.commit("loading", true);
+
+            promise
+                .then(async response => {
+                    if (response.data === undefined) {
+                        return Promise.reject("cannot get dashboard");
+                    }
+
+                    if (router.currentRoute.value.params.id === "link" || response.data?.link) {
+                        await api
+                            .objects<Dashboard>("dashboards", {kind: "template"})
+                            .then(response => {
+                                if (response.data) {
+                                    templates.value = response.data.map(dashboard => ({
+                                        label: dashboard.name,
+                                        value: dashboard.id,
+                                    }));
+                                }
+                            });
+
+                        dashboard.value = merge({}, defaultDashboardLinked, response.data);
+                    } else {
+                        dashboard.value = merge({}, defaultDashboard, response.data);
+                    }
+
+                    await resolveDashboardReferences(dashboard.value?.items ?? []).then(response => {
+                        response.forEach(ref => {
+                            switch (ref.type) {
+                                case "chart": {
+                                    const chart = ref.value as Chart;
+                                    dashboardRefs.value[`chart|${chart.id}`] = renderChart(chart, data.value);
+                                    break;
+                                }
+                            }
+                        });
+                    }, onBulkRejected);
+
+                    watchGuard(dashboard);
+                }, onFetchRejected)
+                .finally(() => {
+                    updateRouteData();
+                    store.commit("loading", false);
+                });
+        };
+
+        const saveDashboard = (go: boolean): void => {
+            if (dashboard.value === null) {
+                throw Error("cannot get dashboard");
+            }
+
+            if (!routeGuarded) {
+                redirect(go);
+                return;
+            } else if (!form.value?.checkValidity()) {
+                ui.notify(i18n.t("messages.error.formVerify"), "error");
+                invalid.value = true;
+                updateRouteData();
+                return;
+            }
+
+            const obj: Dashboard = cloneDeep(dashboard.value);
+            obj.template = template.value;
+
+            api.saveObject<Dashboard>("dashboards", obj).then(() => {
+                ui.notify(i18n.t("messages.dashboards.saved"), "success");
+
+                // Successfuly saved and data came from basket, thus empty it
+                if (router.currentRoute.value.query.from === "basket") {
+                    store.commit("basket", []);
+                }
+
+                unwatchGuard();
+                redirect(go);
+            }, onFetchRejected);
+        };
+
+        const updateRouteData = (clear = false): void => {
+            store.commit(
+                "routeData",
+                !clear
+                    ? {
+                          invalid: {
+                              general: invalid.value,
+                          },
+                          link: link.value,
+                          items: dashboard.value?.items?.length ?? 0,
+                          variables: variables.value?.length ?? 0,
+                      }
+                    : null,
+            );
+        };
+
+        onBeforeRouteLeave(beforeRoute);
+
+        onBeforeRouteUpdate(beforeRoute);
+
+        onBeforeMount(() => applyRouteParams());
+
+        onMounted(() => reset(true));
+
+        onBeforeUnmount(() => updateRouteData(true));
+
+        //     watch(
+        //         dashboard,
+        //         async to => {
+        //             if (!to) {
+        //                 return;
+        //             }
+
+        //             if (to.link) {
+        //                 // Skip loading linked dashboard if didn't change
+        //                 if (to.link !== linked.value?.id) {
+        //                     await api.object<Dashboard>("dashboards", to.link).then(response => {
+        //                         if (response.data === undefined) {
+        //                             return Promise.reject("cannot get linked dashboard");
+        //                         }
+
+        //                         linked.value = response.data;
+        //                         variables.value = parseDashboardVariables(response.data);
+        //                     });
+        //                 }
+        //             } else {
+        //                 variables.value = parseDashboardVariables(to);
+        //             }
+
+        //             dynamicData.value = await resolveVariables(to.options?.variables ?? []);
+
+        //             data.value = Object.keys(dynamicData.value).reduce((out: Record<string, string>, key: string) => {
+        //                 out[key] = dynamicData.value[key]?.[0];
+        //                 return out;
+        //             }, {});
+
+        //             updateRouteData();
+        //         },
+        //         {deep: true},
+        //     );
+
+        watch(
+            () => router.currentRoute.value.params,
+            (to, from) => {
+                if (to.id !== from.id) {
+                    reset(true);
+                } else if (to.section !== from.section) {
+                    invalid.value = !form.value?.checkValidity();
+                    updateRouteData();
+                }
+            },
+        );
+
+        return {
+            addItem,
+            dashboard,
+            dashboardRefs,
+            //         colors,
+            //         data,
+            deleteDashboard,
+            //         dynamicOptions,
+            //         dynamicVariables,
+            edit,
+            erred,
+            form,
+            formatDate,
+            i18n,
+            link,
+            loading,
+            modifiers,
+            namePattern,
+            objectNameValidity,
+            prevRoute,
+            redirectPrev,
+            reset,
+            resolvedDashboard,
+            routeGuarded,
+            saveDashboard,
+            saving,
+            template,
+            templates,
             variables,
-        });
-    }
-}
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-@import "../mixins";
+@import "../../mixins";
 
 .v-content {
-    ::v-deep {
-        @include content;
-
-        canvas {
-            cursor: pointer;
-        }
-
-        .v-grid[aria-readonly] canvas {
-            cursor: default;
-        }
-    }
+    @include content;
 }
 </style>

@@ -1,0 +1,51 @@
+@mixin input {
+    align-items: center;
+    background-color: var(--input-background);
+    border-left: 0.25rem solid transparent;
+    border-radius: 0.2rem;
+    display: inline-flex;
+    height: var(--input-height);
+    line-height: var(--input-height);
+    min-width: 12rem;
+    padding: 0 0.65rem;
+    position: relative;
+    vertical-align: middle;
+
+    &[aria-disabled="true"],
+    &[aria-readonly="true"] {
+        pointer-events: none;
+    }
+
+    &[aria-disabled="true"] {
+        color: var(--light-gray);
+    }
+
+    &[aria-invalid="true"] {
+        border-color: var(--input-invalid-color) !important;
+    }
+
+    &.focus {
+        border-color: var(--accent);
+    }
+
+    &.textarea {
+        height: auto;
+        line-height: normal;
+        padding: 0.65rem;
+    }
+
+    .v-icon {
+        font-size: 0.8rem;
+        min-width: 1.25rem;
+        width: 1.25rem;
+
+        &:first-child {
+            margin-right: 0.35rem;
+        }
+    }
+
+    .v-label {
+        color: var(--input-label-color);
+        margin: 0 0.5rem 0 0;
+    }
+  }

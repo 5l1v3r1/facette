@@ -4,39 +4,51 @@
 
         {{ message }}
 
-        <v-button @click="retry">{{ $t("labels.retry") }}</v-button>
+        <v-button @click="retry">
+            {{ i18n.t("labels.retry") }}
+        </v-button>
     </v-message>
 </template>
 
 <script lang="ts">
-import {TranslateResult} from "vue-i18n";
-import {Component, Mixins} from "vue-property-decorator";
+import {SetupContext, computed} from "vue";
+import {useI18n} from "vue-i18n";
 
-import {CustomMixins} from "@/src/mixins";
+import common from "@/common";
 
-@Component
-export default class MessageErrorComponent extends Mixins<CustomMixins>(CustomMixins) {
-    public get message(): string {
-        let result: TranslateResult;
+export default {
+    props: {
+        type: {
+            default: null,
+            type: String,
+        },
+    },
+    setup(props: Record<string, any>, ctx: SetupContext): Record<string, unknown> {
+        const i18n = useI18n();
 
-        switch (this.error) {
-            case "notFound":
-                result = this.$t(`messages.${this.params.type}.notFound`);
-                break;
+        const {error, resetError} = common;
 
-            default:
-                result = this.$t(`messages.error.unhandled`);
-                break;
-        }
+        const message = computed((): string => {
+            switch (error.value) {
+                case "notFound":
+                    return i18n.t(`messages.${props.type ?? "error"}.notFound`);
+            }
 
-        return result as string;
-    }
+            return i18n.t("messages.error.unhandled");
+        });
 
-    public retry(): void {
-        this.resetError();
-        this.$emit("retry");
-    }
-}
+        const retry = (): void => {
+            resetError();
+            ctx.emit("retry");
+        };
+
+        return {
+            i18n,
+            message,
+            retry,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>

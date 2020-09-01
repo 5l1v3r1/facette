@@ -1,46 +1,36 @@
 <template>
     <v-content>
-        <v-modal-chart-preview></v-modal-chart-preview>
+        <teleport to="body">
+            <v-modal-chart-preview></v-modal-chart-preview>
+        </teleport>
 
         <v-toolbar clip="content">
             <v-button
-                icon="sync"
-                :shortcut="['r', $t('labels.refresh.list')]"
-                @click="getMetrics"
-                v-tooltip="{message: $t('labels.refresh.list'), shortcut: 'r'}"
-            ></v-button>
+                icon="eye"
+                :disabled="selection.length === 0"
+                :icon-badge="selection.length"
+                @click="previewChart(selection)"
+            >
+                {{ i18n.t("labels.charts.preview") }}
+            </v-button>
 
             <v-divider vertical></v-divider>
 
-            <v-button
-                :disabled="loading || polling"
-                :icon="polling ? 'circle-notch' : 'arrow-alt-circle-down'"
-                :icon-spin="polling"
-                @click="pollProviders"
-            >
-                {{ $t("labels.providers.pollAlt") }}
+            <v-button icon="sync-alt" @click="getMetrics" v-shortcut="{keys: 'r', help: i18n.t('labels.refresh.list')}">
+                {{ i18n.t("labels.refresh._") }}
             </v-button>
-
-            <template v-if="selection.length > 0">
-                <v-divider vertical></v-divider>
-                <v-button
-                    icon="eye"
-                    :icon-badge="selection.length"
-                    @click="previewChart(Object.values(selection.items))"
-                ></v-button>
-            </template>
 
             <v-spacer></v-spacer>
 
             <v-input
                 icon="filter"
                 type="search"
-                :placeholder="$t('labels.metrics.filter')"
-                :shortcut="['f', $t('labels.metrics.filter')]"
+                :placeholder="i18n.t('labels.metrics.filter')"
                 @clear="applyFilter"
                 @focusout="applyFilter"
-                @keypress.enter.native="applyFilter"
-                v-model="tmpFilter"
+                @keypress.enter="applyFilter"
+                v-model:value="filter"
+                v-shortcut="{keys: 'f', help: i18n.t('labels.metrics.filter')}"
             ></v-input>
         </v-toolbar>
 
@@ -50,283 +40,233 @@
 
         <template v-else>
             <h1>
-                {{ $tc("labels.metrics._", 2) }}
+                {{ i18n.t("labels.metrics._", 2) }}
                 <span class="count" v-if="total">{{ total }}</span>
             </h1>
 
             <v-message class="selection" icon="clipboard-list" type="info" v-if="selection.length > 0">
-                {{ $tc("messages.metrics.selected", selection.length, [selection.length]) }}
+                {{ i18n.t("messages.metrics.selected", [selection.length], selection.length) }}
+
                 <v-button
                     icon="times-circle"
                     @click="clearSelection"
-                    v-tooltip="$t('labels.clearSelection')"
+                    v-tooltip="i18n.t('labels.clearSelection')"
                 ></v-button>
             </v-message>
 
-            <v-message type="info" v-if="metrics.length === 0">{{ $t("messages.metrics.none") }}</v-message>
+            <v-message type="info" v-if="metrics.length === 0">
+                {{ i18n.t("messages.metrics.none") }}
+            </v-message>
 
             <template v-else>
-                <v-table ref="table" selectable @selection="onSelection" v-model="metrics">
-                    <template slot="header">
+                <v-table ref="table" selectable v-model:selection="selection" v-model:value="metrics">
+                    <template v-slot:header>
                         <v-table-cell>
-                            {{ $t("labels.name") }}
+                            {{ i18n.t("labels.name._") }}
                         </v-table-cell>
 
                         <v-table-cell grow>
-                            {{ $tc("labels.labels", 2) }}
+                            {{ i18n.t("labels.labels", 2) }}
                         </v-table-cell>
 
                         <v-table-cell></v-table-cell>
                     </template>
 
-                    <template slot-scope="metric">
+                    <template v-slot="metric">
                         <v-table-cell>
-                            <span class="link" @click="setMatch('__name__', metric.value.name)">
-                                {{ metric.value.__name__ }}
+                            <span class="link" @click="setMatch(null, metric.value.name())">
+                                {{ metric.value.name() }}
                             </span>
                         </v-table-cell>
 
                         <v-table-cell grow>
-                            <v-labels :handler="setMatch" :labels="metric.value"></v-labels>
+                            <v-labels selectable @select="setMatch" :labels="metric.value.entries(false)"></v-labels>
                         </v-table-cell>
 
                         <v-table-cell>
-                            <v-button class="reveal icon" icon="eye" @click="previewChart([metric.value])"></v-button>
+                            <v-button
+                                class="reveal icon"
+                                icon="far/copy"
+                                @click="clipboardCopy(metric.value.toString())"
+                                v-tooltip="i18n.t('labels.clipboard.copy')"
+                            ></v-button>
                         </v-table-cell>
                     </template>
                 </v-table>
 
-                <v-paging :handler="switchPage" :page="options.page" :page-size="limit" :total="total"></v-paging>
+                <v-paging :page-size="limit" :total="total" v-model:page="options.page"></v-paging>
             </template>
         </template>
     </v-content>
 </template>
 
 <script lang="ts">
-import {Component, Mixins, Watch} from "vue-property-decorator";
-import {Dictionary} from "vue-router/types/router";
+import {onBeforeMount, ref, watch} from "vue";
+import {useI18n} from "vue-i18n";
+import {useRouter} from "vue-router";
+import {useStore} from "vuex";
 
-import TableComponent from "@/src/components/vue/table/table.vue";
-import {hash} from "@/src/helpers/hash";
-import {labelsToString, parseLabels} from "@/src/helpers/labels";
-import {CustomMixins} from "@/src/mixins";
-import {updateRouteQuery} from "@/src/router";
-import {ModalChartPreviewParams} from "@/src/views/admin/components/modal/chart-preview.vue";
+import api from "@/lib/api";
+import common from "@/common";
+import {useUI} from "@/components/ui";
+import {State} from "@/store";
 
-interface Metric extends Labels {
-    _hash: string;
-}
+import ModalChartPreviewComponent, {ModalChartPreviewParams} from "./modal/chart-preview.vue";
 
 interface Options {
     filter: string;
     page: number;
 }
 
-@Component
-export default class List extends Mixins<CustomMixins>(CustomMixins) {
-    public metrics: Array<Metric> = [];
+const defaultOptions: Options = {
+    filter: "",
+    page: 1,
+};
 
-    public limit = 20;
+const limit = 20;
 
-    public loading = true;
+export default {
+    components: {
+        "v-modal-chart-preview": ModalChartPreviewComponent,
+    },
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+        const router = useRouter();
+        const store = useStore<State>();
+        const ui = useUI();
 
-    public options: Options = {
-        filter: "",
-        page: 1,
-    };
+        const {erred, loading, onFetchRejected} = common;
 
-    public polling = false;
+        const filter = ref("");
+        const metrics = ref<Array<Labels>>([]);
+        const options = ref(Object.assign({}, defaultOptions));
+        const selection = ref<Array<Labels>>([]);
+        const table = ref<HTMLTableElement | null>(null);
+        const total = ref(0);
 
-    public selection: {
-        items: Record<string, Metric>;
-        length: number;
-    } = {
-        items: {},
-        length: 0,
-    };
-
-    public tmpFilter = "";
-
-    public total = 0;
-
-    public applyFilter(): void {
-        if (this.tmpFilter !== this.options.filter) {
-            this.options.filter = this.tmpFilter;
-        }
-    }
-
-    public clearSelection(): void {
-        this.selection = {
-            items: {},
-            length: 0,
+        const applyFilter = (): void => {
+            options.value.filter = filter.value;
         };
 
-        const table = this.$refs.table as TableComponent;
-        if (table) {
-            table.select([]);
-        }
-    }
+        const clearSelection = (): void => {
+            selection.value = [];
+        };
 
-    @Watch("metrics")
-    public onMetrics(to: Array<Metric>): void {
-        if (this.selection.length !== 0) {
-            this.$nextTick(() => {
-                const table = this.$refs.table as TableComponent;
-                if (table) {
-                    table.select(to.filter(metric => this.selection.items[metric._hash]));
-                }
-            });
-        }
-    }
-
-    @Watch("options", {deep: true})
-    public onOptions(to: Options): void {
-        const q: Dictionary<string> = {};
-
-        if (to.filter !== "") {
-            q.filter = to.filter;
-        }
-        if (to.page !== 1) {
-            q.page = to.page.toString();
-        }
-
-        updateRouteQuery(this.$route, q);
-
-        this.getMetrics();
-    }
-
-    @Watch("$route.query", {immediate: true})
-    public onRouteQuery(to: Dictionary<string>, from: Dictionary<string> | undefined): void {
-        if (from === undefined) {
-            const options: Options = {
-                filter: "",
-                page: 1,
+        const getMetrics = (): void => {
+            const params: ListParams = {
+                limit,
+                offset: (options.value.page - 1) * limit,
             };
 
-            if (to.filter) {
-                options.filter = to.filter;
-                this.tmpFilter = to.filter;
+            if (options.value.filter) {
+                params.match =
+                    options.value.filter.indexOf("{") !== -1
+                        ? options.value.filter
+                        : `{__name__=~${JSON.stringify(".*" + options.value.filter + ".*")}}`;
             }
-            if (to.page) {
-                options.page = parseInt(to.page, 10) || 1;
-            }
 
-            Object.assign(this.options, options);
-        }
+            store.commit("loading", true);
 
-        // Get metrics if no query parameter (i.e. initial get)
-        if (Object.keys(to).length === 0) {
-            this.getMetrics();
-        }
-    }
+            api.metrics(params)
+                .then(response => {
+                    if (response.data === undefined) {
+                        return Promise.reject("cannot get metrics");
+                    }
 
-    public onSelection(to: Array<Metric>): void {
-        const hashes: Array<string> = this.metrics.map(metric => metric._hash);
-
-        const items = Object.values(this.selection.items)
-            .filter(metric => !hashes.includes(metric._hash))
-            .concat(to)
-            .reduce((items: Record<string, Metric>, metric: Metric) => {
-                items[metric._hash] = metric;
-                return items;
-            }, {});
-
-        this.selection = {
-            items,
-            length: Object.keys(items).length,
-        };
-    }
-
-    public pollProviders(): void {
-        this.polling = true;
-
-        this.$http.post("/api/v1/providers/poll").then(
-            () => {
-                this.polling = false;
-                this.getMetrics();
-            },
-            this.handleError(() => {
-                this.polling = false;
-            }),
-        );
-    }
-
-    public previewChart(metrics: Array<Metric>): void {
-        this.$components.modal("chart-preview", {
-            exprs: metrics.map(metric => labelsToString(metric)),
-        } as ModalChartPreviewParams);
-    }
-
-    public setMatch(key: string, value: string): void {
-        this.tmpFilter = key === "__name__" ? value : `{${key}=${JSON.stringify(value)}}`;
-        this.applyFilter();
-    }
-
-    public switchPage(page: number): void {
-        this.options.page = page;
-    }
-
-    private getMetrics(): void {
-        const params: ListParams = {
-            limit: this.limit,
-            offset: (this.options.page - 1) * this.limit || undefined,
-        };
-
-        if (this.options.filter) {
-            params.match =
-                this.options.filter.indexOf("{") !== -1
-                    ? this.options.filter
-                    : `{__name__=~${JSON.stringify(".*" + this.options.filter + ".*")}}`;
-        }
-
-        this.loading = true;
-
-        this.$http
-            .get("/api/v1/metrics", {params})
-            .then(response => response.json())
-            .then(
-                (response: APIResponse<Array<string>>) => {
                     const pagesCount: number | undefined = response.total
-                        ? Math.ceil(response.total / this.limit)
+                        ? Math.ceil(response.total / limit)
                         : undefined;
 
                     // Switch back to first/last page if current empty
-                    if (response.data && response.data.length === 0 && this.options.page > 1) {
-                        this.options.page = pagesCount !== undefined ? pagesCount : 1;
+                    if (!response.data?.length && options.value.page > 1) {
+                        options.value.page = pagesCount !== undefined ? pagesCount : 1;
                         return;
                     }
 
-                    if (response.data) {
-                        this.metrics = response.data.map(expr => {
-                            const metric: Metric = parseLabels(expr) as Metric;
-                            metric._hash = hash(metric);
-                            return metric;
-                        });
+                    metrics.value = response.data;
+                    total.value = response.total ?? 0;
+                }, onFetchRejected)
+                .finally(() => {
+                    store.commit("loading", false);
+                });
+        };
+
+        const previewChart = (): void => {
+            ui.modal("chart-preview", {
+                exprs: selection.value.map(labels => labels.toString()),
+            } as ModalChartPreviewParams);
+        };
+
+        const setMatch = (key: string | null, value: string): void => {
+            filter.value = key === null ? value : `{${key}=${JSON.stringify(value)}}`;
+            applyFilter();
+        };
+
+        const clipboardCopy = (value: string): void => {
+            navigator.clipboard.writeText(value).then(() => ui.notify(i18n.t("messages.copied"), "success"));
+        };
+
+        onBeforeMount(() => {
+            const query = router.currentRoute.value.query as Record<string, string>;
+
+            if (query.filter) {
+                options.value.filter = query.filter;
+                filter.value = query.filter;
+            }
+            if (query.page) {
+                options.value.page = parseInt(query.page, 10) ?? 1;
+            }
+
+            watch(
+                options,
+                (to: Options): void => {
+                    const query: Record<string, string> = {};
+
+                    if (to.filter !== "") {
+                        query.filter = to.filter;
+                    }
+                    if (to.page !== 1) {
+                        query.page = to.page.toString();
                     }
 
-                    this.total = response.total || 0;
-                    this.loading = false;
+                    router.replace({query});
+
+                    getMetrics();
                 },
-                this.handleError(() => {
-                    this.loading = false;
-                }, true),
+                {deep: true, immediate: true},
             );
-    }
-}
+        });
+
+        return {
+            applyFilter,
+            clearSelection,
+            clipboardCopy,
+            erred,
+            filter,
+            getMetrics,
+            i18n,
+            limit,
+            loading,
+            metrics,
+            options,
+            previewChart,
+            selection,
+            setMatch,
+            table,
+            total,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-@import "../mixins";
+@import "../../mixins";
 
 .v-content {
     @include content;
 
-    .v-toolbar .v-input {
-        width: 20rem;
-    }
-
-    ::v-deep .v-table-row.selected .v-labels-item {
-        background-color: var(--table-row-selected-form);
+    ::v-deep(.v-table-row.selected .v-labels-entry) {
+        background-color: var(--dark-accent);
     }
 }
 </style>

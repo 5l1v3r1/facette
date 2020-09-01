@@ -6,45 +6,42 @@
  */
 
 import isEqual from "lodash/isEqual";
-import Vue from "vue";
-import {HttpResponse} from "vue-resource/types/vue_resource";
-import VueRouter, {Route, RouteConfig} from "vue-router";
-import {Dictionary, NavigationGuardNext} from "vue-router/types/router";
+import {NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw, createRouter, createWebHistory} from "vue-router";
 
-Vue.use(VueRouter);
+import api from "@/lib/api";
+import common from "@/common";
+import store from "@/store";
 
-import store from "./store";
+import admin from "@/views/admin";
+import dashboards from "@/views/dashboards";
+import settings from "@/views/settings";
 
-import admin from "./views/admin";
-import dashboards from "./views/dashboards";
-import settings from "./views/settings";
-
-interface Options {
-    connectors: Array<string>;
-}
-
-const routes: Array<RouteConfig> = [
+const routes = Array<RouteRecordRaw>().concat(
     {
         path: "/",
         name: "root",
         redirect: {
             name: "dashboards-home",
         },
-    } as RouteConfig,
-].concat(admin, dashboards, settings);
+    },
+    ...admin,
+    ...dashboards,
+    ...settings,
+);
 
-const router = new VueRouter({
+const router = createRouter({
+    history: createWebHistory(process.env.BASE_URL),
     routes,
-    mode: "history",
-    base: process.env.BASE_URL,
-    linkActiveClass: "active",
+    linkActiveClass: "",
     linkExactActiveClass: "active",
 });
 
 export default router;
 
-router.beforeEach((to: Route, from: Route, next: NavigationGuardNext<Vue>) => {
-    if (from.name !== null && to.name !== from.name && !isEqual(to.params, from.params)) {
+router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+    // Each time route is changing, store previous route location and reset
+    // error from store.
+    if (from.name && to.name !== from.name && !isEqual(to.params, from.params)) {
         store.commit("prevRoute", from);
     }
 
@@ -53,38 +50,14 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext<Vue>) => {
     next();
 });
 
-router.onReady(() => {
-    (Vue as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .http({method: "OPTIONS", url: "/api/v1"})
-        .then((response: HttpResponse) => response.json())
-        .then(
-            (response: APIResponse<Options>) => {
-                if (response.data?.connectors) {
-                    store.commit("connectors", response.data?.connectors);
-                }
-            },
-            (response: HttpResponse) => {
-                throw Error(`cannot fetch options: ${response.statusText ?? "unknown error"}`);
-            },
-        );
+router.isReady().then(() => {
+    const {onFetchRejected} = common;
+
+    // Router is ready, thus get options from API and store retrieved data into
+    // store.
+    api.options().then(response => {
+        if (response.data) {
+            store.commit("apiOptions", response.data);
+        }
+    }, onFetchRejected);
 });
-
-export function defineParams(route: Route, params: Dictionary<string>): void {
-    Object.assign(route.params, params);
-}
-
-export function updateRouteQuery(route: Route, q: Dictionary<string>, push = false): void {
-    let url: string = route.path;
-
-    if (Object.keys(q).length > 0) {
-        url += `?${Object.keys(q)
-            .map(k => `${k}=${q[k]}`)
-            .join("&")}`;
-    }
-
-    if (route.hash) {
-        url += route.hash;
-    }
-
-    history[push ? "pushState" : "replaceState"](null, "", url);
-}

@@ -1,38 +1,50 @@
 <template>
     <v-sidebar :active="sidebar">
         <v-toolbar clip="sidebar">
-            <v-button icon="arrow-left" :to="{name: 'root'}">{{ $t("labels.goto.home") }}</v-button>
+            <v-button
+                icon="arrow-left"
+                :to="{name: 'root'}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.home')}"
+            >
+                {{ i18n.t("labels.goto.home") }}
+            </v-button>
         </v-toolbar>
 
-        <v-label>{{ $t("labels.settings.personal") }}</v-label>
+        <v-label>{{ i18n.t("labels.settings.personal") }}</v-label>
 
-        <v-button icon="desktop" :to="{name: 'settings', hash: '#display'}">
-            {{ $t("labels.display") }}
+        <v-button icon="desktop" :to="{name: 'settings', params: {section: 'display'}, hash: '#display'}">
+            {{ i18n.t("labels.display") }}
         </v-button>
 
-        <v-button icon="keyboard" :to="{name: 'settings', hash: '#keyboard'}">
-            {{ $t("labels.keyboard._") }}
+        <v-button icon="keyboard" :to="{name: 'settings', params: {section: 'keyboard'}, hash: '#keyboard'}">
+            {{ i18n.t("labels.keyboard._") }}
         </v-button>
     </v-sidebar>
 </template>
 
 <script lang="ts">
-import {Component, Mixins} from "vue-property-decorator";
+import {useI18n} from "vue-i18n";
 
-import {CustomMixins} from "@/src/mixins";
+import common from "@/common";
 
-@Component
-export default class Sidebar extends Mixins<CustomMixins>(CustomMixins) {}
+export default {
+    setup(): Record<string, unknown> {
+        const i18n = useI18n();
+
+        const {sidebar} = common;
+
+        return {
+            i18n,
+            sidebar,
+        };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-.v-sidebar {
-    .v-toolbar .v-button {
-        flex-grow: 1;
+@import "../mixins";
 
-        ::v-deep .v-button-content {
-            justify-content: flex-start;
-        }
-    }
+.v-sidebar {
+    @include sidebar;
 }
 </style>

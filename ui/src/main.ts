@@ -5,25 +5,20 @@
  * is available at: https://opensource.org/licenses/BSD-3-Clause
  */
 
-import Vue from "vue";
-import VueComponents from "./components/vue"; // TODO: extract
-import VueResource from "vue-resource";
+import {createApp} from "vue";
 
-Vue.use(VueComponents);
-Vue.use(VueResource);
-
-Vue.config.productionTip = false;
-
-import "./components";
-
+import main from "./main.vue";
+import components from "./components";
 import i18n from "./i18n";
 import router from "./router";
 import store from "./store";
-import main from "./main.vue";
+import ui from "./ui";
 
-new Vue({
-    i18n,
-    router,
-    store,
-    render: h => h(main),
-}).$mount(document.body);
+// prettier-ignore
+createApp(main)
+    .use(components)
+    .use(i18n)
+    .use(router)
+    .use(store)
+    .use(ui)
+    .mount(document.body);

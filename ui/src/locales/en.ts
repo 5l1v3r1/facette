@@ -9,7 +9,7 @@ export default {
     name: "English",
 
     date: {
-        long: "MMM D YYYY, HH:mm:ss",
+        long: "MMM d, yyyy, HH:mm:ss",
     },
 
     help: {
@@ -22,14 +22,21 @@ export default {
             name: "Name of the chart. @:help.common.name",
             title: "Title of the chart. @:help.common.templateSupport",
         },
-        common: {
-            name:
-                "Must start and end by an alphanumerical character, and contain alphanumerical characters, hyphens " +
-                "or underscores.",
-            templateSupport: "This field supports template variables.",
-        },
+        // common: {
+        //     name:
+        //         "Must start and end by an alphanumerical character, and contain alphanumerical characters, hyphens " +
+        //         "or underscores.",
+        //     templateSupport: "This field supports template variables.",
+        // },
         dashboards: {
+            name: "Name of the dashboard. @:help.common.name",
             title: "Title of the dashboard. @:help.common.templateSupport",
+        },
+        database: {
+            archive:
+                "You can download an archive dumping all objects from the back-end storage database for backup " +
+                "and restore purposes.",
+            restoreWarning: "Please note that all previously existing data will be overwritten upon restore.",
         },
         filters: {
             action:
@@ -45,9 +52,9 @@ export default {
         },
         keyboard: {
             shortcuts:
-                "Save time navigating in Facette by using keyboard shortcuts.\n\n" +
-                "**Note:** Learn more about available shortcuts by visiting the contextual [help section]({0}) while " +
-                "browsing Facette.",
+                "Save time navigating Facette by using keyboard shortcuts.\n\n" +
+                "**Note:** Learn more about available shortcuts by visiting their dedicated contextual " +
+                "[help section]({0}).",
         },
         providers: {
             name: "Name of the provider. @:help.common.name",
@@ -55,21 +62,21 @@ export default {
             prometheus: {
                 filter: "Filter for querying metrics from upstream Prometheus service.",
             },
-            rrdtool: {
-                path: "Base directory from which to search for files.",
-                pattern: "Pattern to apply to found files paths. Must follow the [RE2 syntax]({0}).",
-                daemon: "rrdcached daemon socket address.",
-            },
+            //     rrdtool: {
+            //         path: "Base directory from which to search for files.",
+            //         pattern: "Pattern to apply to found files paths. Must follow the [RE2 syntax]({0}).",
+            //         daemon: "rrdcached daemon socket address.",
+            //     },
             url: "URL to the upstream {0} service.",
         },
         refresh: {
             interval: "Time interval for automatic refresh in seconds. Use either empty or `0` to disable.",
         },
-        series: {
-            alias:
-                "Series name to display in both chart tooltip and summary. Use pattern like `{{__name__}}` or " +
-                "`{{instance}}` to insert the value associated with the corresponding label.",
-        },
+        // series: {
+        //     alias:
+        //         "Series name to display in both chart tooltip and summary. Use pattern like `{{__name__}}` or " +
+        //         "`{{instance}}` to insert the value associated with the corresponding label.",
+        // },
     },
 
     labels: {
@@ -81,14 +88,13 @@ export default {
             preview: "Preview basket…",
             refresh: "Refresh basket",
             remove: "Remove from basket",
-            saveDashboard: "Save as dashboard…",
         },
         cancel: "Cancel",
         catalog: "Catalog",
         charts: {
-            _: "Chart|Charts",
+            _: "Chart | Charts",
             axes: {
-                _: "Axis|Axes",
+                _: "Axis | Axes",
                 left: "Left",
                 max: "Max",
                 min: "Min",
@@ -99,24 +105,20 @@ export default {
                 yRight: "Right Y",
             },
             create: "Create chart",
-            delete: "Delete chart|Delete charts",
+            delete: "Delete chart | Delete charts",
             edit: "Edit chart",
-            export: {
-                _: "Export",
-                imagePNG: "Save as PNG…",
-                summaryCSV: "Summary as CSV…",
-                summaryJSON: "Summary as JSON…",
+            legend: {
+                _: "Legend",
+                show: "Show legend",
             },
             name: "Chart name",
             new: "New chart",
             filter: "Filter charts",
-            goBack: "Go back to chart",
+            preview: "Preview chart",
             refresh: "Refresh chart",
             reset: "Reset chart",
             save: "Save chart",
-            select: "Select a chart…",
-            showLegend: "Show legend",
-            showSummary: "Show summary",
+            //     select: "Select a chart…",
             type: {
                 _: "Type",
                 area: "Area",
@@ -130,39 +132,56 @@ export default {
             },
         },
         clearSelection: "Clear selection",
+        clipboard: {
+            copy: "Copy to clipboard",
+        },
         clone: "Clone",
         close: "Close",
         color: "Color",
         connectors: {
-            _: "Connector|Connectors",
+            _: "Connector | Connectors",
             select: "Select a connector…",
         },
-        continue: "Continue",
+        // continue: "Continue",
         custom: "Custom…",
         dashboards: {
-            _: "Dashboard|Dashboards",
-            delete: "Delete dashboard|Delete dashboards",
+            _: "Dashboard | Dashboards",
+            delete: "Delete dashboard | Delete dashboards",
             edit: "Edit dashboard",
             filter: "Filter dashboards",
-            goBack: "Go back to dashboard",
             name: "Dashboard name",
             new: "New dashboard",
             refresh: "Refresh dashboard",
             reset: "Reset dashboard",
             save: "Save dashboard",
-            types: {
-                chart: "Chart",
-            },
+            saveAs: "Save as dashboard…",
+            //     types: {
+            //         chart: "Chart",
+            //     },
+        },
+        database: {
+            _: "Database",
+            downloadArchive: "Download archive",
+            driver: "{name}, version {version}",
+            restore: "Restore",
+            restoreArchive: "Restore archive",
         },
         default: "Default",
         delete: "Delete",
         display: "Display",
         displayHelp: "Display this help",
         documentation: "Documentation",
-        edit: "Edit",
+        // edit: "Edit",
         empty: "Empty",
+        export: {
+            _: "Export",
+            imagePNG: "Save as PNG…",
+            summaryCSV: "Summary as CSV…",
+            summaryJSON: "Summary as JSON…",
+            textMarkdown: "Save as Markdown…",
+        },
         filters: {
-            _: "Filter|Filters",
+            _: "Filter | Filters",
             action: {
                 _: "Action",
                 select: "Select an action…",
@@ -172,6 +191,7 @@ export default {
             into: "Into",
             pattern: "Pattern",
             remove: "Remove filter",
+            set: "Set filter",
             targets: {
                 _: "Targets",
                 add: "Add target",
@@ -185,8 +205,10 @@ export default {
         general: "General",
         goto: {
             adminPanel: "Go to administration panel",
-            charts: "Go to chart|Go to charts",
-            dashboards: "Go to dashboard|Go to dashboards",
+            charts: "Go to chart | Go to charts",
+            chartBack: "Go back to chart",
+            dashboards: "Go to dashboard | Go to dashboards",
+            dashboardBack: "Go back to dashboard",
             home: "Go to home",
             metrics: "Go to metrics",
             providers: "Go to providers",
@@ -205,9 +227,9 @@ export default {
             version: "Version",
         },
         items: {
-            add: "Add item",
+            //     add: "Add item",
             remove: "Remove item",
-            unsupported: "Unsupported item",
+            //     unsupported: "Unsupported item",
         },
         keyboard: {
             _: "Keyboard",
@@ -216,7 +238,7 @@ export default {
                 enable: "Enable keyboard shortcuts",
             },
         },
-        labels: "Label|Labels",
+        labels: "Label | Labels",
         language: {
             _: "Language",
             select: "Select a language…",
@@ -226,28 +248,32 @@ export default {
         leavePage: "Leave page",
         library: "Library",
         markers: {
-            _: "Marker|Markers",
+            _: "Marker | Markers",
             add: "Add marker",
             edit: "Edit marker",
             remove: "Remove marker",
+            set: "Set marker",
         },
         metrics: {
-            _: "Metric|Metrics",
+            _: "Metric | Metrics",
             filter: "Filter metrics",
         },
         moreActions: "More actions…",
-        name: "Name",
+        name: {
+            _: "Name",
+            choose: "Choose a name",
+        },
         ok: "OK",
         openMenu: "Open menu",
         options: "Options",
         placeholders: {
+            default: "default: {0}",
             example: "e.g. {0}",
         },
-        preview: "Preview",
         properties: "Properties",
         providers: {
-            _: "Provider|Providers",
-            delete: "Delete provider|Delete providers",
+            _: "Provider | Providers",
+            delete: "Delete provider | Delete providers",
             disable: "Disable",
             disabled: "Providers is disabled",
             enable: "Enable",
@@ -268,23 +294,27 @@ export default {
             test: "Test provider",
         },
         refresh: {
+            _: "Refresh",
             interval: "Refresh interval",
             list: "Refresh list",
             next: "Next refresh in {0}",
+            reset: "Reset interval",
             setInterval: "Set interval",
         },
         reset: "Reset",
         retry: "Retry",
         saveAndGo: "Save and Go",
         series: {
-            _: "Series|Series",
+            _: "Series | Series",
             add: "Add series",
-            alias: "Alias",
+            //     alias: "Alias",
             edit: "Edit series",
             remove: "Remove series",
+            set: "Set series",
         },
         settings: {
             display: "Display settings",
+            keyboard: "Keyboard settings",
             personal: "Personal settings",
             reset: "Reset settings",
             save: "Save settings",
@@ -292,7 +322,7 @@ export default {
         show: "Show",
         system: "System",
         templates: {
-            _: "Template|Templates",
+            _: "Template | Templates",
             edit: "Edit template",
             instance: "Template instance",
             newFrom: "New from template",
@@ -301,9 +331,11 @@ export default {
         },
         theme: {
             _: "Theme",
+            auto: "Auto (system preference)",
             select: "Select a theme…",
         },
         timeRange: {
+            _: "Time range",
             autoPropagate: "Automatically propagate time range",
             from: "From",
             multiple: "Multiple time ranges",
@@ -312,11 +344,11 @@ export default {
             set: "Set time range",
             to: "To",
             units: {
-                days: "Last {count} day|Last {count} days",
-                hours: "Last {count} hour|Last {count} hours",
-                minutes: "Last {count} minute|Last {count} minutes",
-                months: "Last {count} month|Last {count} months",
-                years: "Last {count} year|Last {count} years",
+                days: "Last {count} day | Last {count} days",
+                hours: "Last {count} hour | Last {count} hours",
+                minutes: "Last {count} minute | Last {count} minutes",
+                months: "Last {count} month | Last {count} months",
+                years: "Last {count} year | Last {count} years",
             },
         },
         timezone: {
@@ -330,15 +362,15 @@ export default {
             skipVerify: "Skip server certificate verification (Insecure)",
         },
         toggleSidebar: "Toggle sidebar",
-        unnamed: "Unnamed",
+        // unnamed: "Unnamed",
         url: "URL",
         value: "Value",
         variables: {
             _: "Variables",
-            add: "Add variable",
             clear: "Clear variable",
             dynamic: "Dynamic",
             edit: "Edit variable",
+            set: "Set variable",
             fixed: "Fixed",
         },
         visit: {
@@ -352,33 +384,43 @@ export default {
             empty: "Basket is empty",
         },
         charts: {
-            conflict: "A chart with the same name already exists.",
+            //     conflict: "A chart with the same name already exists.",
             delete:
-                "You are about to delete the “{name}” chart. Are you sure?|" +
+                "You are about to delete the “{name}” chart. Are you sure? | " +
                 "You are about to delete {count} charts. Are you sure?",
-            deleted: "Chart successfully deleted|Charts successfully deleted",
+            deleted: "Chart successfully deleted | Charts successfully deleted",
             none: "No charts defined",
             notFound: "Chart not found",
             saved: "Chart successfully saved",
-            selected: "{0} chart selected|{0} charts selected",
+            selected: "{0} chart selected | {0} charts selected",
         },
-        confirmLeave: "All unsaved data will be lost. Are you sure?",
+        copied: "Copied!",
         dashboards: {
-            conflict: "A dashboard with the same name already exists.",
+            //     conflict: "A dashboard with the same name already exists.",
             delete:
-                "You are about to delete the “{name}” dashboard. Are you sure?|" +
+                "You are about to delete the “{name}” dashboard. Are you sure? | " +
                 "You are about to delete {count} dashboards. Are you sure?",
-            deleted: "Dashboard successfully deleted|Dashboards successfully deleted",
+            deleted: "Dashboard successfully deleted | Dashboards successfully deleted",
             empty: "Dashboard is empty",
+            loading: "Loading dashboards…",
             none: "No dashboards defined",
             notFound: "Dashboard not found",
             saved: "Dashboard successfully saved",
-            types: {
-                loadFailed: "Cannot load type support: {0}",
-            },
+            selected: "{0} dashboard selected | {0} dashboards selected",
+            //     types: {
+            //         loadFailed: "Cannot load type support: {0}",
+            //     },
         },
         data: {
             none: "No data found",
+        },
+        database: {
+            invalidFile: "Invalid file type",
+            restore:
+                "You are about to restore the database from an archive. All existing data <u>will be lost</u>. " +
+                "Are you sure?",
+            restored: "Database successfully restored",
+            restoreFailed: "Cannot restore database: {0}",
         },
         documentation:
             "Documentation regarding Facette’s architecture, its usage and REST API is available on a dedicated " +
@@ -386,18 +428,17 @@ export default {
         error: {
             _: "Error: {0}",
             bulk: "An error occurred during bulk execution",
-            load: "An error occurred loading data",
-            request: "Cannot execute request",
+            formVerify: "Please verify provided information",
+            //     load: "An error occurred loading data",
+            notFound: "Resource not found",
+            //     request: "Cannot execute request",
             unhandled: "An unhandled error has occurred",
         },
         filters: {
             none: "No provider filters defined",
         },
-        items: {
-            none: "No items found",
-        },
         keyboard: {
-            shortcutsDisabled: "Keyboard shortcuts are disabled",
+            shortcutsDisabled: "Keyboard shortcuts are currently disabled",
         },
         labels: {
             emptyDiscarded: "Labels having empty values will be discarded",
@@ -408,36 +449,35 @@ export default {
         },
         metrics: {
             none: "No metrics found",
-            selected: "{0} metric selected|{0} metrics selected",
+            selected: "{0} metric selected | {0} metrics selected",
         },
-        notAvailable: "Not available",
+        // notAvailable: "Not available",
         notDefined: "Not defined",
         providers: {
             conflict: "A provider with the same name already exists.",
             delete:
-                "You are about to delete the “{name}” provider. Are you sure?|" +
+                "You are about to delete the “{name}” provider. Are you sure? | " +
                 "You are about to delete {count} providers. Are you sure?",
-            deleted: "Provider successfully deleted|Providers successfully deleted",
+            deleted: "Provider successfully deleted | Providers successfully deleted",
             disable:
-                "You are about to disable the “{name}” provider. Are you sure?|" +
+                "You are about to disable the “{name}” provider. Are you sure? | " +
                 "You are about to disable {count} providers. Are you sure?",
-            disabled: "Provider successfully disabled|Providers successfully disabled",
+            disabled: "Provider successfully disabled | Providers successfully disabled",
             enable:
-                "You are about to enable the “{name}” provider. Are you sure?|" +
+                "You are about to enable the “{name}” provider. Are you sure? | " +
                 "You are about to enable {count} providers. Are you sure?",
-            enabled: "Provider successfully enabled|Providers successfully enabled",
-            loadFailed: "Cannot load provider support: {0}",
+            enabled: "Provider successfully enabled | Providers successfully enabled",
             none: "No providers defined",
-            notFound: "Provider not found",
             saved: "Provider successfully saved",
-            selected: "{0} provider selected|{0} providers selected",
+            selected: "{0} provider selected | {0} providers selected",
+            supportFailed: "Cannot load provider support: {0}",
             test: {
-                error: "Provider failed to validate: {0}",
-                success: "Provider successfully tested",
+                error: "Cannot validate provider: {0}",
+                success: "Provider successfully validated",
             },
         },
         series: {
-            emptyAxis: "No series have been associated with this axis",
+            emptyAxis: "No series have been associated with this axis yet",
             none: "No series defined",
         },
         settings: {
@@ -447,6 +487,7 @@ export default {
         templates: {
             none: "No templates defined",
         },
+        unsavedLost: "All unsaved data will be lost. Are you sure?",
         variables: {
             none: "No variables defined",
         },
