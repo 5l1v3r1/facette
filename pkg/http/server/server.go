@@ -30,6 +30,9 @@ type Server struct {
 // New creates a new HTTP server instance.
 func New(config *Config, catalog *catalog.Catalog, store *store.Store, poller *poller.Poller) *Server {
 	router := httprouter.New()
+	if zap.L().Core().Enabled(zap.DebugLevel) {
+		router.Use(debugLog)
+	}
 
 	api.Register(router, catalog, store, poller)
 
