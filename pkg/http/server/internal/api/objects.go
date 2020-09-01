@@ -20,29 +20,29 @@ import (
 )
 
 const (
-	sectionCharts     = "charts"
-	sectionDashboards = "dashboards"
-	sectionProviders  = "providers"
+	typeCharts     = "charts"
+	typeDashboards = "dashboards"
+	typeProviders  = "providers"
 )
 
 func (h handler) DeleteObject(rw http.ResponseWriter, r *http.Request) {
-	section := httprouter.ContextParam(r, "section").(string)
+	typ := httprouter.ContextParam(r, "type").(string)
 	meta := metaFromRequest(r)
 
 	var obj api.Object
 
-	switch section {
-	case sectionCharts:
+	switch typ {
+	case typeCharts:
 		obj = &api.Chart{ObjectMeta: meta}
 
-	case sectionDashboards:
+	case typeDashboards:
 		obj = &api.Dashboard{ObjectMeta: meta}
 
-	case sectionProviders:
+	case typeProviders:
 		obj = &api.Provider{ObjectMeta: meta}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	err := h.store.Delete(obj)
@@ -52,7 +52,7 @@ func (h handler) DeleteObject(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// Notify poller about provider deletion
-	if section == sectionProviders {
+	if typ == typeProviders {
 		h.poller.Notify(poller.EventRemove, obj.(*api.Provider))
 	}
 
@@ -64,18 +64,18 @@ func (h handler) GetObject(rw http.ResponseWriter, r *http.Request) {
 
 	var obj api.Object
 
-	switch httprouter.ContextParam(r, "section").(string) {
-	case sectionCharts:
+	switch httprouter.ContextParam(r, "type").(string) {
+	case typeCharts:
 		obj = &api.Chart{ObjectMeta: meta}
 
-	case sectionDashboards:
+	case typeDashboards:
 		obj = &api.Dashboard{ObjectMeta: meta}
 
-	case sectionProviders:
+	case typeProviders:
 		obj = &api.Provider{ObjectMeta: meta}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	err := h.store.Get(obj, false)
@@ -97,15 +97,15 @@ func (h handler) GetObjectVars(rw http.ResponseWriter, r *http.Request) {
 
 	var tmpl api.Template
 
-	switch httprouter.ContextParam(r, "section").(string) {
-	case sectionCharts:
+	switch httprouter.ContextParam(r, "type").(string) {
+	case typeCharts:
 		tmpl = &api.Chart{ObjectMeta: meta}
 
-	case sectionDashboards:
+	case typeDashboards:
 		tmpl = &api.Dashboard{ObjectMeta: meta}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	err := h.store.Get(tmpl, false)
@@ -134,18 +134,18 @@ func (h handler) ListObjects(rw http.ResponseWriter, r *http.Request) {
 
 	var list api.ObjectList
 
-	switch httprouter.ContextParam(r, "section").(string) {
-	case sectionCharts:
+	switch httprouter.ContextParam(r, "type").(string) {
+	case typeCharts:
 		list = &api.ChartList{}
 
-	case sectionDashboards:
+	case typeDashboards:
 		list = &api.DashboardList{}
 
-	case sectionProviders:
+	case typeProviders:
 		list = &api.ProviderList{}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	total, err := h.store.List(list, opts)
@@ -167,15 +167,15 @@ func (h handler) ResolveObject(rw http.ResponseWriter, r *http.Request) {
 
 	var tmpl api.Template
 
-	switch httprouter.ContextParam(r, "section").(string) {
-	case sectionCharts:
+	switch httprouter.ContextParam(r, "type").(string) {
+	case typeCharts:
 		tmpl = &api.Chart{ObjectMeta: meta}
 
-	case sectionDashboards:
+	case typeDashboards:
 		tmpl = &api.Dashboard{ObjectMeta: meta}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	err := h.store.Get(tmpl, true)
@@ -188,22 +188,22 @@ func (h handler) ResolveObject(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
-	section := httprouter.ContextParam(r, "section").(string)
+	typ := httprouter.ContextParam(r, "type").(string)
 
 	var obj api.Object
 
-	switch section {
-	case sectionCharts:
+	switch typ {
+	case typeCharts:
 		obj = &api.Chart{}
 
-	case sectionDashboards:
+	case typeDashboards:
 		obj = &api.Dashboard{}
 
-	case sectionProviders:
+	case typeProviders:
 		obj = &api.Provider{}
 
 	default:
-		panic("unknown section")
+		panic("unknown type")
 	}
 
 	var err error
@@ -269,7 +269,7 @@ func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// Notify poller for insertion/removal depending on provider enable state
-	if section == sectionProviders {
+	if typ == typeProviders {
 		provider := obj.(*api.Provider)
 		if provider.Enabled {
 			h.poller.Notify(poller.EventInsert, provider)
@@ -279,7 +279,7 @@ func (h handler) SaveObject(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		rw.Header().Set("Location", fmt.Sprintf("%s/%s/%s", api.Prefix, section, obj.GetMeta().ID))
+		rw.Header().Set("Location", fmt.Sprintf("%s/%s/%s", api.Prefix, typ, obj.GetMeta().ID))
 		rw.WriteHeader(http.StatusCreated)
 	} else {
 		rw.WriteHeader(http.StatusNoContent)

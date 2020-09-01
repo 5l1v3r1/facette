@@ -42,63 +42,64 @@ func Register(
 	root.Endpoint("/bulk").
 		Post(h.ExecBulk)
 
-	charts := root.Endpoint("/charts").Use(withSection("charts"))
-	charts.
+	endpoint := root.Endpoint("/charts").Use(withType("charts"))
+	endpoint.
 		Get(h.ListObjects).
 		Post(h.SaveObject)
-	charts.Endpoint("/:id").
+	endpoint.Endpoint("/:id").
 		Delete(h.DeleteObject).
 		Get(h.GetObject).
 		Patch(h.SaveObject).
 		Put(h.SaveObject)
-	charts.Endpoint("/:id/resolve").
+	endpoint.Endpoint("/:id/resolve").
 		Post(h.ResolveObject)
-	charts.Endpoint("/:id/vars").
+	endpoint.Endpoint("/:id/vars").
 		Get(h.GetObjectVars)
 
-	dashboards := root.Endpoint("/dashboards").Use(withSection("dashboards"))
-	dashboards.
+	endpoint = root.Endpoint("/dashboards").Use(withType("dashboards"))
+	endpoint.
 		Get(h.ListObjects).
 		Post(h.SaveObject)
-	dashboards.Endpoint("/:id").
+	endpoint.Endpoint("/:id").
 		Delete(h.DeleteObject).
 		Get(h.GetObject).
 		Patch(h.SaveObject).
 		Put(h.SaveObject)
-	dashboards.Endpoint("/:id/resolve").
+	endpoint.Endpoint("/:id/resolve").
 		Post(h.ResolveObject)
-	dashboards.Endpoint("/:id/vars").
+	endpoint.Endpoint("/:id/vars").
 		Get(h.GetObjectVars)
 
-	labels := root.Endpoint("/labels")
-	labels.
+	endpoint = root.Endpoint("/labels")
+	endpoint.
 		Get(h.ListLabels)
-	labels.Endpoint("/:label/values").
+	endpoint.Endpoint("/:label/values").
 		Get(h.ListValues)
 
 	root.Endpoint("/metrics").
 		Get(h.ListMetrics)
 
-	providers := root.Endpoint("/providers").Use(withSection("providers"))
-	providers.
+	endpoint = root.Endpoint("/providers").Use(withType("providers"))
+	endpoint.
 		Get(h.ListObjects).
 		Post(h.SaveObject)
-	providers.Endpoint("/poll").
+	endpoint.Endpoint("/poll").
 		Post(h.PollProvider)
-	providers.Endpoint("/test").
+	endpoint.Endpoint("/test").
 		Post(h.TestProvider)
-	providers.Endpoint("/:id").
+	endpoint.Endpoint("/:id").
 		Delete(h.DeleteObject).
 		Get(h.GetObject).
 		Patch(h.SaveObject).
 		Put(h.SaveObject)
-	providers.Endpoint("/:id/poll").
+	endpoint.Endpoint("/:id/poll").
 		Post(h.PollProvider)
 
 	root.Endpoint("/query").
-		Post(h.ExecuteQuery)
+		Post(h.ExecQuery)
 
-	root.Endpoint("/store").
+	endpoint = root.Endpoint("/store")
+	endpoint.
 		Get(h.DumpStore).
 		Post(h.RestoreStore)
 
@@ -121,10 +122,10 @@ func notFound(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, responseFromError(api.ErrNotFound), http.StatusNotFound)
 }
 
-func withSection(name string) func(http.Handler) http.Handler {
+func withType(name string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(rw, httprouter.SetContextParam(r, "section", name))
+			h.ServeHTTP(rw, httprouter.SetContextParam(r, "type", name))
 		})
 	}
 }
