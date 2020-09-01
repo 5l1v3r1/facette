@@ -15,12 +15,14 @@ import (
 )
 
 type customLogger struct {
-	log *zap.Logger
+	debug bool
+	log   *zap.Logger
 }
 
-func newLogger() logger.Interface {
+func newLogger(debug bool) logger.Interface {
 	return &customLogger{
-		log: zap.L().WithOptions(zap.AddCallerSkip(2)).Named("store/sql"),
+		debug: debug,
+		log:   zap.L().WithOptions(zap.AddCallerSkip(2)).Named("store/sql"),
 	}
 }
 
@@ -41,4 +43,8 @@ func (l customLogger) Error(ctx context.Context, msg string, data ...interface{}
 }
 
 func (l customLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+	if l.debug {
+		sql, rows := fc()
+		l.log.WithOptions(zap.AddCallerSkip(1)).Debug(sql, zap.Int64("rows", rows))
+	}
 }

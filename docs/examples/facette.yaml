@@ -1,58 +1,40 @@
 ---
 log:
   # Logging level
-  # default: info
+  # default: "info"
   level: info
 
   # Logging file path
-  # default: stdout
+  # default: "stdout"
   path: stdout
 
   # Logging output encoding (either "console" or "json")
-  # default: console
+  # default: "console"
   encoding: console
 
 http:
   # Address for HTTP server to listen on
-  # default: :12003
+  # default: ":12003"
   address: :12003
 
   # Timeout for HTTP server graceful shutdown
-  # default: 10s
+  # default: "10s"
   shutdown_timeout: 10s
 
 store:
+  # Back-end storage debug flag
+  # default: false
+  debug: false
+
+  # Back-end storage driver configuration
   driver:
-    # Back-end storage driver
-    # default: sqlite
+    # Back-end storage driver type
+    # default: "sqlite"
     type: sqlite
 
-    ## SQLite
-
-    # Back-end storage database file path
-    # default: var/store.db
-    path: var/store.db
-
-    ## PostgreSQL or MySQL
-
-    # Back-end storage database host
-    # default: localhost
-    #host: localhost
-
-    # Back-end storage database port
-    # default: 5432 (PostgreSQL) or 3306 (MySQL)
-    #port:
-
-    # Back-end storage user name
-    # default: facette
-    #user: facette
-
-    # Back-end storage user password
-    # default: <empty>
-    #password:
-
-    # Back-end storage database name
-    # default: facette
-    #database: facette
+    # Back-end storage data source name
+    # default: "var/store.db" for SQLite
+    #          "host=localhost database=facette user=facette" for PostgresSQL and MySQL
+    dsn: var/store.db
 
 # vim: ts=2 sw=2 et

@@ -11,12 +11,15 @@ import (
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/connector"
 	httpjson "facette.io/facette/pkg/http/json"
+	"facette.io/facette/pkg/store/driver"
 )
 
-func (handler) getOptions(rw http.ResponseWriter, r *http.Request) {
+func (h handler) getOptions(rw http.ResponseWriter, r *http.Request) {
 	httpjson.Write(rw, api.Response{Data: struct {
-		Connectors []string `json:"connectors"`
+		Connectors []string    `json:"connectors"`
+		Driver     driver.Info `json:"driver"`
 	}{
 		Connectors: connector.Connectors(),
+		Driver:     h.store.DriverInfo(),
 	}}, http.StatusOK)
 }

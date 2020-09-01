@@ -68,6 +68,16 @@ func (d *Driver) Error(err error) error {
 	return errors.Wrapf(api.ErrUnhandled, "database error: %s", err)
 }
 
+// Info returns driver information.
+func (d *Driver) Info() driver.Info {
+	version, _, _ := sqlite3.Version()
+
+	return driver.Info{
+		Name:    "SQLite",
+		Version: version,
+	}
+}
+
 // Init initializes the back-end storage driver.
 func (d *Driver) Init(db *gorm.DB) error {
 	return db.Exec("PRAGMA foreign_keys = ON").Error

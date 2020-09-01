@@ -15,6 +15,7 @@ import (
 // Driver is a back-end storage driver interface.
 type Driver interface {
 	Error(err error) error
+	Info() Info
 	Init(db *gorm.DB) error
 	Open(config *gorm.Config) (*gorm.DB, error)
 	TruncateStmt(table string) string
@@ -29,6 +30,12 @@ func New(config *Config) (Driver, error) {
 	}
 
 	return fn(config)
+}
+
+// Info are back-end storage driver information.
+type Info struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 // Type is a back-end storage driver type.

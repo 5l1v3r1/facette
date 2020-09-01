@@ -7,6 +7,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -21,9 +22,10 @@ import (
 
 // Store is a back-end storage.
 type Store struct {
-	driver driver.Driver
-	db     *gorm.DB
-	log    *zap.Logger
+	driver        driver.Driver
+	db            *gorm.DB
+	log           *zap.Logger
+	restoreCancel context.CancelFunc
 }
 
 // New creates a new back-end storage instance.
@@ -37,7 +39,7 @@ func New(config *Config) (*Store, error) {
 	}
 
 	db, err := driver.Open(&gorm.Config{
-		Logger: newLogger(),
+		Logger: newLogger(config.Debug),
 	})
 	if err != nil {
 		return nil, err
@@ -45,8 +47,8 @@ func New(config *Config) (*Store, error) {
 
 	log.Info("back-end storage opened", zap.Any("type", config.Driver.Type))
 
-	// Handle driver-specific initialization steps and automatically create
-	// or migrate back-end storage database schema.
+	// Handle driver-specific initialization steps and automatically
+	// create/migrate back-end storage database schema.
 	log.Debug("initializing back-end storage")
 
 	err = driver.Init(db)
@@ -63,13 +65,15 @@ func New(config *Config) (*Store, error) {
 		return nil, err
 	}
 
-	log.Debug("back-end storage initialized")
-
-	return &Store{
+	s := &Store{
 		driver: driver,
 		db:     db,
 		log:    log,
-	}, nil
+	}
+
+	log.Debug("back-end storage initialized")
+
+	return s, nil
 }
 
 // Close closes the back-end storage database connection.
@@ -87,6 +91,11 @@ func (s *Store) Close() {
 
 		s.log.Info("back-end storage closed")
 	}
+}
+
+// DriverInfo returns back-end storage driver information.
+func (s *Store) DriverInfo() driver.Info {
+	return s.driver.Info()
 }
 
 // Delete deletes an object from the back-end storage.
@@ -108,7 +117,7 @@ func (s *Store) Delete(obj api.Object) error {
 func (s *Store) Get(obj api.Object, resolve bool) error {
 	v, err := s.get(obj)
 	if err != nil {
-		return err
+		return s.driver.Error(err)
 	}
 
 	// Check for resolution flag. If not set, directly return the object
@@ -157,7 +166,7 @@ func (s *Store) get(obj api.Object) (types.Object, error) {
 	if err == gorm.ErrRecordNotFound {
 		return nil, api.ErrNotFound
 	} else if err != nil {
-		return nil, s.driver.Error(err)
+		return nil, err
 	}
 
 	return v, nil
@@ -167,7 +176,7 @@ func (s *Store) get(obj api.Object) (types.Object, error) {
 func (s *Store) List(objects api.ObjectList, opts *api.ListOptions) (int64, error) {
 	v, total, err := s.list(objects, opts)
 	if err != nil {
-		return 0, err
+		return 0, s.driver.Error(err)
 	}
 
 	err = v.Copy(objects)
@@ -186,7 +195,7 @@ func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.Objec
 
 	tx := s.db.Begin()
 	if tx.Error != nil {
-		return nil, 0, s.driver.Error(tx.Error)
+		return nil, 0, err
 	}
 
 	defer tx.Commit()
@@ -204,7 +213,7 @@ func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.Objec
 
 	err = tx.Count(&total).Error
 	if err != nil {
-		return nil, 0, s.driver.Error(err)
+		return nil, 0, err
 	}
 
 	if opts != nil {
@@ -229,7 +238,7 @@ func (s *Store) list(objects api.ObjectList, opts *api.ListOptions) (types.Objec
 
 	err = tx.Find(v).Error
 	if err != nil {
-		return nil, 0, s.driver.Error(err)
+		return nil, 0, err
 	}
 
 	return v, total, nil
@@ -242,17 +251,29 @@ func (s *Store) Save(obj api.Object, update bool) error {
 		return err
 	}
 
-	var db *gorm.DB
+	tx := s.db.Begin()
 
 	if update {
-		db = s.db.Save(v)
+		tx = tx.Save(v)
 	} else {
-		db = s.db.Create(v)
+		tx = tx.Create(v)
 	}
 
-	err = s.driver.Error(db.Error)
+	err = tx.Error
 	if err != nil {
-		return err
+		goto stop
+	}
+
+	if err != nil {
+		tx.Rollback()
+		goto stop
+	}
+
+	err = tx.Commit().Error
+
+stop:
+	if err != nil {
+		return s.driver.Error(tx.Error)
 	}
 
 	return v.Copy(obj)

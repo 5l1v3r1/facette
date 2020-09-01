@@ -10,12 +10,14 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"facette.io/facette/pkg/api"
 	"facette.io/facette/pkg/store"
@@ -37,6 +39,10 @@ func (h handler) DumpStore(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rw.Header().Add("Content-Disposition", fmt.Sprintf(
+		`attachment; filename="facette-dump_%s.tar.gz"`,
+		time.Now().UTC().Format("20060102150405"),
+	))
 	rw.Header().Add("Content-Type", "application/gzip")
 	f.Seek(0, 0)
 	io.Copy(rw, f)
@@ -52,24 +58,37 @@ func dumpStore(store *store.Store, w io.Writer) error {
 	ch := make(chan api.Object)
 	errCh := make(chan error)
 
-	go func(errCh chan<- error) {
-		for obj := range ch {
-			err := dumpObject(tw, obj)
-			if err != nil {
-				errCh <- err
-				break
-			}
+	go func() {
+		defer close(errCh)
+
+		err := store.Dump(ch)
+		if err != nil {
+			errCh <- err
+			return
 		}
+	}()
 
-		close(errCh)
-	}(errCh)
+	var err error
 
-	err := store.Dump(ch)
-	if err != nil {
-		return err
+loop:
+	for {
+		select {
+		case obj := <-ch:
+			if obj == nil {
+				continue
+			}
+
+			err = dumpObject(tw, obj)
+			if err != nil {
+				break loop
+			}
+
+		case err = <-errCh:
+			break loop
+		}
 	}
 
-	return <-errCh
+	return err
 }
 
 func dumpObject(tw *tar.Writer, obj api.Object) error {
@@ -115,9 +134,7 @@ func (h handler) RestoreStore(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: handle dump errors
-
-	err = restoreStore(h.store, r.Body)
+	err = restoreStore(r.Context(), h.store, r.Body)
 	if err != nil {
 		h.WriteError(rw, err)
 		return
@@ -130,49 +147,45 @@ func (h handler) RestoreStore(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusNoContent)
 }
 
-func restoreStore(store *store.Store, r io.Reader) error {
+func restoreStore(ctx context.Context, store *store.Store, r io.Reader) error {
+	var (
+		tr *tar.Reader
+		h  *tar.Header
+	)
+
 	ch := make(chan api.Object)
-	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error)
 
-	go func() {
-		err := readDump(r, ch)
-		if err != nil {
-			cancel()
-			errCh <- err
-		}
-
-		close(errCh)
-	}()
-
-	err := store.Restore(ctx, ch)
-	if err != nil {
-		return err
-	}
-
-	return <-errCh
-}
-
-func readDump(r io.Reader, ch chan<- api.Object) error {
 	defer close(ch)
 
+	go func() {
+		defer close(errCh)
+
+		err := store.Restore(ctx, ch)
+		if err != nil {
+			errCh <- err
+			return
+		}
+	}()
+
 	gr, err := gzip.NewReader(r)
-	if err != nil {
-		return err
+	if err == gzip.ErrHeader {
+		err = api.ErrInvalid
+		goto stop
+	} else if err != nil {
+		goto stop
 	}
 
 	defer gr.Close() // nolint:errcheck
 
-	tr := tar.NewReader(gr)
-
-	var h *tar.Header
+	tr = tar.NewReader(gr)
 
 	for {
 		h, err = tr.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return err
+			break
 		}
 
 		if h.Typeflag != tar.TypeReg && h.Typeflag != tar.TypeRegA {
@@ -200,15 +213,21 @@ func readDump(r io.Reader, ch chan<- api.Object) error {
 
 		data, err = ioutil.ReadAll(tr)
 		if err != nil {
-			return err
+			break
 		}
 
 		err = json.Unmarshal(data, obj)
 		if err != nil {
-			return err
+			break
 		}
 
 		ch <- obj
+	}
+
+stop:
+	if err != nil && err != io.EOF {
+		store.CancelRestore()
+		return err
 	}
 
 	return nil

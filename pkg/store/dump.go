@@ -40,8 +40,8 @@ func (s *Store) Dump(ch chan<- api.Object) error {
 	return nil
 }
 
-func (s *Store) dump(tx *gorm.DB, objects types.ObjectList, ch chan<- api.Object) error {
-	q := tx.Model(objects)
+func (s *Store) dump(db *gorm.DB, objects types.ObjectList, ch chan<- api.Object) error {
+	q := db.Model(objects)
 
 	switch objects.(type) {
 	case *types.ChartList:
@@ -62,7 +62,7 @@ func (s *Store) dump(tx *gorm.DB, objects types.ObjectList, ch chan<- api.Object
 	for rows.Next() {
 		v := objects.New()
 
-		err = tx.ScanRows(rows, v)
+		err = db.ScanRows(rows, v)
 		if err != nil {
 			return err
 		}
@@ -78,11 +78,23 @@ func (s *Store) dump(tx *gorm.DB, objects types.ObjectList, ch chan<- api.Object
 	return nil
 }
 
+func (s *Store) CancelRestore() {
+	if s.restoreCancel != nil {
+		s.restoreCancel()
+	}
+}
+
 // Restore restores back-end storage data from objects.
 func (s *Store) Restore(ctx context.Context, ch <-chan api.Object) error {
-	var err error
+	var (
+		restoreCtx context.Context
+		err        error
+	)
 
-	tx := s.db.Begin()
+	restoreCtx, s.restoreCancel = context.WithCancel(ctx)
+	defer s.restoreCancel()
+
+	tx := s.db.Begin().WithContext(restoreCtx)
 
 	for _, table := range []string{
 		"charts",
@@ -95,22 +107,17 @@ func (s *Store) Restore(ctx context.Context, ch <-chan api.Object) error {
 		}
 	}
 
-	for {
-		select {
-		case obj := <-ch:
-			v, err := types.FromAPI(obj)
-			if err != nil {
-				goto stop
-			}
+	for obj := range ch {
+		var v types.Object
 
-			err = tx.Create(v).Error
-			if err != nil {
-				goto stop
-			}
+		v, err = types.FromAPI(obj)
+		if err != nil {
+			break
+		}
 
-		case <-ctx.Done():
-			err = context.Canceled
-			goto stop
+		err = tx.Create(v).Error
+		if err != nil {
+			break
 		}
 	}
 
@@ -120,7 +127,6 @@ stop:
 		return s.driver.Error(err)
 	}
 
-	tx.Commit()
 
-	return nil
+	return tx.Commit().Error
 }
