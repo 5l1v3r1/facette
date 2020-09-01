@@ -7,18 +7,18 @@ require (
 	batou.dev/httprouter v0.1.0
 	batou.dev/httpserver v0.1.0
 	github.com/cespare/xxhash/v2 v2.1.1
-	github.com/google/uuid v1.1.1
-	github.com/imdario/mergo v0.3.9
+	github.com/google/uuid v1.1.2
+	github.com/imdario/mergo v0.3.11
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/prometheus/client_golang v1.6.0
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/common v0.13.0
 	github.com/prometheus/prometheus v1.8.2-0.20200428100226-05038b48bdf0
 	github.com/rakyll/statik v0.1.7
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli/v2 v2.2.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f
-	gopkg.in/yaml.v3 v3.0.0-20200506231410-2ff61e1afc86
-	gorm.io/driver/sqlite v1.0.8
-	gorm.io/gorm v0.2.20
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	gorm.io/driver/sqlite v1.1.0
+	gorm.io/gorm v1.20.0
 )
