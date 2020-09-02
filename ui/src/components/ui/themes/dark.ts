@@ -109,4 +109,8 @@ export default {
     // toolbar
     "toolbar-background": "#323232",
     "toolbar-size": "3rem",
+
+    // tooltip
+    "tooltip-background": "#424242",
+    "tooltip-shadow": "rgba(0, 0, 0, 0.35)",
 };

@@ -129,9 +129,10 @@ export declare type ToolbarComponent = ComponentPublicInstance;
 
 export declare interface TooltipState {
     anchor: "bottom" | "left" | "right" | "top";
-    message?: string;
+    domRect: DOMRect;
+    nowrap: boolean;
+    content?: string;
     shortcut?: string;
-    wrap: boolean;
 }
 
 export interface Shortcut {

@@ -33,6 +33,7 @@ import TablistComponent from "./tablist/tablist.vue";
 import TableCellComponent from "./table/table-cell.vue";
 import TableComponent from "./table/table.vue";
 import ToolbarComponent from "./toolbar/toolbar.vue";
+import TooltipComponent from "./tooltip/tooltip.vue";
 
 const components: Record<string, Component> = {
     ButtonComponent,
@@ -59,6 +60,7 @@ const components: Record<string, Component> = {
     TableCellComponent,
     TableComponent,
     ToolbarComponent,
+    TooltipComponent,
 };
 
 export default components;
