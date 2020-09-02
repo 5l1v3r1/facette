@@ -1,3 +1,10 @@
+<!--
+ Copyright (c) 2020, The Facette Authors
+
+ Licensed under the terms of the BSD 3-Clause License; a copy of the license
+ is available at: https://opensource.org/licenses/BSD-3-Clause
+-->
+
 <template>
     <div class="v-spinner">
         <svg :height="size" :width="size" xmlns="http://www.w3.org/2000/svg">
