@@ -75,6 +75,16 @@ export default {
 .v-modal {
     ::v-deep(.v-modal-content) {
         max-width: 25vw;
+
+        .v-markdown {
+            :first-child {
+                margin-top: 0;
+            }
+
+            :last-child {
+                margin-bottom: 0;
+            }
+        }
     }
 }
 </style>
