@@ -39,6 +39,12 @@
         height: auto;
         line-height: normal;
         padding: 0.65rem;
+
+        .v-icon.help {
+            position: absolute;
+            right: 0.5rem;
+            top: 0.75rem;
+        }
     }
 
     .v-icon {

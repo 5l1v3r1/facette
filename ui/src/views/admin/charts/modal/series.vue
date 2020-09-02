@@ -10,7 +10,14 @@
         <template v-slot="modal">
             <v-form>
                 <v-label>{{ i18n.t("labels.series._", 1) }}</v-label>
-                <v-input required spellcheck="false" type="textarea" v-autofocus v-model:value="series.expr"></v-input>
+                <v-input
+                    class="monospace"
+                    required
+                    spellcheck="false"
+                    type="textarea"
+                    v-autofocus
+                    v-model:value="series.expr"
+                ></v-input>
 
                 <v-flex class="columns">
                     <v-flex direction="column">
