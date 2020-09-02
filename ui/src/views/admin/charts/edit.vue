@@ -31,7 +31,7 @@
                 {{ i18n.t("labels.delete") }}
             </v-button>
 
-            <v-button :disabled="erred" :to="redirectPrev()" v-else>
+            <v-button :disabled="erred" @click="redirectPrev()" v-else>
                 {{ i18n.t("labels.cancel") }}
             </v-button>
 
