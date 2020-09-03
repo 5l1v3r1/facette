@@ -80,6 +80,9 @@ export default {
             document.removeEventListener("keyup", onModifier);
             document.removeEventListener("visibilitychange", onModifier);
         });
+
+        // Apply store state to UI one
+        ui.state.shortcuts.enabled = store.state.shortcuts;
     },
 };
 </script>
