@@ -344,16 +344,18 @@ export default {
         const selection = ref<Array<ObjectBase>>([]);
         const table = ref<HTMLTableElement | null>(null);
 
-        const tabs = ref<Array<Tab>>([
-            {label: i18n.t(`labels.${props.type}._`, 2), value: "plain"},
-            {label: i18n.t("labels.templates._", 2), value: "template"},
-        ]);
-
         const total = ref(0);
 
         const selectionEnabled = computed(() => {
             return props.type === "providers" ? (selection.value as Array<Provider>).map(obj => obj.enabled) : [];
         });
+
+        const tabs = computed(
+            (): Array<Tab> => [
+                {label: i18n.t(`labels.${props.type}._`, 2), value: "plain"},
+                {label: i18n.t("labels.templates._", 2), value: "template"},
+            ],
+        );
 
         const templatable = computed(() => props.type === "charts" || props.type === "dashboards");
 
