@@ -326,7 +326,12 @@ export default {
                                   items: cloneDeep(store.state.basket),
                               },
                           }
-                        : {data: null},
+                        : {
+                              data:
+                                  link.value && router.currentRoute.value.query.template
+                                      ? ({link: router.currentRoute.value.query.template} as Dashboard)
+                                      : null,
+                          },
                 );
             }
 

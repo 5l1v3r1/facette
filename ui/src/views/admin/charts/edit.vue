@@ -592,8 +592,18 @@ export default {
             if (edit.value) {
                 promise = api.object<Chart>("charts", router.currentRoute.value.params.id as string);
             } else {
-                const series = store.state.routeData?.prefill as Array<ChartSeries> | undefined;
-                promise = Promise.resolve({data: series !== undefined ? ({series} as Chart) : null});
+                const data = {} as Chart;
+
+                if (link.value && router.currentRoute.value.query.template) {
+                    data.link = router.currentRoute.value.query.template as string;
+                } else {
+                    const series = store.state.routeData?.prefill as Array<ChartSeries> | undefined;
+                    if (series !== undefined) {
+                        data.series = series;
+                    }
+                }
+
+                promise = Promise.resolve({data: Object.keys(data).length > 0 ? data : null});
             }
 
             form.value?.reset();
