@@ -27,6 +27,8 @@ export declare class UI {
     public notify(text: string, type: "error" | "success" | "warning", icon?: string): void;
 
     public shortcuts(): Array<Shortcut>;
+
+    public title(text: string | null): void;
 }
 
 export declare interface UIOptions {

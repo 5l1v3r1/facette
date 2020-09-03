@@ -23,16 +23,20 @@ import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 
 import common from "@/common";
+import {useUI} from "@/components/ui";
 import {State} from "@/store";
 
 export default {
     setup(): Record<string, unknown> {
         const i18n = useI18n();
         const store = useStore<State>();
+        const ui = useUI();
 
         const {loading} = common;
 
         onMounted(() => {
+            ui.title();
+
             // TODO: implement home and get rid of this hack
             store.commit("loading", true);
             nextTick(() => store.commit("loading", false));

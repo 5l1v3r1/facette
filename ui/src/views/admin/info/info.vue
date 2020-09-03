@@ -55,14 +55,16 @@ import {computed, onMounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 
-import api from "@/lib/api";
 import common from "@/common";
+import {useUI} from "@/components/ui";
+import api from "@/lib/api";
 import {State} from "@/store";
 
 export default {
     setup(): Record<string, unknown> {
         const i18n = useI18n();
         const store = useStore<State>();
+        const ui = useUI();
 
         const {erred, loading, onFetchRejected} = common;
 
@@ -82,7 +84,11 @@ export default {
                 });
         };
 
-        onMounted(() => getVersion());
+        onMounted(() => {
+            ui.title(i18n.t("labels.info._"));
+
+            getVersion();
+        });
 
         return {
             apiOptions,

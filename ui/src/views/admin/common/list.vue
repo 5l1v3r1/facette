@@ -291,7 +291,7 @@
 
 <script lang="ts">
 import isEqual from "lodash/isEqual";
-import {computed, onBeforeMount, ref, unref, watch} from "vue";
+import {computed, onBeforeMount, onMounted, ref, unref, watch} from "vue";
 import {useI18n} from "vue-i18n";
 import {useRouter} from "vue-router";
 import {useStore} from "vuex";
@@ -518,6 +518,10 @@ export default {
             options.value.sort = key === sort && !desc ? `-${key}` : key;
         };
 
+        const updateTitle = (): void => {
+            ui.title(`${i18n.t(`labels.${props.type}._`, 2)} – ${i18n.t("labels.adminPanel")}`);
+        };
+
         onBeforeMount(() => {
             const query = router.currentRoute.value.query as Record<string, string>;
 
@@ -561,6 +565,8 @@ export default {
             );
         });
 
+        onMounted(() => updateTitle());
+
         watch(
             () => props.type,
             () => {
@@ -569,6 +575,8 @@ export default {
                 } else {
                     getObjects();
                 }
+
+                updateTitle();
             },
         );
 

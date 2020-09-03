@@ -174,7 +174,11 @@ export default {
 
         onBeforeMount(() => applyRouteParams());
 
-        onMounted(() => reset(true));
+        onMounted(() => {
+            ui.title(i18n.t("labels.settings.personal"));
+
+            reset(true);
+        });
 
         return {
             i18n,

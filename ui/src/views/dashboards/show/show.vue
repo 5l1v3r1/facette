@@ -490,6 +490,9 @@ export default {
                         data: {
                             id: "00000000-0000-0000-0000-000000000000",
                             name: "basket",
+                            options: {
+                                title: i18n.t("labels.basket._"),
+                            },
                             layout: {
                                 columns: 1,
                                 rowHeight: 260,
@@ -513,6 +516,7 @@ export default {
                                 id: response.data.id,
                                 name: response.data.name,
                                 options: {
+                                    title: response.data.options?.title,
                                     variables: response.data.options?.variables,
                                 },
                                 layout: {

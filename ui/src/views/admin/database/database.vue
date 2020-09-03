@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 
@@ -98,6 +98,10 @@ export default {
                     },
                 );
         };
+
+        onMounted(() => {
+            ui.title(i18n.t("labels.database._"));
+        });
 
         return {
             apiOptions,

@@ -108,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import {onBeforeMount, ref, watch} from "vue";
+import {onBeforeMount, onMounted, ref, watch} from "vue";
 import {useI18n} from "vue-i18n";
 import {useRouter} from "vue-router";
 import {useStore} from "vuex";
@@ -242,6 +242,10 @@ export default {
                 },
                 {deep: true, immediate: true},
             );
+        });
+
+        onMounted(() => {
+            ui.title(`${i18n.t("labels.metrics._", 2)} – ${i18n.t("labels.adminPanel")}`);
         });
 
         return {

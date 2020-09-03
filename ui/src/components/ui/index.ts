@@ -53,6 +53,10 @@ export class UI {
             app.directive(kebabCase(key.replace(/Directive$/, "")), directives[key]),
         );
 
+        // Initialize document title
+        this.state.title = this.options?.title ?? "";
+        this.title();
+
         // Define CSS custom properties from theme records. Once done, remove
         // "preload" class from parent container.
         //
@@ -85,6 +89,10 @@ export class UI {
 
     public shortcuts(): Array<Shortcut> {
         return Object.values(this.state.shortcuts.entries);
+    }
+
+    public title(text?: string): void {
+        document.title = text ? `${text} – ${this.state.title}` : this.state.title;
     }
 }
 

@@ -73,6 +73,7 @@ import {useStore} from "vuex";
 import {SelectOption} from "types/ui";
 
 import common from "@/common";
+import {useUI} from "@/components/ui";
 import api from "@/lib/api";
 import {dataFromVariables} from "@/lib/objects";
 import {parseVariables, renderTemplate} from "@/lib/template";
@@ -81,10 +82,11 @@ import {State} from "@/store";
 const defaultSection = "home";
 
 export default {
-    setup(props: Record<string, any>): Record<string, unknown> {
+    setup(): Record<string, unknown> {
         const i18n = useI18n();
         const router = useRouter();
         const store = useStore<State>();
+        const ui = useUI();
 
         const {erred, error, loading, onFetchRejected, sidebar} = common;
 
@@ -114,7 +116,7 @@ export default {
         });
 
         const title = computed(() => {
-            if (props.type === "basket") {
+            if (router.currentRoute.value.name === "basket-show") {
                 return i18n.t("labels.basket._");
             } else if (dashboard.value) {
                 return dashboard.value?.options?.title ?? dashboard.value.name;
@@ -122,7 +124,7 @@ export default {
                 router.currentRoute.value.name === "dashboards-show" ||
                 router.currentRoute.value.name === "charts-show"
             ) {
-                return router.currentRoute.value.params.id;
+                return router.currentRoute.value.params.id as string;
             }
 
             return i18n.t("labels.dashboards._", 2);
@@ -217,6 +219,8 @@ export default {
                 getDashboards();
             }
         });
+
+        watch(dashboard, to => ui.title(to?.options?.title ?? to?.name));
 
         return {
             dashboard,

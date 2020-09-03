@@ -431,7 +431,11 @@ export default {
 
         onBeforeMount(() => applyRouteParams());
 
-        onMounted(() => reset(true));
+        onMounted(() => {
+            ui.title(`${i18n.t("labels.providers._", 2)} – ${i18n.t("labels.adminPanel")}`);
+
+            reset(true);
+        });
 
         onBeforeUnmount(() => updateRouteData(true));
 
