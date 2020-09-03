@@ -138,4 +138,5 @@ export declare interface TooltipState {
 export interface Shortcut {
     keys: string;
     help?: string;
+    tooltipHelp?: boolean;
 }

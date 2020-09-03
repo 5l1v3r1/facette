@@ -11,7 +11,7 @@
             <v-button
                 icon="arrow-left"
                 :to="prevRoute"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.dashboardBack')}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.dashboardBack'), tooltipHelp: false}"
                 v-if="prevRoute.name === 'dashboards-show'"
             >
                 {{ i18n.t("labels.goto.dashboardBack") }}
@@ -20,7 +20,7 @@
             <v-button
                 icon="arrow-left"
                 :to="{name: 'admin-dashboards-list'}"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.dashboards', 2)}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.dashboards', 2), tooltipHelp: false}"
                 v-else
             >
                 {{ i18n.t("labels.goto.dashboards", 2) }}

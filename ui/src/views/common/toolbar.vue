@@ -10,6 +10,7 @@
         <v-button
             icon="bars"
             @click="toggleSidebar"
+            v-tooltip="i18n.t('labels.toggleSidebar')"
             v-shortcut="{keys: 't', help: i18n.t('labels.toggleSidebar')}"
         ></v-button>
 

@@ -18,7 +18,7 @@ const anchors = ["bottom", "left", "right", "top"];
 
 let tooltipTimeout: number | null = null;
 
-function handle(this: ElementWithTooltip, ev: MouseEvent): void {
+export function handle(this: ElementWithTooltip, ev: MouseEvent): void {
     if (tooltipTimeout !== null) {
         clearTimeout(tooltipTimeout);
         tooltipTimeout = null;
@@ -33,30 +33,28 @@ function handle(this: ElementWithTooltip, ev: MouseEvent): void {
         return;
     }
 
-    tooltipTimeout = setTimeout(
-        () =>
-            document.dispatchEvent(
-                new CustomEvent<TooltipEvent>("tooltip-show", {
-                    detail: {
-                        state: {
-                            anchor:
-                                (Object.keys(this._binding.modifiers).filter(mod =>
-                                    anchors.includes(mod),
-                                )?.[0] as TooltipState["anchor"]) ?? "bottom",
-                            domRect: this.getBoundingClientRect(),
-                            nowrap: this._binding.modifiers.nowrap,
-                            content: this._binding.value,
-                            shortcut: (ev.target as HTMLElement).dataset.vShortcut,
-                        },
+    tooltipTimeout = setTimeout(() => {
+        document.dispatchEvent(
+            new CustomEvent<TooltipEvent>("tooltip-show", {
+                detail: {
+                    state: {
+                        anchor:
+                            (Object.keys(this._binding.modifiers).filter(mod =>
+                                anchors.includes(mod),
+                            )?.[0] as TooltipState["anchor"]) ?? "bottom",
+                        domRect: this.getBoundingClientRect(),
+                        nowrap: this._binding.modifiers.nowrap,
+                        content: this._binding.value,
+                        shortcut: (ev.target as HTMLElement).dataset.vShortcut,
                     },
-                }),
-            ),
-        500,
-    );
+                },
+            }),
+        );
+    }, 500);
 }
 
 export default {
-    beforeMount(el: ElementWithTooltip, binding: DirectiveBinding): void {
+    beforeMount(el: ElementWithTooltip, binding: DirectiveBinding<string>): void {
         el._binding = binding;
 
         el.addEventListener("mouseenter", handle.bind(el));

@@ -11,7 +11,7 @@
             <v-button
                 icon="arrow-left"
                 :to="{name: 'root'}"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.home')}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.home'), tooltipHelp: false}"
             >
                 {{ i18n.t("labels.goto.home") }}
             </v-button>

@@ -11,7 +11,7 @@
             <v-button
                 icon="arrow-left"
                 :to="{name: 'admin-providers-list'}"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.providers')}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.providers'), tooltipHelp: false}"
             >
                 {{ i18n.t("labels.goto.providers") }}
             </v-button>

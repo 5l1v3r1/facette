@@ -11,7 +11,7 @@
             <v-button
                 icon="arrow-left"
                 :to="prevRoute"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.chartBack')}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.chartBack'), tooltipHelp: false}"
                 v-if="prevRoute.name === 'charts-show'"
             >
                 {{ i18n.t("labels.goto.chartBack") }}
@@ -20,7 +20,7 @@
             <v-button
                 icon="arrow-left"
                 :to="{name: 'admin-charts-list'}"
-                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.charts', 2)}"
+                v-shortcut="{keys: 'alt+up', help: i18n.t('labels.goto.charts', 2), tooltipHelp: false}"
                 v-else
             >
                 {{ i18n.t("labels.goto.charts", 2) }}

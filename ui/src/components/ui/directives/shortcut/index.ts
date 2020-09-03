@@ -7,9 +7,12 @@
 
 import isArray from "lodash/isArray";
 import {nanoid} from "nanoid";
-import {DirectiveBinding} from "vue";
+import {DirectiveBinding, VNode} from "vue";
+
+import {Shortcut} from "types/ui";
 
 import {codeMappping, macSymbols, platform} from "./vars";
+import tooltip, {handle as handleTooltip} from "../tooltip";
 
 interface ShortcutBinding {
     el: ElementWithShortcut;
@@ -18,7 +21,7 @@ interface ShortcutBinding {
     modifiers: Record<string, boolean>;
 }
 
-type ElementWithShortcut = HTMLElement & {_shortcut: string};
+type ElementWithShortcut = HTMLElement & {_binding: DirectiveBinding; _shortcut: string};
 
 const modifierKeys = ["alt", "control", "meta", "shift"];
 
@@ -73,7 +76,7 @@ function handle(ev: KeyboardEvent): void {
 }
 
 export default {
-    beforeMount(el: ElementWithShortcut, binding: DirectiveBinding): void {
+    beforeMount(el: ElementWithShortcut, binding: DirectiveBinding<Shortcut>, vnode: VNode): void {
         const ui = binding.instance?.$ui ?? null;
         if (ui === null || !ui.state.shortcuts.enabled) {
             return;
@@ -84,6 +87,13 @@ export default {
             registered = true;
         }
 
+        el._binding = {
+            instance: binding.instance,
+            value: binding.value.tooltipHelp ?? true ? binding.value.help : null,
+            oldValue: null,
+            modifiers: {},
+            dir: binding.dir,
+        };
         el._shortcut = nanoid(8);
         el.dataset.vShortcut = binding.value.keys;
 
@@ -96,7 +106,7 @@ export default {
 
         ui.state.shortcuts.entries[el._shortcut] = {
             keys: binding.value.keys,
-            help: binding.value.help ?? null,
+            help: binding.value.help,
         };
 
         shortcuts[el._shortcut] = {
@@ -108,9 +118,17 @@ export default {
                 return out;
             }, {}),
         };
+
+        // Only add event listener if there is no tooltip directive already
+        // attached to the node
+        if (vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
+            el.addEventListener("mouseenter", handleTooltip.bind(el));
+            el.addEventListener("mouseleave", handleTooltip.bind(el));
+            el.addEventListener("mouseup", handleTooltip.bind(el));
+        }
     },
 
-    beforeUnmount(el: ElementWithShortcut, binding: DirectiveBinding): void {
+    beforeUnmount(el: ElementWithShortcut, binding: DirectiveBinding<Shortcut>, vnode: VNode): void {
         if (shortcuts[el._shortcut]) {
             delete binding.instance?.$ui.state.shortcuts.entries[el._shortcut];
             delete shortcuts[el._shortcut];
@@ -120,6 +138,12 @@ export default {
                 document.removeEventListener("keydown", handle);
                 registered = false;
             }
+        }
+
+        if (vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
+            el.removeEventListener("mouseenter", handleTooltip.bind(el));
+            el.removeEventListener("mouseleave", handleTooltip.bind(el));
+            el.removeEventListener("mouseup", handleTooltip.bind(el));
         }
     },
 };

@@ -201,15 +201,20 @@ export default {
         margin-bottom: 0;
     }
 
-    // .v-tooltip-shortcut {
-    //     align-items: center;
-    //     display: flex;
-    //     font-size: 0.8rem;
-    //     opacity: 0.425;
+    .v-tooltip-shortcut {
+        align-items: center;
+        display: flex;
+        font-size: 0.8rem;
+        margin-left: 1rem;
+        opacity: 0.425;
 
-    //     .v-icon {
-    //         margin-right: 0.5rem;
-    //     }
-    // }
+        &:first-child {
+            margin-left: 0;
+        }
+
+        .v-icon {
+            margin-right: 0.5rem;
+        }
+    }
 }
 </style>
