@@ -6,7 +6,7 @@
  */
 
 import {RouteLocationNormalized} from "vue-router";
-import {MutationPayload, Store, createStore} from "vuex";
+import {MutationPayload, MutationTree, Store, createStore} from "vuex";
 
 import {Notification} from "types/ui";
 
@@ -36,13 +36,13 @@ export class State {
         shift: false,
     };
 
-    public pendingNotification: Notification | null = null;
-
     public routeData: Record<string, unknown> | null = null;
 
     public routeGuarded = false;
 
     public shortcuts = true;
+
+    public pendingNotification: Notification | null = null;
 
     public prevRoute: RouteLocationNormalized | null = null;
 
@@ -55,58 +55,16 @@ export class State {
     public timezoneUTC = false;
 }
 
+const state = new State();
+
 const store = createStore({
-    state: new State(),
-    mutations: {
-        apiOptions(state: State, value: Options): void {
-            state.apiOptions = value;
-        },
-        autoPropagate(state: State, value: boolean): void {
-            state.autoPropagate = value;
-        },
-        basket(state: State, value: Array<DashboardItem>): void {
-            state.basket = value;
-        },
-        error(state: State, value: APIError): void {
-            state.error = value;
-        },
-        locale(state: State, value: string): void {
-            state.locale = value;
-        },
-        loading(state: State, value: boolean): void {
-            state.loading = value;
-        },
-        modifiers(state: State, value: Modifiers): void {
-            state.modifiers = value;
-        },
-        pendingNotification(state: State, value: Notification | null): void {
-            state.pendingNotification = value;
-        },
-        prevRoute(state: State, value: RouteLocationNormalized | null): void {
-            state.prevRoute = value;
-        },
-        routeData(state: State, value: Record<string, unknown> | null): void {
-            state.routeData = value;
-        },
-        routeGuarded(state: State, value: boolean): void {
-            state.routeGuarded = value;
-        },
-        shortcuts(state: State, value: boolean): void {
-            state.shortcuts = value;
-        },
-        sidebar(state: State, value: boolean): void {
-            state.sidebar = value;
-        },
-        theme(state: State, value: string | null): void {
-            state.theme = value;
-        },
-        timeRange(state: State, value: TimeRange | null): void {
-            state.timeRange = value;
-        },
-        timezoneUTC(state: State, value: boolean): void {
-            state.timezoneUTC = value;
-        },
-    },
+    state,
+    mutations: Object.getOwnPropertyNames(state).reduce((tree: MutationTree<State>, name: string) => {
+        tree[name] = (state: State, value: unknown): void => {
+            (state as any)[name] = value;
+        };
+        return tree;
+    }, {}),
     plugins: [persist()],
 });
 
