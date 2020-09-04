@@ -51,7 +51,7 @@
 
                 <v-button
                     icon="info-circle"
-                    @click="displayHelp"
+                    @click="$ui.modal('help')"
                     v-shortcut="{keys: '?', help: i18n.t('labels.displayHelp')}"
                 >
                     {{ i18n.t("labels.help") }}
@@ -59,10 +59,10 @@
 
                 <v-button
                     icon="sliders-h"
-                    :to="{name: 'settings', params: {section: 'display'}, hash: '#display'}"
-                    v-shortcut="{keys: 'alt+,', help: i18n.t('labels.goto.settings')}"
+                    @click="$ui.modal('settings')"
+                    v-shortcut="{keys: 'alt+,', help: i18n.t('labels.settings.display')}"
                 >
-                    {{ i18n.t("labels.goto.settingsAlt") }}
+                    {{ i18n.t("labels.settings._") }}
                 </v-button>
             </template>
         </v-button>
@@ -74,12 +74,10 @@ import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 
 import common from "@/common";
-import {useUI} from "@/components/ui";
 
 export default {
     setup(): Record<string, unknown> {
         const i18n = useI18n();
-        const ui = useUI();
 
         const {toggleSidebar} = common;
 
@@ -95,10 +93,6 @@ export default {
             }
         };
 
-        const displayHelp = (): void => {
-            ui.modal("help");
-        };
-
         const onFullscreen = (): void => {
             fullscreen.value = document.fullscreen;
         };
@@ -108,7 +102,6 @@ export default {
         onBeforeUnmount(() => document.removeEventListener("fullscreenchange", onFullscreen));
 
         return {
-            displayHelp,
             fullscreen,
             fullscreenSupport,
             i18n,

@@ -14,6 +14,7 @@
     <v-modal-confirm></v-modal-confirm>
     <v-modal-help></v-modal-help>
     <v-modal-prompt></v-modal-prompt>
+    <v-modal-settings></v-modal-settings>
     <v-tooltip></v-tooltip>
 </template>
 

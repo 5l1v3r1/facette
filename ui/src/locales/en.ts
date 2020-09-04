@@ -199,8 +199,6 @@ export default {
             home: "Go to home",
             metrics: "Go to metrics",
             providers: "Go to providers",
-            settings: "Go to settings",
-            settingsAlt: "Settings…",
         },
         help: "Help",
         home: "Home",
@@ -298,11 +296,10 @@ export default {
             set: "Set series",
         },
         settings: {
+            _: "Settings…",
+            apply: "Apply settings",
             display: "Display settings",
-            keyboard: "Keyboard settings",
             personal: "Personal settings",
-            reset: "Reset settings",
-            save: "Save settings",
         },
         show: "Show",
         system: "System",
@@ -316,7 +313,7 @@ export default {
         },
         theme: {
             _: "Theme",
-            auto: "Auto (system preference)",
+            auto: "Automatic (system preference)",
             select: "Select a theme…",
         },
         timeRange: {

@@ -17,7 +17,9 @@ import MessageErrorComponent from "./message/error.vue";
 import ModalConfirmComponent from "./modal/confirm.vue";
 import ModalHelpComponent from "./modal/help.vue";
 import ModalPromptComponent from "./modal/prompt.vue";
+import ModalSettingsComponent from "./modal/settings.vue";
 import ModalTimeRangeComponent from "./modal/time-range.vue";
+import ThemeComponent from "./theme/theme.vue";
 import TextComponent from "./text/text.vue";
 
 const components: Record<string, Component> = {
@@ -30,7 +32,9 @@ const components: Record<string, Component> = {
     ModalConfirmComponent,
     ModalHelpComponent,
     ModalPromptComponent,
+    ModalSettingsComponent,
     ModalTimeRangeComponent,
+    ThemeComponent,
     TextComponent,
 };
 

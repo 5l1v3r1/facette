@@ -14,7 +14,6 @@ import store from "@/store";
 
 import admin from "@/views/admin";
 import dashboards from "@/views/dashboards";
-import settings from "@/views/settings";
 
 const routes = Array<RouteRecordRaw>().concat(
     {
@@ -26,7 +25,6 @@ const routes = Array<RouteRecordRaw>().concat(
     },
     ...admin,
     ...dashboards,
-    ...settings,
 );
 
 const router = createRouter({
