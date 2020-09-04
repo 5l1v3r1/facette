@@ -110,7 +110,7 @@ export default {
 
 <style lang="scss" scoped>
 .v-grid-item {
-    background-color: #272727; // FIXME: don't hardcode here
+    background-color: var(--grid-item-background);
     border: 0.15rem solid transparent;
     border-radius: 0.2rem;
     grid-column: var(--column-start) / var(--column-end);

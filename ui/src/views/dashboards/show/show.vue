@@ -137,13 +137,11 @@
             <template v-if="type !== 'basket' && basket.length > 0">
                 <v-button dropdown-anchor="bottom-right" icon="shopping-basket" :icon-badge="basket.length">
                     <template v-slot:dropdown>
-                        <template v-if="type !== 'basket'">
-                            <v-button icon="eye" :to="{name: 'basket-show'}">
-                                {{ i18n.t("labels.basket.preview") }}
-                            </v-button>
+                        <v-button icon="eye" :to="{name: 'basket-show'}">
+                            {{ i18n.t("labels.basket.preview") }}
+                        </v-button>
 
-                            <v-divider></v-divider>
-                        </template>
+                        <v-divider></v-divider>
 
                         <v-button icon="broom" @click="clearBasket">
                             {{ i18n.t("labels.basket.clear") }}
@@ -608,8 +606,8 @@ export default {
 
         const onHashChange = (): void => {
             if (location.hash) {
-                const index = Number(location.hash.substr(5));
-                highlightIndex.value = !isNaN(index) ? index : null;
+                const idx = Number(location.hash.substr(5));
+                highlightIndex.value = !isNaN(idx) ? idx : null;
             } else {
                 highlightIndex.value = null;
             }

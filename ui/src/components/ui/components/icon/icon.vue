@@ -36,11 +36,11 @@ export default {
                 return null;
             }
 
-            const index = props.icon.indexOf("/");
+            const idx = props.icon.indexOf("/");
 
             let classes: Array<string>;
-            if (index !== -1) {
-                classes = [props.icon.substr(0, index), `fa-${props.icon.substr(index + 1)}`];
+            if (idx !== -1) {
+                classes = [props.icon.substr(0, idx), `fa-${props.icon.substr(idx + 1)}`];
             } else {
                 classes = ["fa", `fa-${props.icon}`];
             }

@@ -91,4 +91,8 @@ export default {
 $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 @import "~@fortawesome/fontawesome-free/scss/regular";
 @import "~@fortawesome/fontawesome-free/scss/solid";
+
+:root {
+    --grid-item-background: #272727;
+}
 </style>

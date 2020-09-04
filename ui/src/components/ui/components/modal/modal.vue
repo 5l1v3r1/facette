@@ -92,16 +92,16 @@ export default {
                         return;
                     }
 
-                    let index: number | null = null;
+                    let idx: number | null = null;
                     if (!ev.shiftKey && ev.target === focusable[focusable.length - 1]) {
-                        index = 0;
+                        idx = 0;
                     } else if (ev.shiftKey && ev.target === focusable[0]) {
-                        index = focusable.length - 1;
+                        idx = focusable.length - 1;
                     }
 
-                    if (index !== null) {
+                    if (idx !== null) {
                         ev.preventDefault();
-                        nextTick(() => focusable[index as number].focus());
+                        nextTick(() => focusable[idx as number].focus());
                     }
 
                     break;

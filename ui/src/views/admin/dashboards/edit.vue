@@ -526,8 +526,13 @@ export default {
 
 <style lang="scss" scoped>
 @import "../../mixins";
+@import "../../../components/ui/components/form/mixins";
 
 .v-content {
     @include content;
+
+    .columns {
+        @include form;
+    }
 }
 </style>
