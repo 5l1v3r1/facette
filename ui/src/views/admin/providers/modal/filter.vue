@@ -26,10 +26,7 @@
                 ></v-input>
 
                 <v-label>{{ i18n.t("labels.filters.pattern") }}</v-label>
-                <v-input
-                    :help="i18n.t('help.filters.pattern', ['https://github.com/google/re2/wiki/Syntax'])"
-                    v-model:value="rule.pattern"
-                ></v-input>
+                <v-input :help="i18n.t('help.filters.pattern')" v-model:value="rule.pattern"></v-input>
 
                 <template v-if="rule.action === 'relabel'">
                     <v-label>{{ i18n.t("labels.filters.targets._") }}</v-label>

@@ -19,7 +19,7 @@
     <v-label>{{ i18n.t("labels.providers.rrdtool.pattern") }}</v-label>
     <v-input
         required
-        :help="i18n.t('help.providers.rrdtool.pattern', ['https://github.com/google/re2/wiki/Syntax'])"
+        :help="i18n.t('help.providers.rrdtool.pattern')"
         :placeholder="i18n.t('labels.placeholders.example', ['(?P<instance>[^/]+)/(?P<__name__>.+)\\.rrd'])"
         v-model:value="settings.pattern"
     ></v-input>

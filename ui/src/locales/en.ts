@@ -22,12 +22,12 @@ export default {
             name: "Name of the chart. @:help.common.name",
             title: "Title of the chart. @:help.common.templateSupport",
         },
-        // common: {
-        //     name:
-        //         "Must start and end by an alphanumerical character, and contain alphanumerical characters, hyphens " +
-        //         "or underscores.",
-        //     templateSupport: "This field supports template variables.",
-        // },
+        common: {
+            name:
+                "Must start and end by an alphanumerical character, and contain alphanumerical characters, hyphens " +
+                "or underscores.",
+            templateSupport: "This field supports template variables.",
+        },
         dashboards: {
             name: "Name of the dashboard. @:help.common.name",
             title: "Title of the dashboard. @:help.common.templateSupport",
@@ -47,14 +47,12 @@ export default {
                 "* `sieve:` keeps only matching metrics\n",
             into: "Replacement value to apply on the value associated with the filter label.",
             label: "Label on which the filter will be applied.",
-            pattern:
-                "Pattern to apply on the value associated with the filter label. Must follow the [RE2 syntax]({0}).",
+            pattern: "Pattern to apply on the value associated with the filter label. Must follow the RE2 syntax.",
         },
         keyboard: {
             shortcuts:
                 "Save time navigating Facette by using keyboard shortcuts.\n\n" +
-                "**Note:** Learn more about available shortcuts by visiting their dedicated contextual " +
-                "[help section]({0}).",
+                "**Note:** Learn more about available shortcuts by visiting their dedicated help section.",
         },
         providers: {
             name: "Name of the provider. @:help.common.name",
@@ -62,21 +60,16 @@ export default {
             prometheus: {
                 filter: "Filter for querying metrics from upstream Prometheus service.",
             },
-            //     rrdtool: {
-            //         path: "Base directory from which to search for files.",
-            //         pattern: "Pattern to apply to found files paths. Must follow the [RE2 syntax]({0}).",
-            //         daemon: "rrdcached daemon socket address.",
-            //     },
+            rrdtool: {
+                path: "Base directory from which to search for files.",
+                pattern: "Pattern to apply to found files paths. Must follow the RE2 syntax.",
+                daemon: "rrdcached daemon socket address.",
+            },
             url: "URL to the upstream {0} service.",
         },
         refresh: {
             interval: "Time interval for automatic refresh in seconds. Use either empty or `0` to disable.",
         },
-        // series: {
-        //     alias:
-        //         "Series name to display in both chart tooltip and summary. Use pattern like `{{__name__}}` or " +
-        //         "`{{instance}}` to insert the value associated with the corresponding label.",
-        // },
     },
 
     labels: {
@@ -118,7 +111,6 @@ export default {
             refresh: "Refresh chart",
             reset: "Reset chart",
             save: "Save chart",
-            //     select: "Select a chart…",
             type: {
                 _: "Type",
                 area: "Area",
@@ -142,7 +134,6 @@ export default {
             _: "Connector | Connectors",
             select: "Select a connector…",
         },
-        // continue: "Continue",
         custom: "Custom…",
         dashboards: {
             _: "Dashboard | Dashboards",
@@ -155,9 +146,6 @@ export default {
             reset: "Reset dashboard",
             save: "Save dashboard",
             saveAs: "Save as dashboard…",
-            //     types: {
-            //         chart: "Chart",
-            //     },
         },
         database: {
             _: "Database",
@@ -171,7 +159,6 @@ export default {
         display: "Display",
         displayHelp: "Display this help",
         documentation: "Documentation",
-        // edit: "Edit",
         empty: "Empty",
         export: {
             _: "Export",
@@ -227,9 +214,8 @@ export default {
             version: "Version",
         },
         items: {
-            //     add: "Add item",
             remove: "Remove item",
-            //     unsupported: "Unsupported item",
+            unsupported: "Unsupported item",
         },
         keyboard: {
             _: "Keyboard",
@@ -307,7 +293,6 @@ export default {
         series: {
             _: "Series | Series",
             add: "Add series",
-            //     alias: "Alias",
             edit: "Edit series",
             remove: "Remove series",
             set: "Set series",
@@ -362,7 +347,7 @@ export default {
             skipVerify: "Skip server certificate verification (Insecure)",
         },
         toggleSidebar: "Toggle sidebar",
-        // unnamed: "Unnamed",
+        unnamed: "Unnamed",
         url: "URL",
         value: "Value",
         variables: {
@@ -384,7 +369,7 @@ export default {
             empty: "Basket is empty",
         },
         charts: {
-            //     conflict: "A chart with the same name already exists.",
+            conflict: "A chart with the same name already exists.",
             delete:
                 "You are about to delete the “{name}” chart. Are you sure? | " +
                 "You are about to delete {count} charts. Are you sure?",
@@ -396,7 +381,7 @@ export default {
         },
         copied: "Copied!",
         dashboards: {
-            //     conflict: "A dashboard with the same name already exists.",
+            conflict: "A dashboard with the same name already exists.",
             delete:
                 "You are about to delete the “{name}” dashboard. Are you sure? | " +
                 "You are about to delete {count} dashboards. Are you sure?",
@@ -407,9 +392,6 @@ export default {
             notFound: "Dashboard not found",
             saved: "Dashboard successfully saved",
             selected: "{0} dashboard selected | {0} dashboards selected",
-            //     types: {
-            //         loadFailed: "Cannot load type support: {0}",
-            //     },
         },
         data: {
             none: "No data found",
@@ -429,9 +411,7 @@ export default {
             _: "Error: {0}",
             bulk: "An error occurred during bulk execution",
             formVerify: "Please verify provided information",
-            //     load: "An error occurred loading data",
             notFound: "Resource not found",
-            //     request: "Cannot execute request",
             unhandled: "An unhandled error has occurred",
         },
         filters: {
@@ -451,7 +431,7 @@ export default {
             none: "No metrics found",
             selected: "{0} metric selected | {0} metrics selected",
         },
-        // notAvailable: "Not available",
+        notAvailable: "Not available",
         notDefined: "Not defined",
         providers: {
             conflict: "A provider with the same name already exists.",
