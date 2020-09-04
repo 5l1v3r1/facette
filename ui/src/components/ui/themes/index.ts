@@ -7,11 +7,12 @@
 
 import {AppTheme} from "types/ui";
 
-import Dark from "./dark";
+import dark from "./dark";
+import light from "./light";
 
 const themes: Record<string, AppTheme> = {
-    dark: Dark,
-    light: {name: "Light"},
+    dark,
+    light,
 };
 
 export default themes;

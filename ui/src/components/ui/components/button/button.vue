@@ -258,7 +258,6 @@ export default {
     > .v-button-content {
         border-radius: 0.2rem;
         align-items: center;
-        color: var(--button-color);
         cursor: pointer;
         display: flex;
         height: 100%;
@@ -289,13 +288,14 @@ export default {
         }
 
         .v-button-badge {
-            background-color: var(--button-color);
+            background-color: var(--color);
             border-radius: 0.2rem;
             color: var(--background);
             font-size: 0.75rem;
             height: 1rem;
             line-height: 1rem;
             margin-left: 0.75rem;
+            opacity: 0.85;
             padding: 0 0.25rem;
         }
 
@@ -334,7 +334,7 @@ export default {
 
     &.danger > .v-button-content,
     &.primary > .v-button-content {
-        color: var(--button-focus-color);
+        color: white;
     }
 
     &.danger {

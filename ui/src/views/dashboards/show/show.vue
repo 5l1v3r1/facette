@@ -886,10 +886,7 @@ export default {
 
     .v-toolbar .v-button.timerange {
         ::v-deep(.v-button-content) {
-            color: var(--color);
-
             span {
-                color: var(--button-color);
                 margin: 0 0.35rem;
 
                 &:first-child {

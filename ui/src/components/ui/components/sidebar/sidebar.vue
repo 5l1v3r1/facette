@@ -50,6 +50,7 @@ export default {
 .v-sidebar {
     background-color: var(--sidebar-background);
     bottom: 0;
+    color: var(--sidebar-color);
     display: flex;
     flex-direction: column;
     left: 0;
@@ -105,6 +106,12 @@ export default {
                 box-shadow: inset -0.25rem 0 0 var(--accent);
                 color: var(--sidebar-active-color);
             }
+
+            > .v-button-content:focus,
+            > .v-button-content:hover {
+                background-color: var(--sidebar-focus-background);
+                color: var(--sidebar-focus-color);
+            }
         }
 
         > :not(.v-toolbar):first-child,
@@ -129,6 +136,7 @@ export default {
         }
 
         > .v-toolbar {
+            color: inherit;
             min-height: var(--toolbar-size);
         }
     }

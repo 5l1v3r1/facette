@@ -141,8 +141,8 @@ export default {
         height: var(--table-row-height);
 
         .v-table-handle {
-            color: var(--table-handle-color);
             cursor: move;
+            opacity: 0.35;
             padding-right: 0;
             width: 1.5rem;
         }

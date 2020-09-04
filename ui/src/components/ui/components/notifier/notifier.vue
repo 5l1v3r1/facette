@@ -111,7 +111,7 @@ export default {
 
 .v-notifier {
     border-radius: 0.2rem;
-    box-shadow: 0 0.2rem 0.5rem var(--notifier-shadow);
+    box-shadow: 0 0.1rem 0.5rem var(--notifier-shadow);
     color: var(--notifier-color);
     cursor: pointer;
     display: flex;

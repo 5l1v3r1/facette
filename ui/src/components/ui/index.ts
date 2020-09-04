@@ -63,8 +63,9 @@ export class UI {
         // FIXME: find a way to not use "nextTick"
         nextTick(() => {
             const container = app._container as HTMLElement;
+            const theme = this.options?.theme ?? detectTheme();
 
-            const props = themes[this.options?.theme ?? detectTheme()];
+            const props = themes[theme];
             if (!props) {
                 return;
             }
@@ -76,6 +77,7 @@ export class UI {
             });
 
             container.classList.replace("preload", "v-app");
+            container.dataset.vTheme = theme;
         });
     }
 

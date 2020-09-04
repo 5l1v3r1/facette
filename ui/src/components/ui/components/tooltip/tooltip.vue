@@ -124,7 +124,7 @@ export default {
 .v-tooltip {
     background-color: var(--tooltip-background);
     border-radius: 0.2rem;
-    box-shadow: 0 0.2rem 0.5rem var(--tooltip-shadow);
+    box-shadow: 0 0.1rem 0.5rem var(--tooltip-shadow);
     cursor: default;
     display: flex;
     left: 0;
@@ -205,7 +205,7 @@ export default {
         align-items: center;
         display: flex;
         font-size: 0.8rem;
-        margin-left: 1rem;
+        margin-left: 2rem;
         opacity: 0.425;
 
         &:first-child {

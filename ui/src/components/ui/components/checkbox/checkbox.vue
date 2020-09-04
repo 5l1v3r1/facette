@@ -143,7 +143,6 @@ export default {
         }
 
         .v-icon {
-            background-color: var(--checkbox-background);
             border-radius: 0.2rem;
             border: 1.5px solid var(--checkbox-border);
             color: var(--checkbox-color);

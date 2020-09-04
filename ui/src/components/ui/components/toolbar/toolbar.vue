@@ -68,6 +68,7 @@ export default {
 .v-toolbar {
     align-items: center;
     background-color: var(--toolbar-background);
+    color: var(--toolbar-color);
     display: flex;
     line-height: var(--toolbar-size);
 
@@ -153,7 +154,7 @@ export default {
     }
 
     &.clip-sidebar {
-        background-color: var(--background);
+        background-color: var(--sidebar-toolbar-background);
         transform: translateY(-1.5rem);
         z-index: 100;
 
@@ -185,14 +186,16 @@ export default {
                 > .v-button-content:active,
                 > .v-button-content:focus,
                 > .v-button-content:hover {
-                    background-color: var(--toolbar-background);
+                    background-color: var(--sidebar-toolbar-focus-background);
+                    color: var(--sidebar-toolbar-focus-color);
                 }
             }
 
             > .v-select {
                 &.focus,
                 &:hover {
-                    background-color: var(--toolbar-background);
+                    background-color: var(--sidebar-toolbar-focus-background);
+                    color: var(--sidebar-toolbar-focus-color);
                 }
             }
         }

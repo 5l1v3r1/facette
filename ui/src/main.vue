@@ -92,7 +92,11 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 @import "~@fortawesome/fontawesome-free/scss/regular";
 @import "~@fortawesome/fontawesome-free/scss/solid";
 
-:root {
+body[data-v-theme="dark"] {
     --grid-item-background: #272727;
+}
+
+body[data-v-theme="light"] {
+    --grid-item-background: #fafafa;
 }
 </style>

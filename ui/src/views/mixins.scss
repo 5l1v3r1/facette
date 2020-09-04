@@ -14,7 +14,7 @@
 
     dl {
         dt {
-            color: var(--light-gray);
+            color: var(--gray);
             margin: 0.65rem 0;
         }
 
@@ -89,7 +89,7 @@
         }
 
         .note {
-            color: var(--light-gray);
+            opacity: 0.5;
             padding: 0 0.6rem;
         }
     }
