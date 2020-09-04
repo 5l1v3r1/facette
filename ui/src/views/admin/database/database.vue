@@ -93,8 +93,9 @@ export default {
                     () => {
                         ui.notify(i18n.t("messages.database.restored"), "success");
                     },
-                    response => {
-                        ui.notify(i18n.t("messages.database.restoreFailed", [response.error]), "error");
+                    async response => {
+                        const json = await response.json();
+                        ui.notify(i18n.t("messages.database.restoreFailed", [json.error]), "error");
                     },
                 );
         };

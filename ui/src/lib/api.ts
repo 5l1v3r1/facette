@@ -30,18 +30,15 @@ function createURL(input: string, params?: Record<string, any>): string {
 }
 
 export async function onFetch(response: Response): Promise<any> {
-    let data: Promise<any>;
-    if (response.headers.get("Content-Type")?.includes("application/json")) {
-        data = response.json();
-    } else {
-        data = response.text();
-    }
-
     if (response.status >= 400) {
-        return Promise.reject(await data);
+        return Promise.reject(response);
     }
 
-    return data;
+    if (response.headers.get("Content-Type")?.includes("application/json")) {
+        return response.json();
+    }
+
+    return response.text();
 }
 
 export class API {
