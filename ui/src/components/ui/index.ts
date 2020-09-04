@@ -53,8 +53,10 @@ export class UI {
             app.directive(kebabCase(key.replace(/Directive$/, "")), directives[key]),
         );
 
-        // Initialize document title
+        this.state.shortcuts.enabled = this.options?.shortcuts ?? true;
         this.state.title = this.options?.title ?? "";
+
+        // Initialize document title
         this.title();
 
         // Define CSS custom properties from theme records. Once done, remove

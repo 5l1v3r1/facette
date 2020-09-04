@@ -32,6 +32,7 @@ export declare class UI {
 }
 
 export declare interface UIOptions {
+    shortcuts?: boolean;
     theme?: string;
     title?: string;
 }

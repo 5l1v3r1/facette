@@ -10,6 +10,7 @@ import {createUI} from "@/components/ui"; // FIXME: extract
 import store from "./store";
 
 export default createUI({
+    shortcuts: store.state.shortcuts,
     theme: store.state.theme ?? undefined,
     title: "Facette",
 });
