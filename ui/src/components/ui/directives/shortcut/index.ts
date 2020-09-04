@@ -121,7 +121,7 @@ export default {
 
         // Only add event listener if there is no tooltip directive already
         // attached to the node
-        if (vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
+        if (el.classList.contains("v-button") && vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
             el.addEventListener("mouseenter", handleTooltip.bind(el));
             el.addEventListener("mouseleave", handleTooltip.bind(el));
             el.addEventListener("mouseup", handleTooltip.bind(el));
@@ -140,7 +140,7 @@ export default {
             }
         }
 
-        if (vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
+        if (el.classList.contains("v-button") && vnode.dirs?.findIndex(dir => dir.dir === tooltip) === -1) {
             el.removeEventListener("mouseenter", handleTooltip.bind(el));
             el.removeEventListener("mouseleave", handleTooltip.bind(el));
             el.removeEventListener("mouseup", handleTooltip.bind(el));
