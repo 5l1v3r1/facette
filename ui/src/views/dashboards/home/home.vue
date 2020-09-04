@@ -7,18 +7,32 @@
 
 <template>
     <v-content>
-        <v-toolbar clip="content"></v-toolbar>
+        <v-toolbar clip="content">
+            <template v-if="basket.length > 0">
+                <v-spacer></v-spacer>
+
+                <v-button dropdown-anchor="bottom-right" icon="shopping-basket" :icon-badge="basket.length">
+                    <template v-slot:dropdown>
+                        <v-button icon="eye" :to="{name: 'basket-show'}">
+                            {{ i18n.t("labels.basket.preview") }}
+                        </v-button>
+
+                        <v-divider></v-divider>
+
+                        <v-button icon="broom" @click="clearBasket">
+                            {{ i18n.t("labels.basket.clear") }}
+                        </v-button>
+                    </template>
+                </v-button>
+            </template>
+        </v-toolbar>
 
         <v-spinner v-if="loading"></v-spinner>
-
-        <template v-else>
-            <h1>{{ i18n.t("labels.home") }}</h1>
-        </template>
     </v-content>
 </template>
 
 <script lang="ts">
-import {nextTick, onMounted} from "vue";
+import {computed, nextTick, onMounted} from "vue";
 import {useI18n} from "vue-i18n";
 import {useStore} from "vuex";
 
@@ -34,6 +48,14 @@ export default {
 
         const {loading} = common;
 
+        const basket = computed(() => {
+            return store.state.basket;
+        });
+
+        const clearBasket = (): void => {
+            store.commit("basket", []);
+        };
+
         onMounted(() => {
             ui.title();
 
@@ -43,6 +65,8 @@ export default {
         });
 
         return {
+            basket,
+            clearBasket,
             i18n,
             loading,
         };
