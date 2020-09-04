@@ -25,7 +25,10 @@ export class UI {
         this.options = options ?? {};
 
         this.state = reactive<UIState>({
-            modals: {},
+            modals: {
+                current: null,
+                entries: {},
+            },
             notifier: null,
             shortcuts: {
                 enabled: true,
@@ -83,8 +86,14 @@ export class UI {
         });
     }
 
-    public modal<T = unknown>(name: string, params?: unknown): Promise<T> {
-        return this.state.modals[name]?.(params) as Promise<T>;
+    public modal<T = unknown>(name: string, params?: unknown): Promise<T | false> {
+        if (this.state.modals.current !== null) {
+            this.state.modals.entries[this.state.modals.current]?.close();
+        }
+
+        this.state.modals.current = name;
+
+        return this.state.modals.entries[name]?.open(params) as Promise<T>;
     }
 
     public notify(text: string, type: "error" | "success" | "warning", icon?: string): void {

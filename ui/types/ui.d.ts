@@ -38,7 +38,16 @@ export declare interface UIOptions {
 }
 
 export declare interface UIState {
-    modals: Record<string, (params?: unknown) => Promise<unknown>>;
+    modals: {
+        current: string | null;
+        entries: Record<
+            string,
+            {
+                close: () => void;
+                open: (params?: unknown) => Promise<unknown>;
+            }
+        >;
+    };
     notifier: ((notification: Notification) => void) | null;
     shortcuts: {
         enabled: boolean;

@@ -51,6 +51,7 @@ export default {
 
         const close = (value: unknown = null): void => {
             visible.value = false;
+            ui.state.modals.current = null;
             resolve?.(value);
         };
 
@@ -109,9 +110,9 @@ export default {
             }
         };
 
-        onMounted(() => (ui.state.modals[props.name] = open));
+        onMounted(() => (ui.state.modals.entries[props.name] = {close, open}));
 
-        onUnmounted(() => delete ui.state.modals[props.name]);
+        onUnmounted(() => delete ui.state.modals.entries[props.name]);
 
         return {
             close,
